@@ -874,7 +874,7 @@ class Netlist(object):
 
 
     def draw(self, draw_labels=True, draw_nodes=True, label_nodes=True,
-             s_model=False, filename=None, args=None, scale=2, tex=False):
+             s_mode=False, filename=None, args=None, scale=2, tex=False):
 
         return self.sch.draw(draw_labels=draw_labels, draw_nodes=draw_nodes, 
                              label_nodes=label_nodes, s_model=s_model,
