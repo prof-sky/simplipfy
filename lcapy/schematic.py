@@ -24,9 +24,21 @@ from lcapy.core import Expr
 __all__ = ('Schematic', )
 
 
+# Mapping of component names to circuitikz names.
+cpt_type_map = {'R' : 'R', 'C' : 'C', 'L' : 'L', 
+                'Vac' : 'sV', 'Vdc' : 'V', 'Iac' : 'sI', 'Idc' : 'I', 
+                'Vacstep' : 'sV', 'Vstep' : 'V', 'Iacstep' : 'sI', 'Istep' : 'I', 
+                'Vimpulse' : 'V', 'Iimpulse' : 'I',
+                'Vs' : 'V', 'Is' : 'I',
+                'V' : 'V', 'I' : 'I', 'v' : 'V', 'i' : 'I',
+                'P' : 'open', 'W' : 'short', 
+                'TF' : 'transformer',
+                'Z' : 'Z', 'Y' : 'Y', 'opamp' : 'opamp'}
+
+
 # Regular expression alternate matches stop with first match so need
 # to have longer names first.
-cpt_types = ['R', 'C', 'L', 'Z', 'Y', 'V', 'I', 'W', 'P', 'E', 'TF', 'TP', 'K']
+cpt_types = ['R', 'C', 'L', 'Z', 'Y', 'V', 'I', 'W', 'P', 'E', 'TF', 'TP']
 cpt_types.sort(lambda x, y: cmp(len(y), len(x)))
 
 cpt_type_pattern = re.compile(r'(%s)(\w)?' % '|'.join(cpt_types))
@@ -241,13 +253,7 @@ def longest_path(all_nodes, from_nodes):
 
         return best
 
-    try:
-        length, node = max([(get_longest(to_node), to_node) for to_node in all_nodes])
-    except RuntimeError:
-        print('Dodgy graph')
-        print(from_nodes)
-        raise RuntimeError
-
+    length, node = max([(get_longest(to_node), to_node) for to_node in all_nodes])
     return length, node, memo
 
 
@@ -357,10 +363,16 @@ class NetElement(object):
             id = '#%d' % NetElement.cpt_type_counter
             name = cpt_type + id
 
+        # Component arguments
+        self.args = args
+
         cpt_type_orig = cpt_type
         if args != ():
             if cpt_type in ('V', 'I') and args[0] in ('ac', 'dc', 'step', 'acstep', 'impulse', 's'):
                 cpt_type = cpt_type + args[0]
+                args = args[1:]
+            elif cpt_type == 'E' and args[0] == 'opamp':
+                cpt_type = 'opamp'
                 args = args[1:]
 
         # Tuple of nodes
@@ -370,8 +382,7 @@ class NetElement(object):
         # Type of component, e.g., 'V'
         self.cpt_type = cpt_type
 
-
-        if cpt_type in ('E', 'F', 'G', 'H', 'TF', 'TP'):
+        if cpt_type in ('E', 'F', 'G', 'H', 'TF', 'TP', 'opamp'):
             if len(args) < 2:
                 raise ValueError('Component type %s requires 4 nodes' % cpt_type)
             self.nodes += (args[0], args[1])
@@ -379,9 +390,6 @@ class NetElement(object):
 
         if cpt_type == 'TP' and len(args) != 5:
             raise ValueError('TP component requires 5 args')
-
-        # Component arguments
-        self.args = args
 
         autolabel = cpt_type_orig + '_{' + id + '}'
 
@@ -411,8 +419,6 @@ class NetElement(object):
                 autolabel = Expr(expr).latex()
             elif cpt_type in ('Vs', 'Is'):
                 autolabel = Expr(expr).latex()
-            elif cpt_type == 'TF':
-                autolabel = '1:%s' % args[2]
             elif cpt_type not in ('TP',):
                 try:
                     value = float(args[0])
@@ -513,10 +519,6 @@ class Schematic(object):
            
         self.elements[elt.name] = elt
 
-        # Ignore nodes for mutual inductance.
-        if elt.cpt_type == 'K':
-            return
-
         for node in elt.nodes:
             self._node_add(node, elt)
         
@@ -562,30 +564,17 @@ class Schematic(object):
 
             if elt.cpt_type in ('TF', 'TP'):
                 if dirs[0] == 'right':
+                    # Ensure nodes have same x value
                     cnodes.link(*elt.nodes[0:2])
                     cnodes.link(*elt.nodes[2:4])
                 else:
                     cnodes.link(*elt.nodes[0:4:2])
                     cnodes.link(*elt.nodes[1:4:2])
                 continue
-
-            if elt.cpt_type == 'K':
-
-                # Should check that these inductors exist.
-                L1 = self.elements[elt.nodes[0]]
-                L2 = self.elements[elt.nodes[1]]
-
-                # TODO, generalise
-                if L1.opts['dir'] != 'down' or L2.opts['dir'] != 'down':
-                    raise ValueError('Can only handle vertical mutual inductors')
-                nodes = L2.nodes + L1.nodes
-                n1, n2, n3, n4 = nodes
-
-                # Provide horizontal constraints (the inductors
-                # provide the vertical constraints).
-                if dirs[0] != 'right':
-                    cnodes.link(n3, n1)
-                    cnodes.link(n4, n2)
+            elif elt.cpt_type == 'opamp':
+                if dirs[0] == 'right':
+                    # Ensure input nodes have same x value
+                    cnodes.link(*elt.nodes[2:4])
                 continue
 
             if elt.opts['dir'] in dirs:
@@ -605,7 +594,7 @@ class Schematic(object):
                 # m1, m2 output nodes; m3, m4 input nodes
                 m1, m2, m3, m4 = cnodes.map(elt.nodes)
 
-                scale = {'TF' : 0.5, 'TP' : 2}
+                scale = {'TF' : 0.4, 'TP' : 2}
 
                 if dirs[0] == 'right':
                     graphs.add(m3, m1, scale[elt.cpt_type] * size)
@@ -614,19 +603,18 @@ class Schematic(object):
                     graphs.add(m2, m1, size)
                     graphs.add(m4, m3, size)
                 continue
+            elif elt.cpt_type == 'opamp':
+                # m1, m2 output nodes; m3, m4 input nodes
+                # m2 assumed ground...
+                m1, m2, m3, m4 = cnodes.map(elt.nodes)
 
-            if elt.cpt_type == 'K':
+                size *= 2
 
-                L1 = self.elements[elt.nodes[0]]
-                L2 = self.elements[elt.nodes[1]]
-
-                nodes = L2.nodes + L1.nodes
-                m1, m2, m3, m4 = cnodes.map(nodes)
-                
-                scale = 0.8
                 if dirs[0] == 'right':
-                    graphs.add(m3, m1, scale * size)
-                    graphs.add(m4, m2, scale * size)
+                    graphs.add(m3, m1, size)
+                    graphs.add(m4, m1, size)
+                else:
+                    graphs.add(m4, m3, size)
                 continue
 
             if elt.opts['dir'] not in dirs:
@@ -784,33 +772,40 @@ class Schematic(object):
         return node_str
 
 
-    def _tikz_draw_TF1(self, elt, nodes, outfile, draw_labels):
+    def _tikz_draw_opamp(self, elt, outfile, draw_labels):
 
-        p1, p2, p3, p4 = [self.coords[n]  for n in nodes] 
-        
-        xoffset = 0.06 
-        yoffset = 0.40
+        n1, n2, n3, n4 = elt.nodes
 
-        primary_dot = Pos(p3.x - xoffset, 0.5 * (p3.y + p4.y) + yoffset)
-        secondary_dot = Pos(p1.x + xoffset, 0.5 * (p1.y + p2.y) + yoffset)
+        p1, p2, p3, p4 = [self.coords[n]  for n in elt.nodes] 
 
-        centre = Pos(0.5 * (p3.x + p1.x), 0.5 * (p2.y + p1.y))
-        labelpos = Pos(centre.x, primary_dot.y)
+        centre = Pos(0.5 * (p3.x + p1.x), p1.y)
 
-        labelstr = elt.autolabel if draw_labels else ''
+        print(r'    \draw (%s) node[op amp, scale=2] (opamp) {};' % centre, file=outfile)
 
-        print(r'    \draw (%s) node[circ] {};' % primary_dot, file=outfile)
-        print(r'    \draw (%s) node[circ] {};' % secondary_dot, file=outfile)
-        print(r'    \draw (%s) node[minimum width=%.1f] {$%s$};' % (labelpos, 0.5, labelstr), file=outfile)
+        p1, p2, p3, p4 = [self.coords[n]  for n in elt.nodes] 
 
+        print(p1, p2, p3, p4)
+
+            
 
     def _tikz_draw_TF(self, elt, outfile, draw_labels):
 
         n1, n2, n3, n4 = elt.nodes
 
+        p1, p2, p3, p4 = [self.coords[n]  for n in elt.nodes] 
+        
+        xoffset = 0.06 
+        yoffset = 0.35
+
+        primary_dot = Pos(p3.x - xoffset, 0.5 * (p3.y + p4.y) + yoffset)
+        secondary_dot = Pos(p1.x + xoffset, 0.5 * (p1.y + p2.y) + yoffset)
+
+        labelstr = elt.autolabel if draw_labels else ''
+
         print(r'    \draw (%s) to [inductor] (%s);' % (n3, n4), file=outfile)
-        print(r'    \draw (%s) to [inductor] (%s);' % (n1, n2), file=outfile)
-        self._tikz_draw_TF1(elt, elt.nodes, outfile, draw_labels)
+        print(r'    \draw (%s) to [inductor, l=$%s$] (%s);' % (n1, labelstr, n2), file=outfile)
+        print(r'    \draw (%s) node[circ] {};' % primary_dot, file=outfile)
+        print(r'    \draw (%s) node[circ] {};' % secondary_dot, file=outfile)
 
 
     def _tikz_draw_TP(self, elt, outfile, draw_labels):
@@ -827,43 +822,20 @@ class Schematic(object):
         top = Pos(centre.x, p1.y + 0.15 )
 
         labelstr = elt.autolabel if draw_labels else ''
-        titlestr = "%s-parameter two-port" % elt.args[0]
+        titlestr = "%s-parameter two-port" % elt.args[2]
 
         print(r'    \draw (%s) -- (%s) -- (%s) -- (%s)  -- (%s);' % (p4, p3, p1, p2, p4), file=outfile)
-        print(r'    \draw (%s) node[minimum width=%.1f] {%s};' % (centre, width, titlestr), file=outfile)
-        print(r'    \draw (%s) node[minimum width=%.1f] {$%s$};' % (top, width, labelstr), file=outfile)
-
-
-    def _tikz_draw_K(self, elt, outfile, draw_labels):
-
-        L1 = self.elements[elt.nodes[0]]
-        L2 = self.elements[elt.nodes[1]]
-
-        nodes = L2.nodes + L1.nodes
-
-        self._tikz_draw_TF1(elt, nodes, outfile, draw_labels)
-        # Should draw arc linking inductors.
+        print(r'    \draw  (%s) node[minimum width=%.1f] {%s};' % (centre, width, titlestr), file=outfile)
+        print(r'    \draw  (%s) node[minimum width=%.1f] {$%s$};' % (top, width, labelstr), file=outfile)
 
 
     def _tikz_draw_cpt(self, elt, outfile, draw_labels, draw_nodes):
-
-        # Mapping of component names to circuitikz names.
-        cpt_type_map = {'R' : 'R', 'C' : 'C', 'L' : 'L', 
-                        'Vac' : 'sV', 'Vdc' : 'V', 'Iac' : 'sI', 'Idc' : 'I', 
-                        'Vacstep' : 'sV', 'Vstep' : 'V', 
-                        'Iacstep' : 'sI', 'Istep' : 'I', 
-                        'Vimpulse' : 'V', 'Iimpulse' : 'I',
-                        'Vs' : 'V', 'Is' : 'I',
-                        'V' : 'V', 'I' : 'I', 'v' : 'V', 'i' : 'I',
-                        'P' : 'open', 'W' : 'short', 
-                        'TF' : 'transformer',
-                        'Z' : 'Z', 'Y' : 'Y'}
 
         cpt_type = cpt_type_map[elt.cpt_type]
 
         n1, n2 = elt.nodes[0:2]
 
-        # circuitikz expects the positive node first, except for 
+        # circuittikz expects the positive node first, except for 
         # voltage and current sources!   So swap the nodes otherwise
         # they are drawn the wrong way around.
         modifier = ''
@@ -929,7 +901,7 @@ class Schematic(object):
 
         draw = {'TF' : self._tikz_draw_TF,
                 'TP' : self._tikz_draw_TP,
-                'K' : self._tikz_draw_K}
+                'opamp' : self._tikz_draw_opamp}
 
         # Draw components
         for m, elt in enumerate(self.elements.values()):
@@ -1026,18 +998,16 @@ class Schematic(object):
         # Update element positions
         self.coords
 
-        draw = {'TF' : self._schemdraw_draw_TF,
-                'TP' : self._schemdraw_draw_TP,
-                'K' : self._schemdraw_draw_K}
-
         # Draw components
         for m, elt in enumerate(self.elements.values()):
 
-            if elt.cpt_type in draw:
-                draw[elt.cpt_type](elt, drw, draw_labels)
+            # Perhaps vector through a table?
+            if elt.cpt_type == 'TF':
+                self._schemdraw_draw_TF(elt, drw, draw_labels)
+            elif elt.cpt_type == 'TP':
+                self._schemdraw_draw_TP(elt, drw, draw_labels)
             else:
                 self._schemdraw_draw_cpt(elt, drw, draw_labels, draw_nodes)
-
 
         if draw_nodes:
             for m, node in enumerate(self.nodes.values()):
