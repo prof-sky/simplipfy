@@ -24,21 +24,9 @@ from lcapy.core import Expr
 __all__ = ('Schematic', )
 
 
-# Mapping of component names to circuitikz names.
-cpt_type_map = {'R' : 'R', 'C' : 'C', 'L' : 'L', 
-                'Vac' : 'sV', 'Vdc' : 'V', 'Iac' : 'sI', 'Idc' : 'I', 
-                'Vacstep' : 'sV', 'Vstep' : 'V', 'Iacstep' : 'sI', 'Istep' : 'I', 
-                'Vimpulse' : 'V', 'Iimpulse' : 'I',
-                'Vs' : 'V', 'Is' : 'I',
-                'V' : 'V', 'I' : 'I', 'v' : 'V', 'i' : 'I',
-                'P' : 'open', 'W' : 'short', 
-                'TF' : 'transformer',
-                'Z' : 'Z', 'Y' : 'Y', 'opamp' : 'opamp'}
-
-
 # Regular expression alternate matches stop with first match so need
 # to have longer names first.
-cpt_types = ['R', 'C', 'L', 'Z', 'Y', 'V', 'I', 'W', 'P', 'E', 'TF', 'TP']
+cpt_types = ['R', 'C', 'L', 'Z', 'Y', 'V', 'I', 'W', 'P', 'E', 'TF', 'TP', 'K']
 cpt_types.sort(lambda x, y: cmp(len(y), len(x)))
 
 cpt_type_pattern = re.compile(r'(%s)(\w)?' % '|'.join(cpt_types))
@@ -90,6 +78,7 @@ class EngFormat(object):
         string = fmt % value 
 
         if trim:
+            # Remove trailing zeroes after decimal point
             string = string.rstrip('0').rstrip('.')
             
         return string + '\,' + prefixes[idx] + self.unit
@@ -253,7 +242,13 @@ def longest_path(all_nodes, from_nodes):
 
         return best
 
-    length, node = max([(get_longest(to_node), to_node) for to_node in all_nodes])
+    try:
+        length, node = max([(get_longest(to_node), to_node) for to_node in all_nodes])
+    except RuntimeError:
+        print('Dodgy graph')
+        print(from_nodes)
+        raise RuntimeError
+
     return length, node, memo
 
 
@@ -329,7 +324,10 @@ class Pos(object):
 
     def __str__(self):
 
-        return "%.1f,%.1f" % (self.x, self.y)
+        xstr = ('%.2f' % self.x).rstrip('0').rstrip('.')
+        ystr = ('%.2f' % self.y).rstrip('0').rstrip('.')
+
+        return "%s,%s" % (xstr, ystr)
 
 
     @property
@@ -419,6 +417,8 @@ class NetElement(object):
                 autolabel = Expr(expr).latex()
             elif cpt_type in ('Vs', 'Is'):
                 autolabel = Expr(expr).latex()
+            elif cpt_type == 'TF':
+                autolabel = '1:%s' % args[2]
             elif cpt_type not in ('TP',):
                 try:
                     value = float(args[0])
@@ -519,6 +519,10 @@ class Schematic(object):
            
         self.elements[elt.name] = elt
 
+        # Ignore nodes for mutual inductance.
+        if elt.cpt_type == 'K':
+            return
+
         for node in elt.nodes:
             self._node_add(node, elt)
         
@@ -577,6 +581,25 @@ class Schematic(object):
                     cnodes.link(*elt.nodes[2:4])
                 continue
 
+            if elt.cpt_type == 'K':
+
+                # Should check that these inductors exist.
+                L1 = self.elements[elt.nodes[0]]
+                L2 = self.elements[elt.nodes[1]]
+
+                # TODO, generalise
+                if L1.opts['dir'] != 'down' or L2.opts['dir'] != 'down':
+                    raise ValueError('Can only handle vertical mutual inductors')
+                nodes = L2.nodes + L1.nodes
+                n1, n2, n3, n4 = nodes
+
+                # Provide horizontal constraints (the inductors
+                # provide the vertical constraints).
+                if dirs[0] != 'right':
+                    cnodes.link(n3, n1)
+                    cnodes.link(n4, n2)
+                continue
+
             if elt.opts['dir'] in dirs:
                 continue
 
@@ -594,7 +617,7 @@ class Schematic(object):
                 # m1, m2 output nodes; m3, m4 input nodes
                 m1, m2, m3, m4 = cnodes.map(elt.nodes)
 
-                scale = {'TF' : 0.4, 'TP' : 2}
+                scale = {'TF' : 0.5, 'TP' : 2}
 
                 if dirs[0] == 'right':
                     graphs.add(m3, m1, scale[elt.cpt_type] * size)
@@ -615,6 +638,20 @@ class Schematic(object):
                     graphs.add(m4, m1, size)
                 else:
                     graphs.add(m4, m3, size)
+                continue
+
+            if elt.cpt_type == 'K':
+
+                L1 = self.elements[elt.nodes[0]]
+                L2 = self.elements[elt.nodes[1]]
+
+                nodes = L2.nodes + L1.nodes
+                m1, m2, m3, m4 = cnodes.map(nodes)
+                
+                scale = 0.8
+                if dirs[0] == 'right':
+                    graphs.add(m3, m1, scale * size)
+                    graphs.add(m4, m2, scale * size)
                 continue
 
             if elt.opts['dir'] not in dirs:
@@ -786,26 +823,41 @@ class Schematic(object):
 
         print(p1, p2, p3, p4)
 
+
+    def _tikz_draw_TF1(self, elt, nodes, outfile, draw_labels, link=False):
+
+        p1, p2, p3, p4 = [self.coords[n]  for n in nodes] 
+        
+        xoffset = 0.06 
+        yoffset = 0.40
+
+        primary_dot = Pos(p3.x - xoffset, 0.5 * (p3.y + p4.y) + yoffset)
+        secondary_dot = Pos(p1.x + xoffset, 0.5 * (p1.y + p2.y) + yoffset)
+
+        centre = Pos(0.5 * (p3.x + p1.x), 0.5 * (p2.y + p1.y))
+        labelpos = Pos(centre.x, primary_dot.y)
+
+        labelstr = elt.autolabel if draw_labels else ''
+
+        print(r'    \draw (%s) node[circ] {};' % primary_dot, file=outfile)
+        print(r'    \draw (%s) node[circ] {};' % secondary_dot, file=outfile)
+        print(r'    \draw (%s) node[minimum width=%.1f] {$%s$};' % (labelpos, 0.5, labelstr), file=outfile)
+
+        if link:
+            width = p1.x - p3.x
+            arcpos = Pos((p1.x + p3.x) / 2, secondary_dot.y - width / 2 + 0.2)
+
+            print(r'    \draw [<->] ([shift=(45:%.2f)]%s) arc(45:135:%.2f);' % (width / 2, arcpos, width / 2), file=outfile)
             
+
 
     def _tikz_draw_TF(self, elt, outfile, draw_labels):
 
         n1, n2, n3, n4 = elt.nodes
 
-        p1, p2, p3, p4 = [self.coords[n]  for n in elt.nodes] 
-        
-        xoffset = 0.06 
-        yoffset = 0.35
-
-        primary_dot = Pos(p3.x - xoffset, 0.5 * (p3.y + p4.y) + yoffset)
-        secondary_dot = Pos(p1.x + xoffset, 0.5 * (p1.y + p2.y) + yoffset)
-
-        labelstr = elt.autolabel if draw_labels else ''
-
         print(r'    \draw (%s) to [inductor] (%s);' % (n3, n4), file=outfile)
-        print(r'    \draw (%s) to [inductor, l=$%s$] (%s);' % (n1, labelstr, n2), file=outfile)
-        print(r'    \draw (%s) node[circ] {};' % primary_dot, file=outfile)
-        print(r'    \draw (%s) node[circ] {};' % secondary_dot, file=outfile)
+        print(r'    \draw (%s) to [inductor] (%s);' % (n1, n2), file=outfile)
+        self._tikz_draw_TF1(elt, elt.nodes, outfile, draw_labels)
 
 
     def _tikz_draw_TP(self, elt, outfile, draw_labels):
@@ -825,17 +877,39 @@ class Schematic(object):
         titlestr = "%s-parameter two-port" % elt.args[2]
 
         print(r'    \draw (%s) -- (%s) -- (%s) -- (%s)  -- (%s);' % (p4, p3, p1, p2, p4), file=outfile)
-        print(r'    \draw  (%s) node[minimum width=%.1f] {%s};' % (centre, width, titlestr), file=outfile)
-        print(r'    \draw  (%s) node[minimum width=%.1f] {$%s$};' % (top, width, labelstr), file=outfile)
+        print(r'    \draw (%s) node[minimum width=%.1f] {%s};' % (centre, width, titlestr), file=outfile)
+        print(r'    \draw (%s) node[minimum width=%.1f] {$%s$};' % (top, width, labelstr), file=outfile)
+
+
+    def _tikz_draw_K(self, elt, outfile, draw_labels):
+
+        L1 = self.elements[elt.nodes[0]]
+        L2 = self.elements[elt.nodes[1]]
+
+        nodes = L2.nodes + L1.nodes
+
+        self._tikz_draw_TF1(elt, nodes, outfile, draw_labels, link=True)
 
 
     def _tikz_draw_cpt(self, elt, outfile, draw_labels, draw_nodes):
+
+        # Mapping of component names to circuitikz names.
+        cpt_type_map = {'R' : 'R', 'C' : 'C', 'L' : 'L', 
+                        'Vac' : 'sV', 'Vdc' : 'V', 'Iac' : 'sI', 'Idc' : 'I', 
+                        'Vacstep' : 'sV', 'Vstep' : 'V', 
+                        'Iacstep' : 'sI', 'Istep' : 'I', 
+                        'Vimpulse' : 'V', 'Iimpulse' : 'I',
+                        'Vs' : 'V', 'Is' : 'I',
+                        'V' : 'V', 'I' : 'I', 'v' : 'V', 'i' : 'I',
+                        'P' : 'open', 'W' : 'short', 
+                        'TF' : 'transformer',
+                        'Z' : 'Z', 'Y' : 'Y'}
 
         cpt_type = cpt_type_map[elt.cpt_type]
 
         n1, n2 = elt.nodes[0:2]
 
-        # circuittikz expects the positive node first, except for 
+        # circuitikz expects the positive node first, except for 
         # voltage and current sources!   So swap the nodes otherwise
         # they are drawn the wrong way around.
         modifier = ''
@@ -901,6 +975,7 @@ class Schematic(object):
 
         draw = {'TF' : self._tikz_draw_TF,
                 'TP' : self._tikz_draw_TP,
+                'K' : self._tikz_draw_K,
                 'opamp' : self._tikz_draw_opamp}
 
         # Draw components
@@ -998,16 +1073,18 @@ class Schematic(object):
         # Update element positions
         self.coords
 
+        draw = {'TF' : self._schemdraw_draw_TF,
+                'TP' : self._schemdraw_draw_TP,
+                'K' : self._schemdraw_draw_K}
+
         # Draw components
         for m, elt in enumerate(self.elements.values()):
 
-            # Perhaps vector through a table?
-            if elt.cpt_type == 'TF':
-                self._schemdraw_draw_TF(elt, drw, draw_labels)
-            elif elt.cpt_type == 'TP':
-                self._schemdraw_draw_TP(elt, drw, draw_labels)
+            if elt.cpt_type in draw:
+                draw[elt.cpt_type](elt, drw, draw_labels)
             else:
                 self._schemdraw_draw_cpt(elt, drw, draw_labels, draw_nodes)
+
 
         if draw_nodes:
             for m, node in enumerate(self.nodes.values()):
