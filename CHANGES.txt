@@ -1,6 +1,8 @@
-v0.5.1, 12-Nov-2019
-    - Made available on conda
-    - New elements: COAX
+v0.6.0, IN PROGRESS
+    - Refactored internals to allow more control over individual components of drawing
+    - Updated add_label so that "top" labels should always appear on top, regardless of flip/reverse
+    - Added "zorder" parameter in the element definition dictionary and `add` method
+    
 
 v0.5.0, 21-Jul-2019
     - Added flowcharting symbol methods to SchemDraw.flow module
