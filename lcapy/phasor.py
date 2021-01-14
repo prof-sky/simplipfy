@@ -219,31 +219,6 @@ class PhasorDomainFrequencyExpression(PhasorDomainExpression):
         return PhasorDomainFrequencyExpression(self)
     
 
-class PhasorDomainAdmittance(AdmittanceMixin, PhasorDomainFrequencyExpression):
-    """PhasorDomain admittance"""
-    pass
-
-
-class PhasorDomainImpedance(ImpedanceMixin, PhasorDomainFrequencyExpression):
-    """PhasorDomain impedance"""
-    pass
-
-
-class PhasorDomainTransferFunction(TransferMixin, PhasorDomainFrequencyExpression):
-    """PhasorDomain transfer function response."""
-    pass
-
-    
-class PhasorDomainVoltage(VoltageMixin, PhasorDomainTimeExpression):
-    """Phasor-domain voltage (units V) parameterized as a phasor
-    of a single angular frequency."""
-        
-    
-class PhasorDomainCurrent(CurrentMixin, PhasorDomainTimeExpression):
-    """Phasor-domain current (units V) parameterized as a phasor
-    of a single angular frequency."""    
-
-
 def phasor(arg, omega=None, **assumptions):
     """Create phasor.   
 
@@ -270,13 +245,17 @@ def phasor(arg, omega=None, **assumptions):
 
 from .expressionclasses import expressionclasses
 
-classes = expressionclasses.make(PhasorDomainExpression)
+quantities = ('voltage', 'current', 'voltagesquared', 'currentsquared')
 
-classes['voltage'] = PhasorDomainVoltage
-classes['current'] = PhasorDomainCurrent
-classes['admittance'] = PhasorDomainAdmittance
-classes['impedance'] = PhasorDomainImpedance
-classes['transfer'] = PhasorDomainTransferFunction
+tclasses = expressionclasses.make(PhasorDomainTimeExpression, quantities)
+classes = expressionclasses.make(PhasorDomainFrequencyExpression)
+
+for quantity in quantities:
+    classes[quantity] = tclasses[quantity]
+
+PhasorDomainVoltage = classes['voltage']
+PhasorDomainCurrent = classes['current']
+    
 expressionclasses.add('phasor', classes)
 
 from .texpr import TimeDomainExpression, TimeDomainVoltage, TimeDomainCurrent
