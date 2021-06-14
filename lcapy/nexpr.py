@@ -14,7 +14,7 @@ from .sym import j, oo, pi, fsym, oo
 from .dsym import nsym, ksym, zsym, dt
 from .ztransform import ztransform
 from .dft import DFT
-from sympy import Sum, summation, limit
+from sympy import Sum, summation, limit, DiracDelta
 
 
 __all__ = ('nexpr', )
@@ -170,24 +170,22 @@ class DiscreteTimeDomainExpression(DiscreteTimeDomain, SequenceExpression):
         Use `images = 0` to avoid the infinite number of spectral images.
         """
 
-        from .fexpr import f, fexpr
-        from .omegaexpr import omega
-        from .normomegaexpr import Omega        
+        from .extrafunctions import UnitStep        
+        from .symbols import f, omega, Omega, F
+        from .fexpr import fexpr
         from .dtft import DTFT        
         
         if var is None:
             var = f
-        if id(var) not in (id(f), id(omega), id(Omega)):
-            raise ValueError('DTFT requires var f, omega, or Omega`, not %s' % var)
+        if id(var) not in (id(f), id(F), id(omega), id(Omega)):
+            raise ValueError('DTFT requires var to be f, F, omega, or Omega`, not %s' % var)
 
-        assumptions = self.assumptions.merge_and_infer(self, **assumptions)
-        
-        if assumptions.is_causal:
-            result = self.ZT(**assumptions).DTFT()
-        else:
-            result = fexpr(DTFT(self.expr, self.var, fsym, images=images))
+        dtft = DTFT(self.expr, self.var, fsym, images=images)
 
-        return result(var)
+        result = fexpr(dtft)(var)
+        result = result.expand(diracdelta=True, wrt=var)
+        result = result.simplify()
+        return result
 
     def norm_angular_fourier(self, **assumptions):
 
