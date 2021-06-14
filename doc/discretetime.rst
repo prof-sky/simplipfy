@@ -393,19 +393,17 @@ If the signal :math:`x(n)` is causal, the DTFT can be found by substituting :mat
 
 Here is an example::
 
-   >>> sign(n).DTFT()
-          2        
+   >>> u(n).DTFT()
+      1        
    ────────────────
         -2⋅ⅉ⋅π⋅Δₜ⋅f
    1 - ℯ           
 
 Alternatively, the transform can be invoked using `f` as an argument::
 
-   >>> sign(n)(f)
-          2        
-   ────────────────
-        -2⋅ⅉ⋅π⋅Δₜ⋅f
-   1 - ℯ           
+   >>> u(n)(f)
+          -4⋅ⅉ⋅π⋅Δₜ⋅f
+   1 + 2⋅ℯ           
 
 
 Here's an example of plotting the DTFT:
@@ -422,22 +420,6 @@ The DTFT can be confusing due to the number of definitions commonly used.  Due t
 
    X_1(F) = \sum_{n=-\infty}^{\infty} x(n) e^{-2 \mathrm{j} \pi n F}
 
-Here is an example::
-
-   >>> sign(n).DTFT(F)
-         2   
-   ─────────────
-        -2⋅ⅉ⋅π⋅F
-   1 - ℯ           
-
-Alternatively, the transform can be invoked using `F` as an argument::
-
-   >>> sign(n)(F)
-         2        
-   ─────────────
-        -2⋅ⅉ⋅π⋅F
-   1 - ℯ           
-   
 Another option is to use normalised angular frequency :math:`\Omega = 2\pi f \Delta t`
 
 .. math::
@@ -446,16 +428,16 @@ Another option is to use normalised angular frequency :math:`\Omega = 2\pi f \De
 
 Here is an example::
 
-   >>> sign(n).DTFT(Omega)
-         2        
+   >>> u(n).DTFT(Omega)
+      1        
    ────────────────
         -2⋅ⅉ⋅π⋅Δₜ⋅f
    1 - ℯ           
 
 Alternatively, the transform can be invoked using `Omega` as an argument::
 
-   >>> sign(n)(Omega)
-         2        
+   >>> u(n)(Omega)
+      1        
    ────────────────
         -2⋅ⅉ⋅π⋅Δₜ⋅f
    1 - ℯ           
