@@ -11,7 +11,7 @@ There are a number of domain variables for discrete-time signals:
   - `k` for discrete-frequency spectra
   - `omega` for angular frequency from a DTFT, `omega = 2 * pi * f`
   - `z` for z-transforms, for example, `Y(z)`
-  - `Omega` for normalised angular frequency from a DTFT, `Omega = omega * dt`
+  - `Omega` for normalized angular frequency from a DTFT, `Omega = omega * dt`
 
 The `n`, `k`, and `z` variables share many of the attributes and methods of their continuous-time equivalents, `t`, `f`, and `s`, :ref:`expressions`.
     
@@ -393,18 +393,19 @@ If the signal :math:`x(n)` is causal, the DTFT can be found by substituting :mat
 
 Here is an example::
 
-   >>> u(n).DTFT()
-      1        
+   >>> sign(n).DTFT()
+          2        
    ────────────────
         -2⋅ⅉ⋅π⋅Δₜ⋅f
    1 - ℯ           
 
 Alternatively, the transform can be invoked using `f` as an argument::
 
-   >>> u(n)(f)
-          -4⋅ⅉ⋅π⋅Δₜ⋅f
-   1 + 2⋅ℯ           
-
+   >>> sign(n)(f)
+          2        
+   ────────────────
+        -2⋅ⅉ⋅π⋅Δₜ⋅f
+   1 - ℯ           
 
 Here's an example of plotting the DTFT:
 
@@ -414,13 +415,29 @@ Here's an example of plotting the DTFT:
    :width: 15cm
 
 
-The DTFT can be confusing due to the number of definitions commonly used.  Due to the periodicity it is common to define a normalised frequency :math:`F = f \Delta t` and so
+The DTFT can be confusing due to the number of definitions commonly used.  Due to the periodicity it is common to define a normalized frequency :math:`F = f \Delta t` and so
 
 .. math::
 
    X_1(F) = \sum_{n=-\infty}^{\infty} x(n) e^{-2 \mathrm{j} \pi n F}
 
-Another option is to use normalised angular frequency :math:`\Omega = 2\pi f \Delta t`
+Here is an example::
+
+   >>> sign(n).DTFT(F)
+         2   
+   ─────────────
+        -2⋅ⅉ⋅π⋅F
+   1 - ℯ           
+
+Alternatively, the transform can be invoked using `F` as an argument::
+
+   >>> sign(n)(F)
+         2        
+   ─────────────
+        -2⋅ⅉ⋅π⋅F
+   1 - ℯ           
+   
+Another option is to use normalized angular frequency :math:`\Omega = 2\pi f \Delta t`
 
 .. math::
    
@@ -428,25 +445,25 @@ Another option is to use normalised angular frequency :math:`\Omega = 2\pi f \De
 
 Here is an example::
 
-   >>> u(n).DTFT(Omega)
-      1        
+   >>> sign(n).DTFT(Omega)
+         2        
    ────────────────
         -2⋅ⅉ⋅π⋅Δₜ⋅f
    1 - ℯ           
 
 Alternatively, the transform can be invoked using `Omega` as an argument::
 
-   >>> u(n)(Omega)
-      1        
+   >>> sign(n)(Omega)
+         2        
    ────────────────
         -2⋅ⅉ⋅π⋅Δₜ⋅f
    1 - ℯ           
    
-A normalised discrete-time angular Fourier transform of `x(n)` can be plotted as follows:
+A normalized discrete-time angular Fourier transform of `x(n)` can be plotted as follows:
 
 >>> x.DTFT(Omega).plot()
 
-This plots the normalised angular frequency between :math:`-\pi` and :math:`\pi`.
+This plots the normalized angular frequency between :math:`-\pi` and :math:`\pi`.
 
 The DTFT, :math:`X_{\frac{1}{\Delta t}}(f)`, is related to the Fourier transform, :math:`X(f)`, by
 
@@ -501,14 +518,14 @@ Like the DTFT, the IDFT has many commonly used definitions.  In terms of linear 
 
 where :math:`x(n)` denotes :math:`x(n \Delta t)`.
 
-In terms of normalised linear frequency,
+In terms of normalized linear frequency,
 
 .. math::
 
    x(n) = \int_{-\frac{1}{2}}^{\frac{1}{2}} X_{1}(f) e^{2 \mathrm{j} \pi n F} \mathrm{d}F
 
 
-In terms of normalised angular frequency,
+In terms of normalized angular frequency,
 
 .. math::
 
