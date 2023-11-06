@@ -24,7 +24,7 @@ from .simulator import Simulator
 from .subnetlist import SubNetlist
 from .superpositionvoltage import SuperpositionVoltage
 from .superpositioncurrent import SuperpositionCurrent
-from .symbols import j, s, t, omega
+from .symbols import j, s, t, omega, omega0
 from .transformdomains import TransformDomains
 from .utils import isiterable
 from copy import copy
@@ -331,38 +331,20 @@ class Netlist(NetlistOpsMixin, NetlistMixin, NetlistSimplifyMixin):
 
         return self.get_Vd(Np, Nm).time()
 
-    def ac_omega_list(self):
-        """Return list of the angular frequencies of the sources in
-        the netlist."""
-
-        omega_list = []
-        for group in self.independent_source_groups(True).keys():
-            if group in ('dc', 's'):
-                continue
-            if isinstance(group, str) and group[0] == 'n':
-                continue
-            omega_list.append(group)
-        return omega_list
-
     def ac(self, omega=None):
         """Return netlist for ac components of independent sources
-        for angular frequency omega.
+        for angular frequency `omega`.  If `omega` is undefined,
+        the angular frequency `omega0` is used.
 
         See also: dc, transient, laplace.
         """
+
         if omega is None:
+            omega = omega0
 
-            omega_list = self.ac_omega_list()
-            if len(omega_list) > 1:
-                omega = omega_list[0]
-                warn('Netlist has multiple AC frequencies: %s, using %s' %
-                     (omega_list, omega))
-            elif len(omega_list) == 1:
-                omega = omega_list[0]
-            else:
-                # Dummy, it could be anything.
-                omega = 1
-
+        # Should look at all the ac frequencies and if there is only
+        # one use that.   If have multiple ac frequencies should issue
+        # warning.
         return self.select(omega)
 
     def annotate_currents(self, cpts=None, domainvar=None, flow=False,
@@ -377,15 +359,15 @@ class Netlist(NetlistOpsMixin, NetlistMixin, NetlistSimplifyMixin):
         `flow` (default False) if True annotates current as a flow
 
         `eng_format` (default True) if True use engineering format if
-        the current is a number, e.g., 100\,mV instead of 0.1\,V
+        the current is a number, e.g., 100\, mV instead of 0.1\, V
 
         `evalf` (default True) if True prints floating point
         numbers as decimals otherwise they are shown as rationals
 
-        `show_units` (default True) if True applies the units (e.g.,
+        `show_units` (default True) if True applies the units(e.g.,
         V for volts)
 
-        `pos` specifies where to position the labels (see docs)
+        `pos` specifies where to position the labels(see docs)
         """
 
         cct = self.copy()
@@ -428,15 +410,15 @@ class Netlist(NetlistOpsMixin, NetlistMixin, NetlistSimplifyMixin):
         `pos` specifies where to position the labels, see docs
 
         `eng_format` (default True) if True use engineering format if
-        the voltage is a number, e.g., 100\,mV instead of 0.1\,V
+        the voltage is a number, e.g., 100\, mV instead of 0.1\, V
 
         `evalf` (default True) if True prints floating point
         numbers as decimals otherwise they are shown as rationals
 
-        `show_units` (default True) if True applies the units (e.g.,
+        `show_units` (default True) if True applies the units(e.g.,
         V for volts)
 
-        `pos` specifies where to position the labels (see docs)
+        `pos` specifies where to position the labels(see docs)
         """
 
         cct = self.copy()
@@ -482,10 +464,10 @@ class Netlist(NetlistOpsMixin, NetlistMixin, NetlistSimplifyMixin):
         (e.g., `t` for time-domain, `s` for Laplace-domain)
 
         `label_voltages` (default False) if True prefixes the
-        annotation with V1= for node 1, etc.
+        annotation with V1 = for node 1, etc.
 
         `eng_format` (default True) if True use engineering format if
-        the voltage is a number, e.g., 100\,mV instead of 0.1\,V
+        the voltage is a number, e.g., 100\, mV instead of 0.1\, V
 
         `evalf` (default True) if True prints floating point
         numbers as decimals otherwise they are shown as rationals
@@ -493,7 +475,7 @@ class Netlist(NetlistOpsMixin, NetlistMixin, NetlistSimplifyMixin):
         `num_digits` (default 3) specfies the number of digits to print
         for floating point numbers
 
-        `show_units` (default True) if True applies the units (e.g.,
+        `show_units` (default True) if True applies the units(e.g.,
         V for volts)
 
         `anchor` (default 'south west') specifies the position of the
