@@ -21,7 +21,6 @@ setup(name='lcapy',
       url='https://github.com/mph-/lcapy',
       download_url='https://github.com/mph-/lcapy',
       install_requires=['matplotlib',
-                        'scipy',
                         'numpy',
                         'sympy>=1.10.1',  # >=1.7.1 works
                         'networkx',
