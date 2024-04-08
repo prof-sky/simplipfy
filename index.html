@@ -13,12 +13,12 @@
         let pyodide = await loadPyodide();
         await pyodide.runPythonAsync(`
           from pyodide.http import pyfetch
-          response = await pyfetch("http://localhost:8000/file.py")
-          with open("file.py", "wb") as f:
-              f.write(await response.bytes())
+          response = await pyfetch("http://localhost:8000/lcapy.tar.gz")
+          await response.unpack_archive()
+          print("Archive unpacked")
         `);
-        pyFile = pyodide.pyimport("file");
-        pyFile.greet();
+        pkg = pyodide.pyimport("lcapy");
+        
       } 
       main();
     </script>
