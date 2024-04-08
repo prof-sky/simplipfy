@@ -11,21 +11,7 @@
       
       async function main() {
         let pyodide = await loadPyodide();
-        await pyodide.runPythonAsync(`
-              from pyodide.http import pyfetch
-              response = await pyfetch("http://localhost:8000/lcapy.tar.gz") # .zip, .whl, ...
-              await response.unpack_archive() # by default, unpacks to the current dir
-              `)
-        pkg = pyodide.pyimport("lcapy");
-        // Downloading a single file
-        await pyodide.runPythonAsync(`
-            from pyodide.http import pyfetch
-            response = await pyfetch("https://localhost:8000/lcapyTest.py")
-            with open("script.py", "wb") as f:
-                f.write(await response.bytes())
-        `)
-        pkg = pyodide.pyimport("script");
-        pkg.do_something(); 
+        pyodide.runPython(`print('Hello world, from the browser!')`);
       } 
       main();
     </script>
