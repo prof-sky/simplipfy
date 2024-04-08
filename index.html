@@ -11,7 +11,14 @@
       
       async function main() {
         let pyodide = await loadPyodide();
-        pyodide.runPython(`print('Hello world, from the browser!')`);
+        await pyodide.runPythonAsync(`
+          from pyodide.http import pyfetch
+          response = await pyfetch("http://localhost:8000/file.py")
+          with open("file.py", "wb") as f:
+              f.write(await response.bytes())
+        `);
+        pyFile = pyodide.pyimport("file");
+        pyFile.greet();
       } 
       main();
     </script>
