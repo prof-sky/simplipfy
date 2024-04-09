@@ -11,13 +11,109 @@
       
       async function main() {
         let pyodide = await loadPyodide();
+        await pyodide.loadPackage("http://localhost:8000/micropip-0.5.0-py3-none-any.whl");
+        await pyodide.loadPackage("http://localhost:8000/packaging-23.1-py3-none-any.whl");
+        const mpip = await pyodide.pyimport("micropip");
         await pyodide.runPythonAsync(`
           from pyodide.http import pyfetch
-          response = await pyfetch("http://localhost:8000/lcapy.tar.gz")
-          await response.unpack_archive()
-          print("Archive unpacked")
-        `);
-        pkg = pyodide.pyimport("lcapy");
+          print("Downloading Packages")
+          response = await pyfetch("http://localhost:8000/Packages.zip") # .zip, .whl, ...
+          print("Unpack Packages")
+          await response.unpack_archive() # by default, unpacks to the current dir
+          
+          print("Install Packages")
+          import os
+          print(os.listdir(os.curdir))
+          import micropip as mpip
+          # -- Sympy ------------------------------------------------------------------------
+          await mpip.install("emfs:mpmath-1.3.0-py3-none-any.whl")
+          await mpip.install("emfs:sympy-1.12-py3-none-any.whl")
+
+          # ---------------------------------------------------------------------------------
+          await mpip.install("emfs:wheel-0.43.0-py3-none-any.whl")
+          # ---------------------------------------------------------------------------------
+          await mpip.install("emfs:setuptools-68.1.2-py3-none-any.whl")
+          # ---------------------------------------------------------------------------------
+          await mpip.install("emfs:property_cached-1.6.4-py2.py3-none-any.whl")
+          # ---------------------------------------------------------------------------------
+          await mpip.install("emfs:numpy-1.26.4-cp311-cp311-emscripten_3_1_46_wasm32.whl")
+          # ---------------------------------------------------------------------------------
+          await mpip.install("emfs:networkx-3.1-py3-none-any.whl")
+
+          # -- Matplotlib -------------------------------------------------------------------
+          # ------------------------------------------------------------------------ Dateutil
+          await mpip.install("emfs:six-1.16.0-py2.py3-none-any.whl")
+          await mpip.install("emfs:python_dateutil-2.8.2-py2.py3-none-any.whl")
+          # ---------------------------------------------------------------------------------
+          await mpip.install("emfs:pyparsing-3.1.1-py3-none-any.whl")
+          await mpip.install("emfs:Pillow-10.0.0-cp311-cp311-emscripten_3_1_46_wasm32.whl")
+          await mpip.install("emfs:pytz-2023.3-py2.py3-none-any.whl")
+          await mpip.install("emfs:kiwisolver-1.4.4-cp311-cp311-emscripten_3_1_46_wasm32.whl")
+          await mpip.install("emfs:importlib_resources-6.4.0-py3-none-any.whl")
+          await mpip.install("emfs:fonttools-4.42.1-py3-none-any.whl")
+          await mpip.install("emfs:cycler-0.11.0-py3-none-any.whl")
+          await mpip.install("emfs:contourpy-1.2.0-cp311-cp311-emscripten_3_1_46_wasm32.whl")
+          await mpip.install("emfs:matplotlib-3.5.2-cp311-cp311-emscripten_3_1_46_wasm32.whl")
+
+          # -- ipython ----------------------------------------------------------------------
+          await mpip.install("emfs:typing_extensions-4.7.1-py3-none-any.whl")
+          await mpip.install("emfs:traitlets-5.14.2-py3-none-any.whl")
+              # -- stack_data -------------------------------------------------------------------
+          await mpip.install("emfs:asttokens-2.4.1-py2.py3-none-any.whl")
+          await mpip.install("emfs:executing-2.0.1-py2.py3-none-any.whl")
+          await mpip.install("emfs:pure_eval-0.2.2-py3-none-any.whl")
+          await mpip.install("emfs:stack_data-0.6.3-py3-none-any.whl")
+              # -- Pygments ----------------------------------------------------------------
+          await mpip.install("emfs:Pygments-2.16.1-py3-none-any.whl")
+              # -- promt_toolkit ----------------------------------------------------------------
+          await mpip.install("emfs:wcwidth-0.2.13-py2.py3-none-any.whl")
+          await mpip.install("emfs:prompt_toolkit-3.0.43-py3-none-any.whl")
+              # -- pickleshare ----------------------------------------------------------------
+          await mpip.install("emfs:pickleshare-0.7.5-py2.py3-none-any.whl")
+              # -- matplotlib_inline ----------------------------------------------------------------
+          await mpip.install("emfs:matplotlib_inline-0.1.6-py3-none-any.whl")
+              # -- parso ----------------------------------------------------------------
+          await mpip.install("emfs:parso-0.8.3-py2.py3-none-any.whl")
+              # -- jedi ----------------------------------------------------------------
+          await mpip.install("emfs:jedi-0.19.0-py2.py3-none-any.whl")
+              # -- decorator ----------------------------------------------------------------
+          await mpip.install("emfs:decorator-5.1.1-py3-none-any.whl")
+              # -- colorama ----------------------------------------------------------------
+          await mpip.install("emfs:colorama-0.4.6-py2.py3-none-any.whl")
+              # -- backcall ----------------------------------------------------------------
+          await mpip.install("emfs:backcall-0.2.0-py2.py3-none-any.whl")       
+          
+          await mpip.install("emfs:ipython-8.23.0-py3-none-any.whl")
+          # -- ipython ----------------------------------------------------------------------
+
+          # -- lcapy ----------------------------------------------------------------
+          await mpip.install("emfs:lcapy-1.22-py3-none-any.whl")
+          
+          
+          print("sucessfully installed Lcapy and all necsessray packages")
+
+          from lcapy import Circuit
+
+          cct = Circuit("""
+          ... V1 0 1 10; down
+          ... W1 1 2; right
+          ... R1 2 3 10; down
+          ... R2 3 4 10; down
+          ... W2 4 0; left
+          """)
+
+          print("--- Netlist ---")
+          print(cct.netlist())
+
+          print("--- Currents ---")
+          print(cct.branch_currents())
+
+          print("--- Voltages ---")
+
+          print("--- Resistance ---")
+          print(cct.resistance(0, 1))
+        `)
+
         
       } 
       main();
