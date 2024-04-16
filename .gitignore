@@ -17,3 +17,4 @@ unit_tests/coverage
 misc/*
 issues/*
 testing/*
+.idea
