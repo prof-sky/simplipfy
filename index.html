@@ -1,83 +1,11 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <script src="http://localhost:8000/pyodide.js"></script>
-  </head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=http://localhost:8000/MathJaxTest.html">
+    <title>Redirect</title>
+</head>
+<body>
 
-  <body>
-    <p id="title">My first Pyodide app</p>
-
-    <script>
-      
-      async function main() {
-        let pyodide = await loadPyodide();
-        await pyodide.loadPackage("http://localhost:8000/micropip-0.5.0-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/packaging-23.1-py3-none-any.whl");
-        const mpip = await pyodide.pyimport("micropip");
-        await pyodide.runPythonAsync(`
-          from pyodide.http import pyfetch
-          print("Downloading Packages")
-          response = await pyfetch("http://localhost:8000/Packages.zip") # .zip, .whl, ...
-          print("Unpack Packages")
-          await response.unpack_archive() # by default, unpacks to the current dir  
-        
-          response = await pyfetch("http://localhost:8000/install_packages.py")
-          with open("install_packages.py", "wb") as f:
-              f.write(await response.bytes())
-          
-          import install_packages as inspa
-          # install sympy and refereced packages
-          await inspa.install_emfs_packages(["mpmath","sympy"])
-
-          # install some standalony packages
-          await inspa.install_emfs_packages(["wheel","setuptools","property_cached","numpy","networkx"])
-
-          # install Matplotlib
-            # install dateutil
-          await inspa.install_emfs_packages(["six", "python_dateutil"])
-            # install standalone packages for matplotlib and matplotlib
-          await inspa.install_emfs_packages(["pyparsing","Pillow","pytz","kiwisolver","importlib_resources","fonttools","cycler","contourpy","matplotlib-3.5.2-cp311-cp311-emscripten"])
-
-          # install ipython
-            # install standalone packages
-          await inspa.install_emfs_packages(["typing_extensions","traitlets"])
-            # install stack data and referece packages
-          await inspa.install_emfs_packages(["asttokens","executing","pure_eval","stack_data"])
-            # install promt_toolkit and refereced packages
-          await inspa.install_emfs_packages(["wcwidth","prompt_toolkit"])
-            # install standalone packages
-          await inspa.install_emfs_packages(["Pygments","pickleshare","matplotlib_inline","parso","jedi","decorator","colorama","backcall","ipython"])
-
-          inspa.install_emfs_package("lcapy")
-          `)
-        
-        await pyodide.runPythonAsync(`
-          
-          from lcapy import Circuit
-
-          cct = Circuit("""
-          ... V1 0 1 10; down
-          ... W1 1 2; right
-          ... R1 2 3 10; down
-          ... R2 3 4 10; down
-          ... W2 4 0; left
-          """)
-
-          print("--- Netlist ---")
-          print(cct.netlist())
-
-          print("--- Currents ---")
-          print(cct.branch_currents())
-
-          print("--- Voltages ---")
-
-          print("--- Resistance ---")
-          print(cct.resistance(0, 1))
-        `)
-
-        
-      } 
-      main();
-    </script>
-  </body>
+</body>
 </html>
