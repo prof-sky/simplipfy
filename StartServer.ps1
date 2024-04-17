@@ -1,3 +1,3 @@
-Write-Output "--- Pyodide-Core server ---"
+Write-Output "--- Pyodide-Core server with GZIP compression ---"
 Set-Location $(Split-Path -Path $MyInvocation.MyCommand.Path -Parent)
-python -m http.server
+python .\GzipSimplePythonHttpServer.py
