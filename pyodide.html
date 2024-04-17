@@ -11,7 +11,6 @@
       
       async function main() {
         let pyodide = await loadPyodide();
-        await pyodide.loadPackage("http://localhost:8000/Packages/micropip-0.5.0-py3-none-any.whl");
         await pyodide.loadPackage("http://localhost:8000/Packages/packaging-23.1-py3-none-any.whl");
 
         //sympy
