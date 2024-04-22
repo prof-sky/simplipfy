@@ -2,10 +2,15 @@ from lcapy import Circuit
 
 cct = Circuit("""
 ... V1 0 2 {V1}; up
-... R1 2 3 {R1}; down
-... R2 3 4 {R2}; down
-... R3 4 5 {R3}; down
-... R4 5 6 {R4}; down
+... W1 2 3; up
+... W2 3 4; right
+... R1 4 5 {R1}; down
+... R2 5 6 {R2}; down
+... R3 6 7 {R3}; down
+... R4 7 8 {R4}; down
+... W3 8 9; left
+... W4 9 10; up
+... W5 10 0; up
 """)
 
 print("--- Currents ---")
@@ -15,8 +20,10 @@ print("--- Voltages ---")
 print(cct.branch_voltages())
 
 print("--- Resistance ---")
-print(cct.resistance(2, 5))
+print(cct.resistance(4, 5))
 print(cct.netlist())
+
+cct.draw()
 cct2, nos = cct.simplify()
 
 i = 1
@@ -25,10 +32,6 @@ for net in nos:
     print(f"Netlist of nos :{i}")
     i += 1
     print(net)
-    print("--------------------------")
 
-print(cct2.netlist())
+    net[0].draw()
 
-exit("Exit Code early with statement")
-
-cct.draw()
