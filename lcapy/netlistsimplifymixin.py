@@ -411,13 +411,13 @@ class NetlistSimplifyMixin:
             if series:
                 net, changed1, nos = net._simplify_series(skip, explain)
                 changed = changed or changed1
-                if nos:
-                    netlists_of_steps.append(nos)
+                for netlist in nos:
+                    netlists_of_steps.append(netlist)
             if parallel:
                 net, changed1, nos = net._simplify_parallel(skip, explain)
                 changed = changed or changed1
-                if nos:
-                    netlists_of_steps.append(nos)
+                for netlist in nos:
+                    netlists_of_steps.append(netlist)
 
             if not changed:
                 break
