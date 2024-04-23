@@ -1,7 +1,8 @@
 import random as rand
+from datetime import datetime
 
-rand.seed(100)
-rand_val = [rand.randint(0, 20) for i in range(10)]
+rand.seed((datetime.now()-datetime(1970,1,1)).total_seconds())
+rand_val = [4, 14, 14, 5, 12, 11, 13, 16, 3, 17]
 
 rand_val_shuf1 = rand_val.copy()
 rand.shuffle(rand_val_shuf1)
