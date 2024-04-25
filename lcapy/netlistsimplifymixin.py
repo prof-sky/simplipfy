@@ -6,6 +6,7 @@ Copyright 2022--2023 Michael Hayes, UCECE
 
 from .expr import expr
 from warnings import warn
+from ordered_set import OrderedSet
 from collections import OrderedDict
 
 
@@ -384,13 +385,13 @@ class NetlistSimplifyMixin:
 
         keep_nodes = [str(node) for node in keep_nodes]
 
-        skip = set()
+        skip = OrderedSet()
 
         if select is not None:
-            skip = set(self._elements) - set(select)
+            skip = OrderedSet(self._elements) - OrderedSet(select)
 
         if ignore is not None:
-            skip = skip.union(set(ignore))
+            skip = skip.union(OrderedSet(ignore))
 
         # Perhaps use num cpts?
         if passes == 0:
