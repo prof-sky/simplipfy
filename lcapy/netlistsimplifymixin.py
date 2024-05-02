@@ -18,6 +18,7 @@ class NetlistSimplifyMixin:
             print(string % subset)
 
         subset_list = list(subset)
+        subset_list.sort()
 
         if add:
             total = expr(0)
@@ -408,14 +409,12 @@ class NetlistSimplifyMixin:
             if len(selected) > 1:
                 net, _ = net.simplify(select=selected)
                 steps.append(net)
-                net.draw()
                 continue
 
             selected = net.get_next_simplify_elements(parallel=True, debug=True)
             if len(selected) > 1:
                 net, _ = net.simplify(select=selected)
                 steps.append(net)
-                net.draw()
                 continue
 
             if net.in_series():

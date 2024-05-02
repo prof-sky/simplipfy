@@ -1,5 +1,6 @@
 from lcapy import Circuit
 import to_impedance
+import random
 
 def process_entry(cir: Circuit, iteration: int):
     print("-------------------------")
@@ -12,7 +13,11 @@ def process_entry(cir: Circuit, iteration: int):
 cct = Circuit(to_impedance.ConvertNetlistFile("Non-Lacapy-Files/Circuit.txt"))
 # cct = Circuit(open("Non-Lacapy-Files/ImpedaceCircuit.txt").read())
 cct2, _ = cct.simplify()
+
 steps = cct.simplify_stepwise(debug=True)
+for step in steps:
+    assert isinstance(step, Circuit)
+    step.draw()
 
 exit("early exit")
 
