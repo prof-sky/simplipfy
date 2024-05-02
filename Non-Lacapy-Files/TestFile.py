@@ -9,16 +9,16 @@ def process_entry(cir: Circuit, iteration: int):
     cir, _ = cir.remove_dangling()
     cir.draw()
 
-
-# cct = Circuit(to_impedance.ConvertNetlistFile("Circuit.txt"))
-cct = Circuit(open("ImpedaceCircuit.txt").read())
+cct = Circuit(to_impedance.ConvertNetlistFile("Non-Lacapy-Files/Circuit.txt"))
+# cct = Circuit(open("Non-Lacapy-Files/ImpedaceCircuit.txt").read())
 cct2, _ = cct.simplify()
+steps = cct.simplify_stepwise(debug=True)
+
+exit("early exit")
 
 cct.draw()
-cct2, nos = cct.simplify()
 
 i = 1
-for net in nos:
+for net in steps:
     process_entry(net, i)
     i += 1
-

@@ -9,7 +9,6 @@ from warnings import warn
 from ordered_set import OrderedSet
 from collections import OrderedDict
 
-
 class NetlistSimplifyMixin:
 
     def _do_simplify_combine(self, string, subset, net,
@@ -350,6 +349,98 @@ class NetlistSimplifyMixin:
                              explain=explain, modify=modify,
                              series=False, parallel=True, dangling=False,
                              keep_nodes=keep_nodes)
+
+    def get_next_simplify_elements(self, series: bool = False, parallel: bool = False, debug: bool = False) -> list:
+        """
+        The function returns two elements from a list. The list of elements is sorted by name so with the same
+        components in a circuit the order of the returned elements will alway be the same. The elements in the returned
+        list are either in series or in parallel depending on `series` and `parallel`.
+        :param series: if true the function returns the first two elements which are in series.
+        :param parallel: if true the function returns the first two elements which are in parallel.
+        :param debug: prints the returned elements into a textfile named debug.txt
+        :return: a list with two string elements
+        """
+
+        if series and parallel:
+            raise AssertionError('You cannot specify both series and parallel. series || parallel = True')
+        if not series and not parallel:
+            raise AssertionError('You have to specify series or parallel. series || parallel = True')
+
+        net = self.copy()
+
+        if series and net.in_series():
+            elements = list(net.in_series()[0])
+        elif parallel and net.in_parallel():
+            elements = list(net.in_parallel()[0])
+        else:
+            return []
+
+        elements.sort()
+
+        from lcapy import Circuit
+        assert isinstance(net, Circuit)
+
+        for element in elements:
+            if element in net.components.voltage_sources \
+                    or element in net.components.current_sources:
+                elements.remove(element)
+
+        if debug:
+            print(elements[0:2])
+            f = open("debug.txt", "a")
+            f.write(str(elements[0:2])+"\n")
+
+        return elements[0:2]
+
+    def simplify_stepwise(self, limit: int = 100, debug: bool = False) -> list:
+        net = self.copy()
+        steps = [net]
+
+        if debug:
+            f = open("debug.txt", "a")
+            from datetime import datetime
+            f.write(f"--- [{datetime.now()}] ---------\n")
+            f.close()
+
+        for i in range(0, limit):
+
+            selected = net.get_next_simplify_elements(series=True, debug=True)
+            if len(selected) > 1:
+                net, _ = net.simplify(select=selected)
+                steps.append(net)
+                net.draw()
+                continue
+
+            selected = net.get_next_simplify_elements(parallel=True, debug=True)
+            if len(selected) > 1:
+                net, _ = net.simplify(select=selected)
+                steps.append(net)
+                net.draw()
+                continue
+
+            if net.in_series():
+                lenSeries = len(list(net.in_series()[0]))
+            else:
+                lenSeries = 0
+
+            if net.in_parallel():
+                inParallel = list(net.in_parallel()[0])
+                exclude = net.components.voltage_sources
+                exclude.extend(net.components.current_sources)
+                inParallel = [elem for elem in inParallel if elem not in exclude]
+                lenParallel = len(inParallel)
+
+            else:
+                lenParallel = 0
+
+            if lenSeries <= 1 and lenParallel <= 1:
+                break
+
+        return steps
+
+
+
+
 
     def simplify(self, select=None, ignore=None, passes=0, series=True,
                  parallel=True, dangling=False, disconnected=False,
