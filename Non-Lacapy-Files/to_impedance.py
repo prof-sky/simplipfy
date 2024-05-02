@@ -4,7 +4,8 @@ import io
 def ConvertNetlistLine(line: str,
                        skipElementTypes=None,
                        replaceElementType=None,
-                       replaceValueWith=None
+                       replaceValueWith=None,
+                       debug=False
                        ) -> str:
     """
     Converts the value in {} of Elements specified in replaceElementType to the given Value in the Dict.
@@ -51,7 +52,10 @@ def ConvertNetlistLine(line: str,
         elementType = replaceElementType[elementType]
 
     newLine = elementType + elementNum + info1 + value + info2
-    print(f"{line} -> {newLine}")
+
+    if debug:
+        print(f"{line} -> {newLine}")
+
     return newLine + "\n"
 
 
