@@ -3,7 +3,6 @@
 Copyright 2022--2023 Michael Hayes, UCECE
 
 """
-
 from .expr import expr
 from warnings import warn
 from collections import OrderedDict
@@ -350,7 +349,7 @@ class NetlistSimplifyMixin:
                              series=False, parallel=True, dangling=False,
                              keep_nodes=keep_nodes)
 
-    def get_next_simplify_elements(self, series: bool = False, parallel: bool = False, debug: bool = False) -> list:
+    def get_next_simplify_elements(self, series: bool = False, parallel: bool = False, debug: bool = False) -> list[str]:
         """
         The function returns two elements from a list. The list of elements is sorted by name so with the same
         components in a circuit the order of the returned elements will alway be the same. The elements in the returned
@@ -393,6 +392,14 @@ class NetlistSimplifyMixin:
         return elements[0:2]
 
     def simplify_stepwise(self, limit: int = 100, debug: bool = False) -> list:
+        """
+        Simplifys the Netlist it is called on stepwise and returns a list of Circuits which represent all steps
+        that where made to simplify the Netlist
+        :param limit: How many interations are take befor abroating the simplification process
+        :param debug: print debug info in debug.txt
+        :return: a list of Netlists
+        """
+
         net = self.copy()
         steps = [net]
 
@@ -404,13 +411,13 @@ class NetlistSimplifyMixin:
 
         for i in range(0, limit):
 
-            selected = net.get_next_simplify_elements(series=True, debug=True)
+            selected = net.get_next_simplify_elements(series=True, debug=debug)
             if len(selected) > 1:
                 net, _ = net.simplify(select=selected)
                 steps.append(net)
                 continue
 
-            selected = net.get_next_simplify_elements(parallel=True, debug=True)
+            selected = net.get_next_simplify_elements(parallel=True, debug=debug)
             if len(selected) > 1:
                 net, _ = net.simplify(select=selected)
                 steps.append(net)
