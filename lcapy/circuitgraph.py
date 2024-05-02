@@ -7,7 +7,7 @@ Copyright 2019--2023 Michael Hayes, UCECE
 """
 
 import networkx as nx
-from ordered_set import OrderedSet
+
 
 # V1 1 0 {u(t)}; down
 # R1 1 2; right=2
@@ -146,7 +146,7 @@ class CircuitGraph(object):
 
         node = str(node)
 
-        return OrderedSet([cpt.name for cpt in self.connected_cpts(node)])
+        return set([cpt.name for cpt in self.connected_cpts(node)])
 
     def _digraph(self):
 
@@ -171,7 +171,7 @@ class CircuitGraph(object):
     def chordless_loops(self):
 
         loops = self.all_loops()
-        sets = [OrderedSet(loop) for loop in loops]
+        sets = [set(loop) for loop in loops]
 
         DG = self._digraph()
 
@@ -392,9 +392,9 @@ class CircuitGraph(object):
         # dummy wire, the components are in parallel.
         for name in series:
             if name.startswith('W'):
-                return OrderedSet((cpt_name, ))
+                return set((cpt_name, ))
 
-        return OrderedSet(series)
+        return set(series)
 
     def in_parallel(self, cpt_name):
         """Return set of component names in parallel with cpt including itself."""
@@ -445,7 +445,7 @@ class CircuitGraph(object):
                 if n3 == n1 and not e['name'].startswith('W'):
                     parallel.append(e['name'])
 
-        return OrderedSet(parallel)
+        return set(parallel)
 
     @property
     def node_connectivity(self):
@@ -473,8 +473,8 @@ class CircuitGraph(object):
         G = self.G
         T = self.tree().G
 
-        G_edges = OrderedSet(G.edges())
-        T_edges = OrderedSet(T.edges())
+        G_edges = set(G.edges())
+        T_edges = set(T.edges())
 
         L_edges = G_edges - T_edges
 
@@ -580,5 +580,5 @@ class CircuitGraph(object):
         node1, node2 = self.map_nodes(node1, node2)
         cpt = self.component(node1, node2)
         if cpt is None:
-            return OrderedSet()
+            return set()
         return self.in_parallel(cpt.name)
