@@ -93,8 +93,6 @@ class NetlistSimplifyMixin:
         net = self.copy()
         changed = False
 
-        netlists_of_steps = []
-
         for aset in net.in_series():
             aset -= skip
             subsets = net._find_combine_subsets(aset)
@@ -106,24 +104,18 @@ class NetlistSimplifyMixin:
                         continue
                     changed |= self._do_simplify_combine('Can add in series: %s',
                                                          subset, net, explain, True, True)
-                    if changed:
-                        netlists_of_steps.append(net)
                 elif k in ('C', 'Y'):
                     changed |= self._do_simplify_combine('Can combine in series: %s',
                                                          subset, net, explain, False, True)
-                    if changed:
-                        netlists_of_steps.append(net)
                 else:
                     raise RuntimeError('Internal error')
 
-        return net, changed, netlists_of_steps
+        return net, changed
 
     def _simplify_combine_parallel(self, skip, explain=False):
 
         net = self.copy()
         changed = False
-
-        netlsits_of_steps = []
 
         for aset in net.in_parallel():
             aset -= skip
@@ -134,21 +126,17 @@ class NetlistSimplifyMixin:
                 elif k in ('R', 'NR', 'L', 'Z'):
                     changed |= self._do_simplify_combine('Can combine in parallel: %s',
                                                          subset, net, explain, False, False)
-                    if changed:
-                        netlsits_of_steps.append(net)
                 elif k in ('C', 'Y', 'I'):
                     if k == 'C' and not self._check_ic(subset):
                         continue
                     changed |= self._do_simplify_combine('Can add in parallel: %s',
                                                          subset, net, explain, True, False)
-                    if changed:
-                        netlsits_of_steps.append(net)
                 else:
                     raise RuntimeError('Internal error')
 
         # TODO, remove dangling wires connected to the removed components.
 
-        return net, changed, netlsits_of_steps
+        return net, changed
 
     def _simplify_redundant_series(self, skip, explain=False):
 
@@ -235,14 +223,14 @@ class NetlistSimplifyMixin:
     def _simplify_series(self, skip, explain=False):
 
         net, changed = self._simplify_redundant_series(skip, explain)
-        net, changed2, nos = net._simplify_combine_series(skip, explain)
-        return net, changed or changed2, nos
+        net, changed2 = net._simplify_combine_series(skip, explain)
+        return net, changed or changed2
 
     def _simplify_parallel(self, skip, explain=False):
 
         net, changed = self._simplify_redundant_parallel(skip, explain)
-        net, changed2, nos = net._simplify_combine_parallel(skip, explain)
-        return net, changed or changed2, nos
+        net, changed2 = net._simplify_combine_parallel(skip, explain)
+        return net, changed or changed2
 
     def remove_dangling(self, select=None, ignore=None, passes=0, explain=False,
                         modify=True, keep_nodes=None):
@@ -413,13 +401,13 @@ class NetlistSimplifyMixin:
 
             selected = net.get_next_simplify_elements(series=True, debug=debug)
             if len(selected) > 1:
-                net, _ = net.simplify(select=selected)
+                net = net.simplify(select=selected)
                 steps.append(net)
                 continue
 
             selected = net.get_next_simplify_elements(parallel=True, debug=debug)
             if len(selected) > 1:
-                net, _ = net.simplify(select=selected)
+                net = net.simplify(select=selected)
                 steps.append(net)
                 continue
 
@@ -493,8 +481,6 @@ class NetlistSimplifyMixin:
         if passes == 0:
             passes = 100
 
-        netlists_of_steps = []
-
         net = self
         for m in range(passes):
             changed = False
@@ -506,19 +492,15 @@ class NetlistSimplifyMixin:
                     skip, explain, keep_nodes)
                 changed = changed or changed1
             if series:
-                net, changed1, nos = net._simplify_series(skip, explain)
+                net, changed1 = net._simplify_series(skip, explain)
                 changed = changed or changed1
-                for netlist in nos:
-                    netlists_of_steps.append(netlist)
             if parallel:
-                net, changed1, nos = net._simplify_parallel(skip, explain)
+                net, changed1 = net._simplify_parallel(skip, explain)
                 changed = changed or changed1
-                for netlist in nos:
-                    netlists_of_steps.append(netlist)
 
             if not changed:
                 break
         if not modify:
             return self
 
-        return net, netlists_of_steps
+        return net

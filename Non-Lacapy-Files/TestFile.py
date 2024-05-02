@@ -2,6 +2,7 @@ from lcapy import Circuit
 import to_impedance
 import random
 
+
 def process_entry(cir: Circuit, iteration: int):
     print("-------------------------")
     print(f"Netlist of nos :{iteration}")
@@ -10,9 +11,10 @@ def process_entry(cir: Circuit, iteration: int):
     cir, _ = cir.remove_dangling()
     cir.draw()
 
+
 cct = Circuit(to_impedance.ConvertNetlistFile("Non-Lacapy-Files/Circuit.txt"))
 # cct = Circuit(open("Non-Lacapy-Files/ImpedaceCircuit.txt").read())
-cct2, _ = cct.simplify()
+cct2 = cct.simplify()
 
 steps = cct.simplify_stepwise(debug=True)
 for step in steps:
