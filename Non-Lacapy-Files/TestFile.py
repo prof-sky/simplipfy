@@ -2,32 +2,26 @@ import warnings
 
 from lcapy import Circuit
 import to_impedance
-
+from lcapy import Solution
 import random
 
 
-cct = Circuit(to_impedance.ConvertNetlistFile("Non-Lacapy-Files/Circuit.txt"))
-# cct = Circuit(open("Non-Lacapy-Files/ImpedaceCircuit.txt").read())
-# cct2 = cct.simplify()
+# cct = Circuit(to_impedance.ConvertNetlistFile("Non-Lacapy-Files/Circuit_mixed.txt"))
+# cct = Circuit(filename="Non-Lacapy-Files/Circuit_resistors.txt")
+cct = Circuit(filename="Non-Lacapy-Files/Circuit_capacitors.txt")
+# cct = Circuit(filename="Non-Lacapy-Files/Circuit_inductors")
 
 steps = cct.simplify_stepwise()
+sol = Solution.Solution(steps)
 
-i = 0
-for step in steps:
-    print("-------------------------")
-    assert isinstance(step[0], Circuit)
-    # step[0].draw()
-    if step[1] or step[2] or step[3] or step[4]:
-        print(f"Simplified {step[1]} and {step[2]} to {step[3]}")
-        print(f"the components are in {step[4]}")
-        lastStep = steps[i-1]
-        print(f"{step[1]}: {(lastStep[0])[step[1]].Z}")
-        print(f"{step[2]}: {(lastStep[0])[step[2]].Z}")
-        print(f"{step[3]} (Result): {(step[0])[step[3]].Z}")
-    else:
-        if not (step[1] or step[2] or step[3] or step[4]):
-            print("Initial Circuit")
-        else:
-            warnings.warn("Missing information in a simplification step")
-    i += 1
+# print(sol.complete_solution_text(skip=set(['step1'])))
 
+for step_text, step in sol.next_solution_text(returnSolutionStep=True):
+    print(step_text)
+    step.circuit.draw()
+
+# print("".join(sol.next_solution_text()))
+
+# print("----------------------------")
+# print(sol.initialCircuit.circuit[sol.step1.cpt1].Z)
+# print("----------------------------")
