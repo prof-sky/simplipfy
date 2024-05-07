@@ -16,8 +16,8 @@ sol = Solution.Solution(steps)
 
 # print(sol.complete_solution_text(skip=set(['step1'])))
 
-for step_text, step in sol.next_solution_text(returnSolutionStep=True):
-    print(step_text)
+for step in sol.Steps():
+    print(step.solutionText)
     step.circuit.draw()
 
 # print("".join(sol.next_solution_text()))
