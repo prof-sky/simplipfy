@@ -42,7 +42,7 @@ class NetlistSimplifyMixin:
             if explain:
                 print('%s combined IC = %s' % (subset, ic))
 
-        newname = self.namer(name[0] + 't', self.elements)
+        newname = self.namer(name[0] + 'sim', self.elements)
         net1 = elt._new_value(total, ic)
         parts = net1.split(' ', 1)
         net1 = newname + ' ' + parts[1]
@@ -379,17 +379,52 @@ class NetlistSimplifyMixin:
 
         return elements[0:2]
 
-    def simplify_stepwise(self, limit: int = 100, debug: bool = False) -> list:
+    def find_new_cpt_name(self, oldCpts: set, newCpts: set) -> str:
         """
-        Simplifys the Netlist it is called on stepwise and returns a list of Circuits which represent all steps
-        that where made to simplify the Netlist
-        :param limit: How many interations are take befor abroating the simplification process
+        takes the components (cpts) of a Circuit before and after simplification and returns the name of the
+        simplified element.
+        :param oldCpts: set(Circuit.cpts) before Circuit.simplify()
+        :param newCpts: set(Circuit.cpts) after Circuit.simplify()
+        :return: string of the new entry
+        """
+        diffComp = newCpts - oldCpts
+        diffComp = [component for component in diffComp if not component[0] == "W"]
+
+        if diffComp:
+            return diffComp[0]
+        else:
+            warn("No simplification performed, might not work as expected", RuntimeWarning)
+            return ""
+
+    def simplify_two_cpts(self, net, selected):
+        """
+        simplifies two selected componentes of a circuit and returns the new Circuit and the name of the simplified
+        component.
+        :param net: Circuit to be simplified
+        :param selected: the thwo components to be simplified
+        :return: the simplified circuit as a circuit and the name of the simplified component as a string
+        """
+        if len(selected) > 2:
+            warn(f"first two components selected length exceeded 2", RuntimeWarning)
+            selected = selected[0:2]
+
+        oldCpts = set(net.cpts)
+        net = net.simplify(select=selected)
+        newCpts = set(net.cpts)
+        newCptName = self.find_new_cpt_name(oldCpts, newCpts)
+        return net, newCptName
+
+    def simplify_stepwise(self, limit: int = 100, debug: bool = False) -> list[tuple]:
+        """
+        Simplifies the circuit it is called on stepwise and returns a list of circuits which represent all steps
+        that where made to simplify the circuit
+        :param limit: How many iterations are take before aborting the simplification process
         :param debug: print debug info in debug.txt
-        :return: a list of Netlists
+        :return: a list of tupels with [(Circuit, StepComponent1, StepComponent2, StepComponentsCombined, Relation),...]
         """
 
         net = self.copy()
-        steps = [net]
+        steps = [(net, None, None, None, None)]
 
         if debug:
             f = open("debug.txt", "a")
@@ -401,14 +436,14 @@ class NetlistSimplifyMixin:
 
             selected = net.get_next_simplify_elements(series=True, debug=debug)
             if len(selected) > 1:
-                net = net.simplify(select=selected)
-                steps.append(net)
+                net, newCptName = self.simplify_two_cpts(net, selected=selected)
+                steps.append((net, selected[0], selected[1], newCptName, "series"))
                 continue
 
             selected = net.get_next_simplify_elements(parallel=True, debug=debug)
             if len(selected) > 1:
-                net = net.simplify(select=selected)
-                steps.append(net)
+                net, newCptName = self.simplify_two_cpts(net, selected=selected)
+                steps.append((net, selected[0], selected[1], newCptName, "parallel"))
                 continue
 
             if net.in_series():
@@ -422,7 +457,6 @@ class NetlistSimplifyMixin:
                 exclude.extend(net.components.current_sources)
                 inParallel = [elem for elem in inParallel if elem not in exclude]
                 lenParallel = len(inParallel)
-
             else:
                 lenParallel = 0
 
