@@ -4,6 +4,11 @@ from typing import Iterable
 
 class Solution:
     def __init__(self, steps: list[tuple]):
+        """
+        This class simplifies the Solution and handles the access to all data that is necessary to create a step by step
+        solution to a circuit. The input is of this class is the output of simplify_Stepwise
+        :param steps:
+        """
         self._attributes = {}
         self.available_steps = []
 
