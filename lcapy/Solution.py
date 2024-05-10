@@ -8,6 +8,7 @@ from lcapy import mnacpts
 from lcapy.cexpr import ConstantFrequencyResponseDomainExpression
 from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
 
+
 class Solution:
     def __init__(self, steps: list[tuple]):
         """
