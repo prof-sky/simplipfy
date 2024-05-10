@@ -12,7 +12,7 @@ from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
 class Solution:
     def __init__(self, steps: list[tuple]):
         """
-        This class simplifies the Solution and handles the access to all data that is necessary to create a step by step
+        This class simplifies the Solution and handles the access to all data that is necessary to create a step-by-step
         solution to a circuit. The input is of this class is the output of simplify_Stepwise
         :param steps:
         """
@@ -140,7 +140,7 @@ class Solution:
         elif isinstance(element, mnacpts.Z):
             return element.Z
         else:
-            raise NotImplementedError(f"{type(element)} not supported edit Solutoin.accessSpecificValue() to support")
+            raise NotImplementedError(f"{type(element)} not supported edit Solution.accessSpecificValue() to support")
 
     def addUnit(self, element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
             ConstantFrequencyResponseDomainExpression or ConstantFrequencyResponseDomainImpedance):
@@ -158,7 +158,7 @@ class Solution:
         elif isinstance(element, mnacpts.Z):
             return lcapy.impedance(self.accessSpecificValue(element))
         else:
-            raise NotImplementedError(f"{type(element)} not supported edit Solutoin.getUnit to support")
+            raise NotImplementedError(f"{type(element)} not supported edit Solution.getUnit to support")
 
     def solutionText(self, step: str) -> str:
         """
