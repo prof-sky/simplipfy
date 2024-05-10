@@ -9,6 +9,7 @@ class Solution:
         solution to a circuit. The input is of this class is the output of simplify_Stepwise
         :param steps:
         """
+        self.showUnits(setTo=True)
         self._attributes = {}
         self.available_steps = []
         self.mapKey = dict([("initialCircuit", "step0")])
@@ -65,7 +66,24 @@ class Solution:
         else:
             self.__setitem__(key, value)
 
-    def get_available_steps(self, skip: set):
+    @staticmethod
+    def showUnits(setTo: bool = None):
+        """
+        changes the global state object from lcapy to show or not show units when printing
+        :param setTo: bool value True enable False disable
+        :return: nothing
+        """
+        if setTo is not None:
+            state.show_units = setTo
+            return
+        else:
+            if state.show_units:
+                state.show_units = False
+                return
+            else:
+                state.show_units = True
+                return
+
     def addKeyMapping(self, accessKey, realKey):
         """
         If a KeyError is thrown a dictionary is searched. If it is in the dictionary the __getItem__ or __getAttr__
@@ -90,19 +108,67 @@ class Solution:
         else:
             return OrderedSet(self.available_steps)
 
-    def solution_text(self, step: str) -> str:
+    @staticmethod
+    def accessSpecificValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> lcapy.ConstantDomainExpression:
+        """
+        accesses the value resistance, capacitance, inductance, or impedance of an element based on its type
+        :param element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
+        :return: lcapy.ConstantDomainExpression
+        """
+        if isinstance(element, mnacpts.R):
+            return element.R
+        elif isinstance(element, mnacpts.C):
+            return element.C
+        elif isinstance(element, mnacpts.L):
+            return element.L
+        elif isinstance(element, mnacpts.Z):
+            return element.Z
+        else:
+            raise NotImplementedError(f"{type(element)} not supported edit Solutoin.accessSpecificValue() to support")
+
+    def addUnit(self, element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
+            ConstantFrequencyResponseDomainExpression or ConstantFrequencyResponseDomainImpedance):
+        """
+        returns the value of an element with its unit
+        :param element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
+        :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
+        """
+        if isinstance(element, mnacpts.R):
+            return lcapy.resistance(self.accessSpecificValue(element))
+        elif isinstance(element, mnacpts.C):
+            return lcapy.capacitance(self.accessSpecificValue(element))
+        elif isinstance(element, mnacpts.L):
+            return lcapy.inductance(self.accessSpecificValue(element))
+        elif isinstance(element, mnacpts.Z):
+            return lcapy.impedance(self.accessSpecificValue(element))
+        else:
+            raise NotImplementedError(f"{type(element)} not supported edit Solutoin.getUnit to support")
+
+    def solutionText(self, step: str) -> str:
+        """
+        returns the solution text of the given step
+        :param step: step0, step1, step2, step<n> ..., can getAvailableSteps returns all valid steps
+        :return: solutionText for the given step
+        """
         assert isinstance(self, Solution)
         assert isinstance(self[step], SolutionStep)
 
-        if self[step].is_initial_step:
-            return "\ninitialCircuit"
+        if self[step].isInitialStep:
+            return "\ninitialCircuit / step0"
+
+        name1 = self[step].cpt1
+        name2 = self[step].cpt2
+        newName = self[step].newCptName
+        thisStep = self[step]
+        lastStep = self[step].lastStep
 
         solText = "\n-------------------------------"
-        solText += f"\nSimplified {self[step].cpt1} and {self[step].cpt2} to {self[step].newCptName}"
-        solText += f"\nthe components are in {self[step].relation}"
-        solText += f"\n{self[step].cpt1}: {self[step].LastStep.circuit[self[step].cpt1].Z}"
-        solText += f"\n{self[step].cpt2}: {self[step].LastStep.circuit[self[step].cpt2].Z}"
-        solText += f"\n{self[step].newCptName} (Result): {self[step].circuit[self[step].newCptName].Z}"
+        solText += f"\nSimplified {name1} and {name2} to {newName}"
+        solText += f"\nthe components are in {thisStep.relation}"
+        solText += f"\n{name1}: {self.addUnit(lastStep.circuit[name1])}"
+        solText += f"\n{name2}: {self.addUnit(lastStep.circuit[name2])}"
+        solText += (f"\n{newName} (Result):" +
+                    f"{self.addUnit(thisStep.circuit[newName])}")
         return solText
 
     def _nextSolutionText(self, skip: set = None, returnSolutionStep: bool = False) -> str or (str, SolutionStep):
