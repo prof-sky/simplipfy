@@ -78,6 +78,13 @@ class Solution:
 
     def removeKeyMapping(self, accessKey):
         self.mapKey.pop(accessKey)
+
+    def getAvailableSteps(self, skip: set) -> OrderedSet[str]:
+        """
+        Returns all available steps
+        :param skip: steps to skip
+        :return: OrderedSet[str]
+        """
         if skip:
             return OrderedSet(self.available_steps) - skip
         else:
