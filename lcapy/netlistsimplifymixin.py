@@ -416,9 +416,10 @@ class NetlistSimplifyMixin:
 
     def simplify_stepwise(self, limit: int = 100, debug: bool = False) -> list[tuple]:
         """
-        Simplifies the circuit it is called on stepwise and returns a list of circuits which represent all steps
-        that where made to simplify the circuit
-        :param limit: How many iterations are take before aborting the simplification process
+        Simplifies the circuit it is called on stepwise and returns a list of tupels which represent all steps
+        that where made to simplify the circuit. The tuple contains the under return specified elements.
+        Return value can be used as Input for Solution()-Object.
+        :param limit: How many iterations are take before aborting the simplification process.
         :param debug: print debug info in debug.txt
         :return: a list of tupels with [(Circuit, StepComponent1, StepComponent2, StepComponentsCombined, Relation),...]
         """
