@@ -105,13 +105,18 @@ class Solution:
         solText += f"\n{self[step].newCptName} (Result): {self[step].circuit[self[step].newCptName].Z}"
         return solText
 
-    def _next_solution_text(self, skip: set = None, returnSolutionStep: bool = False) -> str or (str, SolutionStep):
-
-        for step in self.get_available_steps(skip):
+    def _nextSolutionText(self, skip: set = None, returnSolutionStep: bool = False) -> str or (str, SolutionStep):
+        """
+        is used internally, Externally use Steps() or completeSolutionText()
+        :param skip: steps to skip
+        :param returnSolutionStep: bool, default False when true returns str and SolutionStep else only str
+        :return: str || str and SolutionStep, based on returnSolutionStep
+        """
+        for step in self.getAvailableSteps(skip):
             if not returnSolutionStep:
-                yield self.solution_text(step)
+                yield self.solutionText(step)
             else:
-                yield self.solution_text(step), self[step]
+                yield self.solutionText(step), self[step]
 
     def Steps(self, skip: set = None) -> Iterable[SolutionStep]:
         """
