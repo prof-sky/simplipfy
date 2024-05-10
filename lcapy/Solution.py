@@ -11,6 +11,7 @@ class Solution:
         """
         self._attributes = {}
         self.available_steps = []
+        self.mapKey = dict([("initialCircuit", "step0")])
 
         solSteps = []
         for step in steps:
@@ -38,13 +39,25 @@ class Solution:
             solStep.solutionText = solText
 
     def __getitem__(self, key):
-        return self._attributes[key]
+        try:
+            return self._attributes[key]
+        except KeyError:
+            if key in self.mapKey.keys():
+                return self._attributes[self.mapKey[key]]
+            else:
+                raise AttributeError
 
     def __setitem__(self, key, value):
         self._attributes[key] = value
 
     def __getattr__(self, key):
-        return self._attributes[key]
+        try:
+            return self._attributes[key]
+        except KeyError:
+            if key in self.mapKey.keys():
+                return self._attributes[self.mapKey[key]]
+            else:
+                raise AttributeError
 
     def __setattr__(self, key, value):
         if key.startswith('_'):
@@ -53,6 +66,18 @@ class Solution:
             self.__setitem__(key, value)
 
     def get_available_steps(self, skip: set):
+    def addKeyMapping(self, accessKey, realKey):
+        """
+        If a KeyError is thrown a dictionary is searched. If it is in the dictionary the __getItem__ or __getAttr__
+        it is tried again with the specified key in the Dictionary
+        :param accessKey: key that you want to use
+        :param realKey: key name from this class step0, step1, step2, ...
+        :return: nothing / void
+        """
+        self.mapKey[accessKey] = realKey
+
+    def removeKeyMapping(self, accessKey):
+        self.mapKey.pop(accessKey)
         if skip:
             return OrderedSet(self.available_steps) - skip
         else:
