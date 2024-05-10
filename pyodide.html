@@ -10,56 +10,59 @@
     <script>
       
       async function main() {
+        
+        let packageAdress = "http://localhost:8000/Packages/"
         let pyodide = await loadPyodide();
-        await pyodide.loadPackage("http://localhost:8000/Packages/packaging-23.1-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "packaging-23.1-py3-none-any.whl");
 
         //sympy
-        await pyodide.loadPackage("http://localhost:8000/Packages/mpmath-1.3.0-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/sympy-1.12-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "mpmath-1.3.0-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "sympy-1.12-py3-none-any.whl");
 
         //standalone packages
-        await pyodide.loadPackage("http://localhost:8000/Packages/wheel-0.43.0-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/setuptools-68.1.2-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/property_cached-1.6.4-py2.py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/numpy-1.26.4-cp311-cp311-emscripten_3_1_46_wasm32.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/networkx-3.1-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "wheel-0.43.0-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "setuptools-68.1.2-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "property_cached-1.6.4-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "numpy-1.26.4-cp311-cp311-emscripten_3_1_46_wasm32.whl");
+        await pyodide.loadPackage(packageAdress + "networkx-3.1-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "ordered_set-4.1.0-py3-none-any.whl")
 
         //date_util
-        await pyodide.loadPackage("http://localhost:8000/Packages/six-1.16.0-py2.py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/python_dateutil-2.8.2-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "six-1.16.0-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "python_dateutil-2.8.2-py2.py3-none-any.whl");
 
         //standalone packages for matplotlib and matplotlib
-        await pyodide.loadPackage("http://localhost:8000/Packages/pyparsing-3.1.1-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/Pillow-10.0.0-cp311-cp311-emscripten_3_1_46_wasm32.whl")
-        await pyodide.loadPackage("http://localhost:8000/Packages/pytz-2023.3-py2.py3-none-any.whl")
-        await pyodide.loadPackage("http://localhost:8000/Packages/kiwisolver-1.4.4-cp311-cp311-emscripten_3_1_46_wasm32.whl")
-        await pyodide.loadPackage("http://localhost:8000/Packages/importlib_resources-6.4.0-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/fonttools-4.42.1-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/cycler-0.11.0-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/contourpy-1.2.0-cp311-cp311-emscripten_3_1_46_wasm32.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/matplotlib-3.5.2-cp311-cp311-emscripten_3_1_46_wasm32.whl");
+        await pyodide.loadPackage(packageAdress + "pyparsing-3.1.1-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "Pillow-10.0.0-cp311-cp311-emscripten_3_1_46_wasm32.whl")
+        await pyodide.loadPackage(packageAdress + "pytz-2023.3-py2.py3-none-any.whl")
+        await pyodide.loadPackage(packageAdress + "kiwisolver-1.4.4-cp311-cp311-emscripten_3_1_46_wasm32.whl")
+        await pyodide.loadPackage(packageAdress + "importlib_resources-6.4.0-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "fonttools-4.42.1-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "cycler-0.11.0-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "contourpy-1.2.0-cp311-cp311-emscripten_3_1_46_wasm32.whl");
+        await pyodide.loadPackage(packageAdress + "matplotlib-3.5.2-cp311-cp311-emscripten_3_1_46_wasm32.whl");
 
         //ipython
-        await pyodide.loadPackage("http://localhost:8000/Packages/typing_extensions-4.7.1-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/traitlets-5.14.2-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/asttokens-2.4.1-py2.py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/executing-2.0.1-py2.py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/pure_eval-0.2.2-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/stack_data-0.6.3-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/wcwidth-0.2.13-py2.py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/prompt_toolkit-3.0.43-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/Pygments-2.16.1-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/matplotlib_inline-0.1.6-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/pickleshare-0.7.5-py2.py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/parso-0.8.3-py2.py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/jedi-0.19.0-py2.py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/decorator-5.1.1-py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/colorama-0.4.6-py2.py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/backcall-0.2.0-py2.py3-none-any.whl");
-        await pyodide.loadPackage("http://localhost:8000/Packages/ipython-8.23.0-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "typing_extensions-4.7.1-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "traitlets-5.14.2-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "asttokens-2.4.1-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "executing-2.0.1-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "pure_eval-0.2.2-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "stack_data-0.6.3-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "wcwidth-0.2.13-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "prompt_toolkit-3.0.43-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "Pygments-2.16.1-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "matplotlib_inline-0.1.6-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "pickleshare-0.7.5-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "parso-0.8.3-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "jedi-0.19.0-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "decorator-5.1.1-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "colorama-0.4.6-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "backcall-0.2.0-py2.py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "ipython-8.23.0-py3-none-any.whl");
 
         //lcapy
-        await pyodide.loadPackage("http://localhost:8000/Packages/lcapy-1.22-py3-none-any.whl");
+        await pyodide.loadPackage(packageAdress + "lcapy-1.22-py3-none-any.whl");
         
         await pyodide.runPythonAsync(`
           
