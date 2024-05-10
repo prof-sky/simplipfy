@@ -118,22 +118,26 @@ class Solution:
             else:
                 yield self.solutionText(step), self[step]
 
-    def Steps(self, skip: set = None) -> Iterable[SolutionStep]:
+    def steps(self, skip: set = None) -> Iterable[SolutionStep]:
         """
         yields the steps from the simplification. They can be iterated in a for loop e.g.:
         for step in sol.Steps():
             print(step.solutionText)
             step.circuit.draw()
-        :param skip: define a set of steps that should be skipped e.g. the initialCircuit (step[0]) every other step is
+        :param skip: define a set of steps that should be skipped e.g. the step0 every other step is
         named as follows: step1, step2, ..., step<n>
         :return:
         """
-        for step in self.get_available_steps(skip=skip):
+        for step in self.getAvailableSteps(skip=skip):
             yield self[step]
 
-    def complete_solution_text(self, skip: set = None) -> str:
-
+    def completeSolutionText(self, skip: set = None) -> str:
+        """
+        returns the complete solution text for the Steps saved in the Solution Object it's called on
+        :param skip: steps to skip
+        :return: string that contains the complete solution text
+        """
         solText = ""
-        for step in self.get_available_steps(skip):
-            solText += self.solution_text(step)
+        for step in self.getAvailableSteps(skip):
+            solText += self.solutionText(step)
         return solText
