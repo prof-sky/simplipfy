@@ -1,6 +1,12 @@
+import lcapy
 from .SolutionStep import SolutionStep
 from ordered_set import OrderedSet
 from typing import Iterable
+from warnings import warn
+from lcapy import state
+from lcapy import mnacpts
+from lcapy.cexpr import ConstantFrequencyResponseDomainExpression
+from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
 
 class Solution:
     def __init__(self, steps: list[tuple]):
@@ -14,15 +20,24 @@ class Solution:
         self.available_steps = []
         self.mapKey = dict([("initialCircuit", "step0")])
 
+        # convert the steps returned from simplify_stepwise to SolutionSteps
+        # the simplify function cant return SolutionSteps because it imports lcapy and therefor results in a circular
+        # import
         solSteps = []
         for step in steps:
             solSteps.append(SolutionStep(step))
 
-        self.available_steps.append("initialCircuit")
-        self.__setitem__("initialCircuit", solSteps[0])
+        if not solSteps:
+            raise AttributeError('can`t create Solution from empty list\n'
+                                 'make sure parameter steps isn`t an empty list')
+
+        # name and add first Circuit
+        self.available_steps.append("step0")
+        self.__setitem__("step0", solSteps[0])
         if len(solSteps) >= 2:
-            self["initialCircuit"].NextStep = solSteps[1]
+            self["step0"].nextStep = solSteps[1]
         else:
+            warn("Solution only contains initial circuit and no simplification Steps")
             return
 
         for i in range(1, len(solSteps)):
@@ -30,13 +45,13 @@ class Solution:
             self.available_steps.append(curStep)
 
             self.__setitem__(curStep, solSteps[i])
-            self[curStep].LastStep = solSteps[i-1]
+            self[curStep].lastStep = solSteps[i - 1]
 
             # the list index is only to len(list) -1 accessible
             if i + 1 <= len(solSteps) - 1:
-                self[curStep].NextStep = solSteps[i+1]
+                self[curStep].nextStep = solSteps[i + 1]
 
-        for solText, solStep in self._next_solution_text(returnSolutionStep=True):
+        for solText, solStep in self._nextSolutionText(returnSolutionStep=True):
             solStep.solutionText = solText
 
     def __getitem__(self, key):
