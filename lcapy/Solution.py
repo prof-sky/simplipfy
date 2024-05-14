@@ -142,7 +142,8 @@ class Solution:
         else:
             raise NotImplementedError(f"{type(element)} not supported edit Solution.accessSpecificValue() to support")
 
-    def addUnit(self, element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
+    @staticmethod
+    def addUnit(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
             ConstantFrequencyResponseDomainExpression or ConstantFrequencyResponseDomainImpedance):
         """
         returns the value of an element with its unit
@@ -150,13 +151,13 @@ class Solution:
         :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
         """
         if isinstance(element, mnacpts.R):
-            return lcapy.resistance(self.accessSpecificValue(element))
+            return lcapy.resistance(Solution.accessSpecificValue(element))
         elif isinstance(element, mnacpts.C):
-            return lcapy.capacitance(self.accessSpecificValue(element))
+            return lcapy.capacitance(Solution.accessSpecificValue(element))
         elif isinstance(element, mnacpts.L):
-            return lcapy.inductance(self.accessSpecificValue(element))
+            return lcapy.inductance(Solution.accessSpecificValue(element))
         elif isinstance(element, mnacpts.Z):
-            return lcapy.impedance(self.accessSpecificValue(element))
+            return lcapy.impedance(Solution.accessSpecificValue(element))
         else:
             raise NotImplementedError(f"{type(element)} not supported edit Solution.getUnit to support")
 
