@@ -159,7 +159,30 @@ class Solution:
         elif isinstance(element, mnacpts.Z):
             return lcapy.impedance(Solution.accessSpecificValue(element))
         else:
-            raise NotImplementedError(f"{type(element)} not supported edit Solution.getUnit to support")
+            raise NotImplementedError(f"{type(element)} not supported edit Solution.addUnit to support")
+
+    @staticmethod
+    def getUnit(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
+            ConstantFrequencyResponseDomainExpression or ConstantFrequencyResponseDomainImpedance):
+        """
+        returns the unit of an element
+        for R 1*ohm
+        for C 1*F
+        for L 1*H
+        for Z 1*ohm (impedance has unit ohm)
+        :param element: element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
+        :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
+        """
+        if isinstance(element, mnacpts.R):
+            return lcapy.resistance(1)
+        elif isinstance(element, mnacpts.C):
+            return lcapy.capacitance(1)
+        elif isinstance(element, mnacpts.L):
+            return lcapy.inductance(1)
+        elif isinstance(element, mnacpts.Z):
+            return lcapy.impedance(1)
+        else:
+            raise NotImplementedError(f"{type(element)} not supported edit Solution.addUnit to support")
 
     def solutionText(self, step: str) -> str:
         """
