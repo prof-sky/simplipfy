@@ -27,7 +27,8 @@ setup(name='lcapy',
                         'IPython',
                         'setuptools',
                         'wheel',
-                        'property_cached'
+                        'property_cached',
+                        'schemdraw'
                         ],
       python_requires='>=3.7',  # >=3.6 should still work but not tested
       extras_require={

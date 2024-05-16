@@ -7,6 +7,8 @@ from lcapy import state
 from lcapy import mnacpts
 from lcapy.cexpr import ConstantFrequencyResponseDomainExpression
 from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
+from lcapy import drawWithSchemdraw as dws
+
 
 
 class Solution:
@@ -20,7 +22,6 @@ class Solution:
         self._attributes = {}
         self.available_steps = []
         self.mapKey = dict([("initialCircuit", "step0")])
-
         # convert the steps returned from simplify_stepwise to SolutionSteps
         # the simplify function cant return SolutionSteps because it imports lcapy and therefor results in a circular
         # import
@@ -247,3 +248,14 @@ class Solution:
         for step in self.getAvailableSteps(skip):
             solText += self.solutionText(step)
         return solText
+
+    def draw(self, filename: str = "circuit.svg"):
+        if not filename[-4:] == ".svg":
+            filename += ".svg"
+        elif filename[-4] == "." and not filename[-4:] == ".svg":
+            raise ValueError("filename must end with .svg or no extension")
+
+
+        for step in self.available_steps:
+            dws.DrawWithSchemdraw(self[step].circuit,
+                                  fileName=filename[:-4] + f"_{step}" + filename[-4:]).draw()
