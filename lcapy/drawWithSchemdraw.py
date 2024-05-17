@@ -14,6 +14,9 @@ class NetlistLine:
         values = elementParam.split(' ')
         values = [value for value in values if not value == '']
 
+        for i in range(len(values)):
+            values[i] = values[i].replace('{', '').replace('}', '')
+
         if len(values) < 3:
             raise RuntimeError("Cant parse netlist line: %s"
                                "make sure each line has a name startNode endNode; drawing annotation "
@@ -31,8 +34,6 @@ class NetlistLine:
             raise ValueError(f"can't convert {values[1]} or {values[2]} to int. start- and endNode have to be integers")
         self.ac_dc = None
 
-        for i in range(len(values)):
-            values[i] = values[i].replace('{', '').replace('}', '')
 
         if len(values) == 4:
             self.value = values[3]
@@ -72,12 +73,11 @@ class NetlistLine:
         """
         raises an error if parsing fails and warns if it may fail. May fail if the parsed line cant be reconstructed but
         the reconstructed and parsed line without white spaces match.
-        :param lenValues: length of the values array of the __init__ function
         :return: void
         """
         # check if the parsing was successful if the line can be reconstructed it should be parsed correctly
         # white space sensitive but without "{"; "}"
-        ref = self.line.replace('{', '').replace('}', '')
+        ref = self.line
         # white space insensitive
         ref2 = ref.replace(' ', '')
 
