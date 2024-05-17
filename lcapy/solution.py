@@ -176,13 +176,13 @@ class Solution:
         :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
         """
         if isinstance(element, mnacpts.R):
-            return lcapy.resistance(1)
+            return lcapy.units.ohms
         elif isinstance(element, mnacpts.C):
-            return lcapy.capacitance(1)
+            return lcapy.units.farads
         elif isinstance(element, mnacpts.L):
-            return lcapy.inductance(1)
+            return lcapy.units.henrys
         elif isinstance(element, mnacpts.Z):
-            return lcapy.impedance(1)
+            return lcapy.units.ohms
         else:
             raise NotImplementedError(f"{type(element)} not supported edit Solution.addUnit to support")
 
