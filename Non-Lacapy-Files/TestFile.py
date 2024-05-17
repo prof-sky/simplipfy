@@ -3,23 +3,27 @@ import warnings
 from lcapy import Circuit
 import to_impedance
 from lcapy import Solution
+from lcapy import circuitgraph
 import random
 
 
-cct = Circuit(to_impedance.ConvertNetlistFile("Non-Lacapy-Files/Circuit_mixed.txt"))
+# cct = Circuit(to_impedance.ConvertNetlistFile("Non-Lacapy-Files/Circuit_mixed.txt"))
 # cct = Circuit(filename="Non-Lacapy-Files/Circuit_resistors.txt")
 # cct = Circuit(filename="Non-Lacapy-Files/Circuit_capacitors.txt")
-# cct = Circuit(filename="Non-Lacapy-Files/Circuit_inductors.txt")
+cct = Circuit(filename="Non-Lacapy-Files/Circuit_inductors.txt")
 
 steps = cct.simplify_stepwise()
 sol = Solution.Solution(steps)
+# sol.draw()
+# sol.step0.draw()
+# cct.draw()
 
 # print(sol.complete_solution_text(skip=set(['step1'])))
 
-for step in sol.steps():
-    print(step.solutionText)
-    step.circuit = step.circuit.remove_dangling()
-    step.circuit.draw()
+# for step in sol.steps():
+#     print(step.solutionText)
+#     step.circuit = step.circuit.remove_dangling()
+#     step.circuit.draw()
 
 
 # print(sol.initialCircuit.circuit.netlist())

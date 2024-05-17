@@ -255,7 +255,6 @@ class Solution:
         elif filename[-4] == "." and not filename[-4:] == ".svg":
             raise ValueError("filename must end with .svg or no extension")
 
-
         for step in self.available_steps:
             dws.DrawWithSchemdraw(self[step].circuit,
                                   fileName=filename[:-4] + f"_{step}" + filename[-4:]).draw()
