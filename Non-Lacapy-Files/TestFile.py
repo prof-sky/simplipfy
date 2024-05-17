@@ -1,20 +1,16 @@
-import warnings
-
 from lcapy import Circuit
-import to_impedance
 from lcapy import Solution
-from lcapy import circuitgraph
-import random
+from lcapy import ConvertNetlistFile
 
-
-# cct = Circuit(to_impedance.ConvertNetlistFile("Non-Lacapy-Files/Circuit_mixed.txt"))
+cct = Circuit(ConvertNetlistFile("Non-Lacapy-Files/Circuit_mixed.txt"))
 # cct = Circuit(filename="Non-Lacapy-Files/Circuit_resistors.txt")
 # cct = Circuit(filename="Non-Lacapy-Files/Circuit_capacitors.txt")
-cct = Circuit(filename="Non-Lacapy-Files/Circuit_inductors.txt")
+# cct = Circuit(filename="Non-Lacapy-Files/Circuit_inductors.txt")
 
 steps = cct.simplify_stepwise()
-sol = Solution.Solution(steps)
-# sol.draw()
+sol = Solution(steps)
+sol.draw()
+
 # sol.step0.draw()
 # cct.draw()
 
