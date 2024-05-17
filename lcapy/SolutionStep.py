@@ -1,4 +1,5 @@
 from lcapy import Circuit
+from lcapy import drawWithSchemdraw
 
 
 class SolutionStep:
@@ -12,3 +13,6 @@ class SolutionStep:
         self.solutionText = None
         self.lastStep = None
         self.nextStep = None
+
+    def draw(self):
+        drawWithSchemdraw.DrawWithSchemdraw(self.circuit).draw()
