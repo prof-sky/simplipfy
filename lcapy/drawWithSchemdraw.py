@@ -11,6 +11,7 @@ class NetlistLine:
         # parse line
         elementParam, drawParam = self.line.split(';')
         self.drawParam = drawParam.replace(' ', '')
+
         values = elementParam.split(' ')
         values = [value for value in values if not value == '']
 
@@ -176,11 +177,11 @@ class DrawWithSchemdraw:
         for line in self.netlist.splitlines():
             self.netLines.append(NetlistLine(line))
 
-    def addNodePos(self, start: int, end: int):
-        if start not in self.nodePos.keys():
-            self.nodePos[start] = self.cirDraw.elements[-1].start
-        if end not in self.nodePos.keys():
-            self.nodePos[end] = self.cirDraw.elements[-1].end
+    def addNodePositions(self, netLine: NetlistLine):
+        if netLine.startNode not in self.nodePos.keys():
+            self.nodePos[netLine.startNode] = self.cirDraw.elements[-1].start
+        if netLine.endNode not in self.nodePos.keys():
+            self.nodePos[netLine.endNode] = self.cirDraw.elements[-1].end
 
     def addElement(self, element: schemdraw.elements, netLine: NetlistLine):
 
