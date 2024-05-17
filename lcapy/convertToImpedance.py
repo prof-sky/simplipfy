@@ -59,15 +59,23 @@ def ConvertNetlistLine(line: str,
     return newLine + "\n"
 
 
-def ConvertNetlistFile(filename: str) -> str:
+def FileToImpedance(filename: str) -> str:
     """
-    Converts a netlist file that has a mixture of R L C elements to impedance (Z elements)
-    :param filename: filename to open with path
+    Converts a netlist file that has a mixture of R L C elements to Z (impedance)
+    :param filename: filename to open, with path
     :return: converted netlist as str
     """
     netlist = open(filename, "r").read().split("\n")
     conv_netlist = ""
     for line in netlist:
+        conv_netlist += ConvertNetlistLine(line)
+
+    return conv_netlist
+
+
+def StrToImpedance(netlist: str) -> str:
+    conv_netlist = ""
+    for line in netlist.split("\n"):
         conv_netlist += ConvertNetlistLine(line)
 
     return conv_netlist

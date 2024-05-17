@@ -12,7 +12,6 @@ from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
 from lcapy import DrawWithSchemdraw
 
 
-
 class Solution:
     def __init__(self, steps: list[tuple]):
         """
@@ -128,7 +127,7 @@ class Solution:
             return OrderedSet(self.available_steps)
 
     @staticmethod
-    def accessSpecificValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> lcapy.ConstantDomainExpression:
+    def elementSpecificValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> lcapy.ConstantDomainExpression:
         """
         accesses the value resistance, capacitance, inductance, or impedance of an element based on its type
         :param element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
@@ -154,13 +153,13 @@ class Solution:
         :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
         """
         if isinstance(element, mnacpts.R):
-            return lcapy.resistance(Solution.accessSpecificValue(element))
+            return lcapy.resistance(Solution.elementSpecificValue(element))
         elif isinstance(element, mnacpts.C):
-            return lcapy.capacitance(Solution.accessSpecificValue(element))
+            return lcapy.capacitance(Solution.elementSpecificValue(element))
         elif isinstance(element, mnacpts.L):
-            return lcapy.inductance(Solution.accessSpecificValue(element))
+            return lcapy.inductance(Solution.elementSpecificValue(element))
         elif isinstance(element, mnacpts.Z):
-            return lcapy.impedance(Solution.accessSpecificValue(element))
+            return lcapy.impedance(Solution.elementSpecificValue(element))
         else:
             raise NotImplementedError(f"{type(element)} not supported edit Solution.addUnit to support")
 
@@ -190,7 +189,7 @@ class Solution:
     def solutionText(self, step: str) -> str:
         """
         returns the solution text of the given step
-        :param step: step0, step1, step2, step<n> ..., can getAvailableSteps returns all valid steps
+        :param step: step0, step1, step2, step<n> ..., getAvailableSteps returns all valid steps
         :return: solutionText for the given step
         """
         assert isinstance(self, Solution)
@@ -216,7 +215,7 @@ class Solution:
 
     def _nextSolutionText(self, skip: set = None, returnSolutionStep: bool = False) -> str or (str, SolutionStep):
         """
-        is used internally, Externally use Steps() or completeSolutionText()
+        is used internally, Externally use steps() or completeSolutionText()
         :param skip: steps to skip
         :param returnSolutionStep: bool, default False when true returns str and SolutionStep else only str
         :return: str || str and SolutionStep, based on returnSolutionStep
@@ -252,10 +251,12 @@ class Solution:
         return solText
 
     def draw(self, filename: str = "circuit.svg"):
-        if not filename[-4:] == ".svg":
+        if filename.find('.') >= 0 and not filename.endswith('.svg'):
+            wrongExtension = filename[filename.find(".")::]
+            filename.replace(wrongExtension, ".svg")
+            warn(f"filename must end with .svg, changed extension accordingly")
+        elif not filename.endswith(".svg"):
             filename += ".svg"
-        elif filename[-4] == "." and not filename[-4:] == ".svg":
-            raise ValueError("filename must end with .svg or no extension")
 
         for step in self.available_steps:
             iter_filename = filename[:-4] + f"_{step}" + filename[-4:]
