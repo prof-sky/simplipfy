@@ -149,7 +149,6 @@ class NetlistLine:
 
 
 class DrawWithSchemdraw:
-    def __init__(self, circuit: Circuit, fileName: str = "circuit.svg"):
     """
     Use the schemdraw package to draw a netlist generated with lcapy
     """
