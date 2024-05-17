@@ -258,8 +258,8 @@ class Solution:
             raise ValueError("filename must end with .svg or no extension")
 
         for step in self.available_steps:
-            iter_filenmae = filename[:-4] + f"_{step}" + filename[-4:]
+            iter_filename = filename[:-4] + f"_{step}" + filename[-4:]
             DrawWithSchemdraw(self[step].circuit,
-                              fileName=iter_filenmae).draw()
-            if not os.path.isfile(iter_filenmae):
+                              fileName=iter_filename).draw()
+            if not os.path.isfile(iter_filename):
                 raise RuntimeError("file was not created")
