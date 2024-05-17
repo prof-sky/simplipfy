@@ -26,32 +26,76 @@ class NetlistLine:
                                "C3 6 7 {100}; down", self.line)
 
         self.type = values[0][0]
-        self.label = values[0]
-        try:
-            self.startNode = int(values[1])
-            self.endNode = int(values[2])
-        except ValueError:
-            raise ValueError(f"can't convert {values[1]} or {values[2]} to int. start- and endNode have to be integers")
-        self.ac_dc = None
 
+        self.typeSuffix, self.startNode, self.endNode, self.ac_dc = NetlistLine.parseLabelAndNodes(values)
 
-        if len(values) == 4:
-            self.value = values[3]
+        if self.type == "R" or self.type == "L" or self.type == "C" or self.type == "Z":
+            self.ac_dc, self.value, self.omega = self.parseZ(values)
+        elif self.type == "W":
+            self.ac_dc, self.value, self.omega, self.typeSuffix = self.parseW()
+        elif self.type == "Z":
+            self.ac_dc, self.value, self.omega = self.parseZ(values)
+        elif self.type == "V":
+            self.ac_dc, self.value, self.omega = self.parseV(values)
 
-        if len(values) >= 5:
-            self.ac_dc = values[3]
-            self.value = values[4]
-            if self.ac_dc == "ac" and len(values) == 6:
-                self.omega = values[5]
-            else:
-                self.omega = None
-
-        self.reconstructed = self.reconstruct(len(values))
+        self.reconstructed = self.reconstruct()
 
         if validate:
             self.validate_parsing()
 
-    def reconstruct(self, lenValues) -> str:
+    @staticmethod
+    def parseLabelAndNodes(values) -> (str, int, int, str):
+        typeSuffix = values[0][1::]
+        try:
+            startNode = int(values[1])
+            endNode = int(values[2])
+        except ValueError:
+            raise ValueError(f"can't convert {values[1]} or {values[2]} to int. start- and endNode have to be integers")
+        ac_dc = None
+        return typeSuffix, startNode, endNode, ac_dc
+
+    @staticmethod
+    def parseValue(values) -> str:
+        return values[3]
+
+    def parseRLC(self, values) -> str:
+        return self.parseValue(values)
+
+    @staticmethod
+    def parseW() -> (None, None, None, str):
+        return None, None, None, ""
+
+    @staticmethod
+    def parseZ(values) -> (None, str, None):
+        if len(values) > 4:
+            for i in range(4, len(values)):
+                values[3] += " " + values[i]
+
+        params = f"{values[0]} {values[1]} {values[2]} {values[3]}"
+        labelAndNodes = f"{values[0]} {values[1]} {values[2]} "
+        value = params.replace(labelAndNodes, '')
+        return None, value, None
+
+    @staticmethod
+    def parseV(values) -> (str, str, str):
+        # with ac or dc but without value for source and omega
+        if len(values) == 4:
+            ac_dc = values[3]
+            return ac_dc, None, None
+
+        # with ac dc statement and with value for source
+        elif len(values) == 5:
+            ac_dc = values[3]
+            value = values[4]
+            return ac_dc, value, None
+
+        # with ac dc statement, value and omega for source
+        elif len(values) == 6:
+            ac_dc = values[3]
+            value = values[4]
+            omega = values[5]
+
+            return ac_dc, value, omega
         """
         reconstructs self.line from the parsed elements self.label, self.startNode, self.endNode, self.ac_dc, self.value
         self.omega, self.drawParam
