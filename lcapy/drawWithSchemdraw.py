@@ -136,11 +136,26 @@ class NetlistLine:
 
 class DrawWithSchemdraw:
     def __init__(self, circuit: Circuit, fileName: str = "circuit.svg"):
+    """
+    Use the schemdraw package to draw a netlist generated with lcapy
+    """
+    def __init__(self, circuit: Circuit, fileName: str = "circuit.svg", removeDangling: bool = True):
+        """
+        Use the schemdraw package to draw a netlist generated with lcapy. Only supports svg-files as output
+        :param circuit: lcapy.Circuit object
+        :param fileName: name for the generated file, standard is circuit.svg
+        created pictures will be named by step e.g.: circuit_step0.svg
+        """
         self.nodePos = {}
         self.cirDraw = schemdraw.Drawing()
-        self.netlist = circuit.netlist()
+
+        if removeDangling:
+            self.netlist = (circuit.remove_dangling()).netlist()
+        else:
+            self.netlist = circuit.netlist()
         self.netLines = []
         self.fileName = fileName
+        elm.style(elm.STYLE_IEC)
 
         for line in self.netlist.splitlines():
             self.netLines.append(NetlistLine(line))
