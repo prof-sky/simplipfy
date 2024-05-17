@@ -1,6 +1,7 @@
 import os.path
 
 import lcapy
+import json
 from .solutionStep import SolutionStep
 from ordered_set import OrderedSet
 from typing import Iterable
@@ -263,4 +264,44 @@ class Solution:
             DrawWithSchemdraw(self[step].circuit,
                               fileName=iter_filename).draw()
             if not os.path.isfile(iter_filename):
-                raise RuntimeError("file was not created")
+                warn(f"file: {iter_filename} not created!")
+
+    def exportStepAsJason(self, step):
+        name1 = self[step].cpt1
+        name2 = self[step].cpt2
+        newName = self[step].newCptName
+        thisStep = self[step]
+        lastStep = self[step].lastStep
+
+        if not (name1 and name2 and newName and lastStep):
+            # this is the initial step which does not have those elements
+            as_dict = {"name1": None,
+                       "name2": None,
+                       "newName": None,
+                       "relation": None,
+                       "value1": None,
+                       "value2": None,
+                       "result": None,
+                       "unit": None
+                       }
+
+        elif not (name1 or name2 or newName or lastStep or step):
+            warn(f"missing information in {step}: {name1}, {name2}, {newName}, {thisStep}, {lastStep}")
+            return
+
+        else:
+            self.showUnits(False)
+            as_dict = {"name1": name1,
+                       "name2": name2,
+                       "newName": newName,
+                       "relation": thisStep.relation,
+                       "value1": str(self.elementSpecificValue(lastStep.circuit[name1])),
+                       "value2": str(self.elementSpecificValue(lastStep.circuit[name2])),
+                       "result": str(self.elementSpecificValue(thisStep.circuit[newName])),
+                       "unit": str(self.getUnit(lastStep.circuit[name1])),
+                       }
+
+        f = open(step+".json", "w", encoding="utf-8")
+        json.dump(as_dict, f, indent=4, ensure_ascii=False)
+        f.close()
+        return
