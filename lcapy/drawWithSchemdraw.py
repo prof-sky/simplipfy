@@ -153,8 +153,11 @@ class DrawWithSchemdraw:
             self.netlist = (circuit.remove_dangling()).netlist()
         else:
             self.netlist = circuit.netlist()
+
         self.netLines = []
         self.fileName = fileName
+        self.invertDrawParam = {"up": "down", "down": "up", "left": "right", "right": "left"}
+
         elm.style(elm.STYLE_IEC)
 
         for line in self.netlist.splitlines():
@@ -189,18 +192,13 @@ class DrawWithSchemdraw:
             self.cirDraw.add(element.label(label).at(self.nodePos[netLine.startNode]))
         # if only the end node is known invert the direction information and start at the end node
         else:
-            if netLine.drawParam == "up":
-                self.cirDraw.add(element.label(label).down().at(self.nodePos[netLine.endNode]))
-            elif netLine.drawParam == "down":
-                self.cirDraw.add(element.label(label).up().at(self.nodePos[netLine.endNode]))
-            elif netLine.drawParam == "left":
-                self.cirDraw.add(element.label(label).right().at(self.nodePos[netLine.endNode]))
-            elif netLine.drawParam == "right":
-                self.cirDraw.add(element.label(label).left().at(self.nodePos[netLine.endNode]))
-            else:
+            try:
+                element._userparams['d'] = self.invertDrawParam[netLine.drawParam]
+                self.cirDraw.add(element.label(label).at(self.nodePos[netLine.endNode]))
+            except KeyError:
                 raise RuntimeError(f"unknown drawParam {netLine.drawParam}")
 
-        self.addNodePos(netLine.startNode, netLine.endNode)
+        self.addNodePositions(netLine)
 
     @staticmethod
     def orderNetlistLines(netLines: list[NetlistLine]):
