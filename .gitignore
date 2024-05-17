@@ -19,3 +19,4 @@ issues/*
 testing/*
 .idea
 *.svg
+step*.json
