@@ -66,6 +66,10 @@ from .nodalanalysis import *
 from .loopanalysis import *
 from .exprclasses import *
 from .seqclasses import *
+from .netlistLine import NetlistLine
+from .drawWithSchemdraw import DrawWithSchemdraw
+from .solution import Solution
+from .convertToImpedance import ConvertNetlistFile
 
 import sys
 import pkg_resources

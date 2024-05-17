@@ -1,5 +1,7 @@
+import os.path
+
 import lcapy
-from .SolutionStep import SolutionStep
+from .solutionStep import SolutionStep
 from ordered_set import OrderedSet
 from typing import Iterable
 from warnings import warn
@@ -7,7 +9,7 @@ from lcapy import state
 from lcapy import mnacpts
 from lcapy.cexpr import ConstantFrequencyResponseDomainExpression
 from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
-from lcapy import drawWithSchemdraw as dws
+from lcapy import DrawWithSchemdraw
 
 
 
@@ -256,5 +258,8 @@ class Solution:
             raise ValueError("filename must end with .svg or no extension")
 
         for step in self.available_steps:
-            dws.DrawWithSchemdraw(self[step].circuit,
-                                  fileName=filename[:-4] + f"_{step}" + filename[-4:]).draw()
+            iter_filenmae = filename[:-4] + f"_{step}" + filename[-4:]
+            DrawWithSchemdraw(self[step].circuit,
+                              fileName=iter_filenmae).draw()
+            if not os.path.isfile(iter_filenmae):
+                raise RuntimeError("file was not created")

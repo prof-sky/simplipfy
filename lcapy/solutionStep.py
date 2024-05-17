@@ -1,5 +1,5 @@
 from lcapy import Circuit
-from lcapy import drawWithSchemdraw
+from lcapy import DrawWithSchemdraw
 
 
 class SolutionStep:
@@ -15,4 +15,4 @@ class SolutionStep:
         self.nextStep = None
 
     def draw(self):
-        drawWithSchemdraw.DrawWithSchemdraw(self.circuit).draw()
+        DrawWithSchemdraw(self.circuit).draw()
