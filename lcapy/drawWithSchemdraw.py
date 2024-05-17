@@ -96,6 +96,13 @@ class NetlistLine:
             omega = values[5]
 
             return ac_dc, value, omega
+
+    def label(self):
+        if not self.type == "W":
+            return self.type + self.typeSuffix
+        else:
+            return ""
+
     def reconstruct(self) -> str:
         """
         reconstructs self.line from the parsed elements self.type, self.typeSuffix, self.startNode, self.endNode,
@@ -175,12 +182,9 @@ class DrawWithSchemdraw:
         if end not in self.nodePos.keys():
             self.nodePos[end] = self.cirDraw.elements[-1].end
 
-    def addElement(self, element: schemdraw.elements, netLine: NetlistLine, showLabel: bool = True):
+    def addElement(self, element: schemdraw.elements, netLine: NetlistLine):
 
-        if showLabel:
-            label = netLine.label
-        else:
-            label = ""
+        label = netLine.label()
 
         # if no node position is known this is the first element it is used as the start points
         if netLine.startNode not in self.nodePos.keys() and netLine.endNode not in self.nodePos.keys():
@@ -226,21 +230,22 @@ class DrawWithSchemdraw:
 
     def draw(self):
         DrawWithSchemdraw.orderNetlistLines(self.netLines)
+
         for line in self.netLines:
-            print(line)
-        for line in self.netLines:
-            if line.type == "R":
+            if line.type == "R" or line.type == "Z":
                 self.addElement(elm.Resistor(d=line.drawParam), line)
             elif line.type == "L":
                 self.addElement(elm.Inductor(d=line.drawParam), line)
             elif line.type == "C":
                 self.addElement(elm.Capacitor(d=line.drawParam), line)
             elif line.type == "W":
-                self.addElement(elm.Line(d=line.drawParam), line, False)
+                self.addElement(elm.Line(d=line.drawParam), line)
             elif line.type == "V":
                 if line.ac_dc == "ac":
-                    self.addElement(elm.sources.SourceV(d=line.drawParam), line)
+                    self.addElement(elm.sources.SourceSin(d=line.drawParam), line)
                 elif line.ac_dc == "dc":
                     self.addElement(elm.sources.SourceV(d=line.drawParam), line)
+            else:
+                raise RuntimeError(f"unknown element type {line.type}")
 
         self.cirDraw.save(self.fileName)
