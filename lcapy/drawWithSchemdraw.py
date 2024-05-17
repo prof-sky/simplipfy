@@ -96,20 +96,26 @@ class NetlistLine:
             omega = values[5]
 
             return ac_dc, value, omega
+    def reconstruct(self) -> str:
         """
-        reconstructs self.line from the parsed elements self.label, self.startNode, self.endNode, self.ac_dc, self.value
-        self.omega, self.drawParam
-        :param lenValues:
-        :return:
+        reconstructs self.line from the parsed elements self.type, self.typeSuffix, self.startNode, self.endNode,
+        self.ac_dc, self.value, self.omega, self.drawParam
+        :return: reconstructed string
         """
-        if lenValues == 3:
-            reconstructed = f"{self.label} {self.startNode} {self.endNode}; {self.drawParam}"
-        elif lenValues == 4:
-            reconstructed = f"{self.label} {self.startNode} {self.endNode} {self.value}; {self.drawParam}"
-        elif not self.omega:
-            reconstructed = f"{self.label} {self.startNode} {self.endNode} {self.ac_dc} {self.value}; {self.drawParam}"
+        if self.type == "W":
+            reconstructed =\
+                f"{self.type+self.typeSuffix} {self.startNode} {self.endNode}; {self.drawParam}"
+        elif self.type == "R" or self.type == "L" or self.type == "C" or self.type == "Z":
+            reconstructed =\
+                f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.value}; {self.drawParam}"
+        elif self.type == "V" and not self.omega:
+            reconstructed =\
+                (f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.ac_dc} {self.value};"
+                 f" {self.drawParam}")
         else:
-            reconstructed = f"{self.label} {self.startNode} {self.endNode} {self.ac_dc} {self.value} {self.omega}; {self.drawParam}"
+            reconstructed =\
+                (f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.ac_dc} {self.value} {self.omega};"
+                 f" {self.drawParam}")
 
         return reconstructed
 
