@@ -305,3 +305,15 @@ class Solution:
         json.dump(as_dict, f, indent=4, ensure_ascii=False)
         f.close()
         return
+    def export(self, path=None, filename="circuit"):
+        """
+        save a json-File for each step in available_steps.
+        Files are named step<n> n = 0, 1 ..., len(availableSteps)
+        can raise a value error, see exportStepAsJson for more information
+
+        :param path: directory in which to save the json-File in, if None save in current directory
+        :param filename: svg-File will be named <filename>_step<n>.svg n = 0,1 ..., len(availableSteps)
+        :return:
+        """
+        for step in self.available_steps:
+            self.exportStepAsJson(step, path=path, filename=filename)
