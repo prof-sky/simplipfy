@@ -343,9 +343,9 @@ class Solution:
                        "unit": str(self.getUnit(lastStep.circuit[name1])),
                        }
 
-        f = open(step+".json", "w", encoding="utf-8")
-        json.dump(as_dict, f, indent=4, ensure_ascii=False)
-        f.close()
+        with open(os.path.join(path, filename + "_" + step + ".json"), "w", encoding="utf-8") as f:
+            json.dump(as_dict, f, ensure_ascii=False, indent=4)
+
         return
 
     def export(self, path: str = None, filename: str = "circuit"):
