@@ -347,7 +347,8 @@ class Solution:
         json.dump(as_dict, f, indent=4, ensure_ascii=False)
         f.close()
         return
-    def export(self, path=None, filename="circuit"):
+
+    def export(self, path: str = None, filename: str = "circuit"):
         """
         save a json-File for each step in available_steps.
         Files are named step<n> n = 0, 1 ..., len(availableSteps)
