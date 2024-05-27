@@ -1,5 +1,6 @@
 import schemdraw
 import schemdraw.elements as elm
+import os
 from warnings import warn
 from lcapy import Circuit
 from lcapy import NetlistLine
@@ -85,7 +86,7 @@ class DrawWithSchemdraw:
         """
         netLines.sort(key=lambda x: x.startNode)
 
-    def draw(self):
+    def draw(self, path=None):
         DrawWithSchemdraw.orderNetlistLines(self.netLines)
 
         for line in self.netLines:
@@ -106,3 +107,8 @@ class DrawWithSchemdraw:
                 raise RuntimeError(f"unknown element type {line.type}")
 
         self.cirDraw.save(self.fileName)
+        if path:
+            newPath = os.path.join(path, self.fileName)
+            if os.path.exists(newPath):
+                os.remove(newPath)
+            os.rename(self.fileName, newPath)
