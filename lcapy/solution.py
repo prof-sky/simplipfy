@@ -257,7 +257,23 @@ class Solution:
             solText += self.solutionText(step)
         return solText
 
-    def draw(self, filename: str = "circuit.svg"):
+    def draw(self, filename: str = "circuit", path: str = None):
+        """
+        saves a svg-File for each step in the Solution.
+        can raise a value error if path is not a directory
+        :param filename: optional filename, files will be named filename_step<n>.svg n = 0,1 ..., len(availableSteps)
+        :param path: directory in which to save the json-File in, if None save in current directory
+        :return: nothing
+        """
+
+        if path is None:
+            path = ""
+        else:
+            if not os.path.isdir(path) and os.path.isfile(path):
+                raise ValueError(f"{path} is a file not a directory")
+            elif not os.path.isdir(path):
+                raise ValueError(f"{path} is not a directory")
+
         if filename.find('.') >= 0 and not filename.endswith('.svg'):
             wrongExtension = filename[filename.find(".")::]
             filename.replace(wrongExtension, ".svg")
