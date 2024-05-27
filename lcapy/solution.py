@@ -317,7 +317,7 @@ class Solution:
         thisStep = self[step]
         lastStep = self[step].lastStep
 
-        if not (name1 and name2 and newName and lastStep):
+        if not (name1 and name2 and newName and lastStep) and thisStep:
             # this is the initial step which does not have those elements
             as_dict = {"name1": None,
                        "name2": None,
@@ -329,12 +329,10 @@ class Solution:
                        "unit": None
                        }
 
-        elif not (name1 or name2 or newName or lastStep or step):
-            warn(f"missing information in {step}: {name1}, {name2}, {newName}, {thisStep}, {lastStep}")
-            return
+        elif not (name1 or name2 or newName or lastStep or thisStep or step):
+            raise ValueError(f"missing information in {step}: {name1}, {name2}, {newName}, {thisStep}, {lastStep}")
 
         else:
-            self.showUnits(False)
             as_dict = {"name1": name1,
                        "name2": name2,
                        "newName": newName,
