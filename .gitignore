@@ -18,5 +18,5 @@ misc/*
 issues/*
 testing/*
 .idea
-*.svg
-step*.json
+*_step*.svg
+*_step*.json
