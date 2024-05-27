@@ -103,7 +103,7 @@ class Solution:
                 state.show_units = True
                 return
 
-    def addKeyMapping(self, accessKey, realKey):
+    def addKeyMapping(self, accessKey, realKey: str):
         """
         If a KeyError is thrown a dictionary is searched. If it is in the dictionary the __getItem__ or __getAttr__
         it is tried again with the specified key in the Dictionary
@@ -111,10 +111,16 @@ class Solution:
         :param realKey: key name from this class step0, step1, step2, ...
         :return: nothing / void
         """
+        if realKey not in self.available_steps:
+            raise KeyError("realKey doesn't exist")
+
         self.mapKey[accessKey] = realKey
 
     def removeKeyMapping(self, accessKey):
-        self.mapKey.pop(accessKey)
+        if accessKey in self.mapKey.keys():
+            self.mapKey.pop(accessKey)
+        else:
+            warn("accessKey not in mapKey")
 
     def getAvailableSteps(self, skip: set) -> OrderedSet[str]:
         """
