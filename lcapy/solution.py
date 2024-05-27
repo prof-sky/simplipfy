@@ -268,11 +268,33 @@ class Solution:
         for step in self.available_steps:
             iter_filename = filename[:-4] + f"_{step}" + filename[-4:]
             DrawWithSchemdraw(self[step].circuit,
-                              fileName=iter_filename).draw()
-            if not os.path.isfile(iter_filename):
-                warn(f"file: {iter_filename} not created!")
+                              fileName=iter_filename).draw(path=path)
 
-    def exportStepAsJason(self, step):
+    def exportStepAsJson(self, step, path: str = None, filename: str ="circuit"):
+        """
+        saves a step as a .json File with the following information:
+        name1 and name2 -> names of the simplified components
+        newName -> name of the simplified component/ new component
+        relation -> if the simplification was parallel or in series
+        value1 and value2 -> the value of the component e.g. 10 ohm or 10 F ...
+        result -> the value of the new Component
+        unit -> the unit of the components (ohm, F, H)
+
+        raises a value Error if information is missing in a step use try/except or when Path does not point to a file
+        :param step: a step name e.g. step0, step1, step2, ..., step<n>
+        :param path:  path to save the json-File in if None save in current directory
+        :param filename: svg-File will be named <filename>_step<n>.svg n = 0 | 1 | ...| len(availableSteps)
+        :return: nothing
+        """
+
+        if path is None:
+            path = ""
+        else:
+            if not os.path.isdir(path) and os.path.isfile(path):
+                raise ValueError(f"{path} is a file not a directory")
+            elif not os.path.isdir(path):
+                raise ValueError(f"{path} is not a directory")
+
         name1 = self[step].cpt1
         name2 = self[step].cpt2
         newName = self[step].newCptName
