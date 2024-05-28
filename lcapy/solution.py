@@ -257,6 +257,20 @@ class Solution:
             solText += self.solutionText(step)
         return solText
 
+    @staticmethod
+    def check_path(path: str):
+        if not os.path.isdir(path) and os.path.isfile(path):
+            raise ValueError(f"{path} is a file not a directory")
+        elif not os.path.isdir(path):
+            os.mkdir(path)
+
+    @staticmethod
+    def remove_extension(filename: str) -> str:
+        if filename.find('.') >= 0:
+            return filename[0:filename.find('.')]
+
+        return filename
+
     def draw(self, filename: str = "circuit", path: str = None):
         """
         saves a svg-File for each step in the Solution.
@@ -268,25 +282,16 @@ class Solution:
 
         if path is None:
             path = ""
-        else:
-            if not os.path.isdir(path) and os.path.isfile(path):
-                raise ValueError(f"{path} is a file not a directory")
-            elif not os.path.isdir(path):
-                raise ValueError(f"{path} is not a directory")
 
-        if filename.find('.') >= 0 and not filename.endswith('.svg'):
-            wrongExtension = filename[filename.find(".")::]
-            filename.replace(wrongExtension, ".svg")
-            warn(f"filename must end with .svg, changed extension accordingly")
-        elif not filename.endswith(".svg"):
-            filename += ".svg"
+        Solution.check_path(path)
+        filename = Solution.remove_extension(filename)
 
         for step in self.available_steps:
-            iter_filename = filename[:-4] + f"_{step}" + filename[-4:]
+            iter_filename = filename + f"_{step}.svg"
             DrawWithSchemdraw(self[step].circuit,
                               fileName=iter_filename).draw(path=path)
 
-    def exportStepAsJson(self, step, path: str = None, filename: str ="circuit"):
+    def exportStepAsJson(self, step, path: str = None, filename: str ="circuit", debug: bool = False):
         """
         saves a step as a .json File with the following information:
         name1 and name2 -> names of the simplified components
@@ -297,6 +302,7 @@ class Solution:
         unit -> the unit of the components (ohm, F, H)
 
         raises a value Error if information is missing in a step use try/except or when Path does not point to a file
+        :param debug: if ture print the dictionary that is used for creating the json file
         :param step: a step name e.g. step0, step1, step2, ..., step<n>
         :param path:  path to save the json-File in if None save in current directory
         :param filename: svg-File will be named <filename>_step<n>.svg n = 0 | 1 | ...| len(availableSteps)
@@ -305,11 +311,9 @@ class Solution:
 
         if path is None:
             path = ""
-        else:
-            if not os.path.isdir(path) and os.path.isfile(path):
-                raise ValueError(f"{path} is a file not a directory")
-            elif not os.path.isdir(path):
-                raise ValueError(f"{path} is not a directory")
+
+        Solution.check_path(path)
+        filename = Solution.remove_extension(filename)
 
         name1 = self[step].cpt1
         name2 = self[step].cpt2
@@ -343,20 +347,24 @@ class Solution:
                        "unit": str(self.getUnit(lastStep.circuit[name1])),
                        }
 
+        if debug:
+            print(as_dict)
+
         with open(os.path.join(path, filename + "_" + step + ".json"), "w", encoding="utf-8") as f:
             json.dump(as_dict, f, ensure_ascii=False, indent=4)
 
         return
 
-    def export(self, path: str = None, filename: str = "circuit"):
+    def export(self, path: str = None, filename: str = "circuit", debug: bool = False):
         """
         save a json-File for each step in available_steps.
         Files are named step<n> n = 0, 1 ..., len(availableSteps)
         can raise a value error, see exportStepAsJson for more information
 
+        :param debug: print dictionary that is used to create the json-File
         :param path: directory in which to save the json-File in, if None save in current directory
         :param filename: svg-File will be named <filename>_step<n>.svg n = 0,1 ..., len(availableSteps)
         :return:
         """
         for step in self.available_steps:
-            self.exportStepAsJson(step, path=path, filename=filename)
+            self.exportStepAsJson(step, path=path, filename=filename, debug=debug)
