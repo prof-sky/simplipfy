@@ -20,3 +20,5 @@ testing/*
 .idea
 *_step*.svg
 *_step*.json
+build
+dist
