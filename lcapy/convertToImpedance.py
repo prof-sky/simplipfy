@@ -43,15 +43,20 @@ def ConvertNetlistLine(line: str,
 def FileToImpedance(filename: str) -> str:
     """
     Converts a netlist file that has a mixture of R L C elements to Z (impedance)
+    Only converts Files that have a mixture of R L C elements
     :param filename: filename to open, with path
     :return: converted netlist as str
     """
-    netlist = open(filename, "r").read().split("\n")
-    conv_netlist = ""
-    for line in netlist:
-        conv_netlist += ConvertNetlistLine(line)
+    netlistString = open(filename, "r").read()
+    netlist = netlistString.split("\n")
+    if NeedsConversion(netlist):
+        conv_netlist = ""
+        for line in netlist:
+            conv_netlist += ConvertNetlistLine(line)
 
-    return conv_netlist
+        return conv_netlist
+    else:
+        return netlistString
 
 
 def StrToImpedance(netlist: str) -> str:
@@ -60,3 +65,21 @@ def StrToImpedance(netlist: str) -> str:
         conv_netlist += ConvertNetlistLine(line)
 
     return conv_netlist
+
+
+def NeedsConversion(netlist: [str], checkForTypes=None) -> bool:
+    # define types that are relevant
+    if checkForTypes is None:
+        checkForTypes = ["R", "L", "C"]
+
+    # create a variable for each relevant type
+    hasType = {}
+    for elType in checkForTypes:
+        hasType[elType] = False
+
+    for line in netlist:
+        netLine = NetlistLine(line)
+        if netLine.type in checkForTypes and not hasType[netLine.type]:
+            hasType[netLine.type] = True
+
+    return bool(sum(hasType.values())-1)
