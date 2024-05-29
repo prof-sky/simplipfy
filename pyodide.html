@@ -107,10 +107,11 @@
           await response.unpack_archive() # by default, unpacks to the current dir
           print("loaded and unpacked")
         `);
-        pyodide.pyimport("solve");
+        let solve = pyodide.pyimport("solve");
+        solve.solve_circuit("Circuit_resistors.txt")
 
 
-        let files = pyodide.FS.readdir("Solutions")
+        let files = await pyodide.FS.readdir("Solutions")
 
         //remove '.' and '..' from file list
         while (files[0] === "." || files[0] === ".."){
