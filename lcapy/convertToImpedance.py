@@ -1,6 +1,4 @@
-import io
-
-
+from lcapy import NetlistLine
 def ConvertNetlistLine(line: str,
                        skipElementTypes=None,
                        replaceElementType=None,
@@ -23,35 +21,18 @@ def ConvertNetlistLine(line: str,
     if replaceElementType is None:
         replaceElementType = {"R": "ZR", "L": "ZL", "C": "ZC"}
     if replaceValueWith is None:
-        replaceValueWith = {"R": "value", "L": "j*value*omega_0", "C": "-j/(value*omega_0)"}
+        replaceValueWith = {"ZR": "value", "ZL": "j*value*omega_0", "ZC": "-j/(value*omega_0)"}
 
-    element = line[0:line.find(" ")]
+    netLine = NetlistLine(line, validate=True)
 
-    index = None
-    for num in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
-        curIndex = element.find(num)
-        if curIndex != -1 and (not index or curIndex < index):
-            index = curIndex
+    if netLine.type in skipElementTypes:
+        return netLine.line + "\n"
 
-    elementNum = element[index::]
-    elementType = element[0:index]
+    if netLine.type in list(replaceElementType.keys()):
+        netLine.type = replaceElementType[netLine.type]
+        netLine.value = '{'+replaceValueWith[netLine.type].replace("value", netLine.value)+'}'
 
-    if elementType in skipElementTypes:
-        return line + "\n"
-    else:
-        info1 = line[line.find(" "):line.find("{")+1]
-        value = line[line.find("{")+1:line.find("}")]
-        info2 = line[line.find("}")::]
-
-    reconstructedLine = element + info1 + value + info2
-    if line != reconstructedLine:
-        raise ValueError(f"Error parsing File:\n{line}\nand\n{reconstructedLine}")
-
-    if elementType in list(replaceElementType.keys()):
-        value = replaceValueWith[elementType].replace("value", value)
-        elementType = replaceElementType[elementType]
-
-    newLine = elementType + elementNum + info1 + value + info2
+    newLine = netLine.reconstruct()
 
     if debug:
         print(f"{line} -> {newLine}")
