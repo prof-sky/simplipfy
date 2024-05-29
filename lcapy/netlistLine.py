@@ -1,3 +1,5 @@
+from warnings import warn
+
 class NetlistLine:
     def __init__(self, line: str, validate: bool = True):
         self.line = line.replace('{', '').replace('}', '')
@@ -107,7 +109,7 @@ class NetlistLine:
         if self.type == "W":
             reconstructed =\
                 f"{self.type+self.typeSuffix} {self.startNode} {self.endNode}; {self.drawParam}"
-        elif self.type == "R" or self.type == "L" or self.type == "C" or self.type == "Z":
+        elif self.type in ["R", "L", "C", "Z", "ZR", "ZL", "ZC"]:
             reconstructed =\
                 f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.value}; {self.drawParam}"
         elif self.type == "V" and not self.omega:
