@@ -308,6 +308,10 @@ class Solution:
         :param filename: svg-File will be named <filename>_step<n>.svg n = 0 | 1 | ...| len(availableSteps)
         :return: nothing
         """
+        setStateBack = False
+        if state.show_units:
+            self.showUnits(False)
+            setStateBack = True
 
         if path is None:
             path = ""
@@ -353,6 +357,8 @@ class Solution:
         with open(os.path.join(path, filename + "_" + step + ".json"), "w", encoding="utf-8") as f:
             json.dump(as_dict, f, ensure_ascii=False, indent=4)
 
+        if setStateBack:
+            self.showUnits(True)
         return
 
     def export(self, path: str = None, filename: str = "circuit", debug: bool = False):
