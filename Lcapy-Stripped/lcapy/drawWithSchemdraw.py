@@ -29,7 +29,7 @@ class DrawWithSchemdraw:
         self.fileName = fileName
         self.invertDrawParam = {"up": "down", "down": "up", "left": "right", "right": "left"}
 
-        elm.style(elm.STYLE_IEC)
+        # elm.style(elm.STYLE_IEC)
         # TODO would be nice to dont need this
         schemdraw.use(backend='svg')
 
