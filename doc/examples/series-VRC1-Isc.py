@@ -2,17 +2,17 @@ from mcircuit import *
 from numpy import logspace
 from matplotlib.pyplot import figure, savefig, show
 
-N = V(10) + R(10) + C(1e-4)
+N = V(20) + R(10) + C(1e-4)
 
-f = logspace(0, 5, 400)
-Isc = N.Isc.frequency_response(f)
+t = np.linspace(0, 0.01, 1000)
+isc = N.Isc.transient_response(t)
 
 fig = figure()
 ax = fig.add_subplot(111)
-ax.loglog(f, abs(Isc), linewidth=2)
+ax.plot(t, isc, linewidth=2)
 ax.set_xlabel('Time (s)')
-ax.set_ylabel('Current (A/Hz)')
+ax.set_ylabel('Current (A)')
 ax.grid(True)
 show()
 
-savefig('series-VRC1-Isc.png')
+savefig('series-VRC1-isc.png')
