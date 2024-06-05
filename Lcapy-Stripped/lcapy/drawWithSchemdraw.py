@@ -30,6 +30,8 @@ class DrawWithSchemdraw:
         self.invertDrawParam = {"up": "down", "down": "up", "left": "right", "right": "left"}
 
         elm.style(elm.STYLE_IEC)
+        # TODO would be nice to dont need this
+        schemdraw.use(backend='svg')
 
         for line in self.netlist.splitlines():
             self.netLines.append(NetlistLine(line))
@@ -90,19 +92,20 @@ class DrawWithSchemdraw:
         DrawWithSchemdraw.orderNetlistLines(self.netLines)
 
         for line in self.netLines:
+            id_ = line.label()
             if line.type == "R" or line.type == "Z":
-                self.addElement(elm.Resistor(id_=line.label(), d=line.drawParam), line)
+                self.addElement(elm.Resistor(id_=id_, d=line.drawParam), line)
             elif line.type == "L":
-                self.addElement(elm.Inductor(id_=line.label(), d=line.drawParam), line)
+                self.addElement(elm.Inductor(id_=id_, d=line.drawParam), line)
             elif line.type == "C":
-                self.addElement(elm.Capacitor(id_=line.label(), d=line.drawParam), line)
+                self.addElement(elm.Capacitor(id_=id_, d=line.drawParam), line)
             elif line.type == "W":
-                self.addElement(elm.Line(id_=line.label(), d=line.drawParam), line)
+                self.addElement(elm.Line(d=line.drawParam), line)
             elif line.type == "V":
                 if line.ac_dc == "ac":
-                    self.addElement(elm.sources.SourceSin(id_=line.label(), d=line.drawParam), line)
+                    self.addElement(elm.sources.SourceSin(id_=id_, d=line.drawParam), line)
                 elif line.ac_dc == "dc":
-                    self.addElement(elm.sources.SourceV(id_=line.label(), d=line.drawParam), line)
+                    self.addElement(elm.sources.SourceV(id_=id_, d=line.drawParam), line)
             else:
                 raise RuntimeError(f"unknown element type {line.type}")
 
