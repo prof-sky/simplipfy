@@ -325,6 +325,14 @@ class Element:
         self._userlabels.append(Label(label, loc, ofst, halign, valign, rotate, fontsize, font, mathfont, color))
         return self
 
+    def set_id(self, id_value: str) -> 'Element':
+        self._userparams['id_'] = id_value
+        return self
+
+    def set_class(self, class_value: str) -> 'Element':
+        self._userparams['class_'] = class_value
+        return self
+
     def _position(self) -> None:
         ''' Convert relative positions to absolute coordinates in self.params,
             and apply flip/reverse

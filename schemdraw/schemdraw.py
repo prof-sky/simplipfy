@@ -6,6 +6,8 @@ from collections import ChainMap
 import warnings
 import math
 
+from IPython.core.display_functions import display
+
 from . import default_canvas
 from .types import BBox, Backends, ImageFormat, Linestyle, XY, ImageType
 from .elements import Element, Container

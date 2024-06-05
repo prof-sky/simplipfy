@@ -107,7 +107,9 @@ class Segment:
                  arrowlength: float = 0.25,
                  clip: Optional[BBox] = None,
                  zorder: Optional[int] = None,
-                 visible: bool = True):
+                 visible: bool = True,
+                 id_: Optional[str] = None,
+                 class_: Optional[str] = None):
         self.path: Sequence[XY] = [Point(p) for p in path]   # Untranformed path
         self.zorder = zorder
         self.color = color
@@ -121,6 +123,8 @@ class Segment:
         self.capstyle = capstyle
         self.joinstyle = joinstyle
         self.visible = visible
+        self.id_ = id_
+        self.class_ = class_
 
     def xform(self, transform, **style) -> 'Segment':
         ''' Return a new Segment that has been transformed
@@ -141,7 +145,9 @@ class Segment:
             'arrowlength': self.arrowlength,
             'capstyle': self.capstyle if self.capstyle else style.get('capstyle', None),
             'joinstyle': self.joinstyle if self.joinstyle else style.get('joinstyle', None),
-            'visible': self.visible}
+            'visible': self.visible,
+            'id_': self.id_,
+            'class_': self.class_}
         style = {k: v for k, v in style.items() if params.get(k) is None and k in params.keys()}
         params.update(style)
         return Segment(transform.transform_array(self.path), **params)
@@ -186,7 +192,8 @@ class Segment:
         lw = self.lw if self.lw else style.get('lw', 2)
         capstyle = self.capstyle if self.capstyle else style.get('capstyle', 'round')
         joinstyle = self.joinstyle if self.joinstyle else style.get('joinstyle', 'round')
-
+        id_ = self.id_ if self.id_ else style.get('id_','default_id')
+        class_ = self.class_ if self.class_ else style.get('class_','default_class')
         if fill:  # Check if path is closed
             tlist = list(map(tuple, path))  # Need path as tuples for set()
             dofill = len(tlist) != len(set(tlist))  # Path has duplicates, can fill it
@@ -211,7 +218,7 @@ class Segment:
         y = [p[1] for p in linepath]
         fig.plot(x, y, color=color, fill=fill,
                  ls=ls, lw=lw, capstyle=capstyle, joinstyle=joinstyle,
-                 clip=self.clip, zorder=zorder)
+                 clip=self.clip, zorder=zorder, id_=id_, class_=class_)
 
         if self.arrow:
             if '<' in self.arrow:
@@ -922,7 +929,9 @@ class SegmentPath:
                  fill: Optional[str] = None,
                  clip: Optional[BBox] = None,
                  zorder: Optional[int] = None,
-                 visible: bool = True):
+                 visible: bool = True,
+                 id_:Optional[str] = None,
+                 class_:Optional[str] = None):
         self.path: Sequence[XY | str] = path  # Control points and strings 'M', 'L', 'C', etc.
         #drawing on SVG backend simply builds d into a <path>
         #drawing on MPL backend uses matplotlib.patches.PathPatch
@@ -936,6 +945,8 @@ class SegmentPath:
         self.capstyle = capstyle
         self.joinstyle = joinstyle
         self.visible = visible
+        self.id_=id_
+        self.class_=class_
 
     def xform(self, transform, **style) -> 'SegmentPath':
         params: dict[str, Any] = {
@@ -1002,10 +1013,11 @@ class SegmentPath:
         lw = self.lw if self.lw else style.get('lw', 2)
         capstyle = self.capstyle if self.capstyle else style.get('capstyle', 'round')
         joinstyle = self.joinstyle if self.joinstyle else style.get('joinstyle', 'round')
-
+        id_=self.id_
+        class_=self.class_
         fig.path(xpath, color=color, fill=fill,
                  ls=ls, lw=lw, capstyle=capstyle, joinstyle=joinstyle,
-                 clip=self.clip, zorder=zorder)
+                 clip=self.clip, zorder=zorder,id_=id_,class_=class_)
 
 
 class SegmentImage:
