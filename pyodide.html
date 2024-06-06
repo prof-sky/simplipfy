@@ -9,7 +9,7 @@
     <div id="simplification"></div>
 
     <script>
-      async function fetchDirectoryListing(url) {
+      async function fetchDirectoryListing(url, extension = "") {
         try {
           // Fetch the directory listing HTML
           const response = await fetch(url);
@@ -28,7 +28,9 @@
           fileLinks.forEach(link => {
             const fileName = link.getAttribute('href');
             if (fileName && !fileName.endsWith('/')) { // Filter out directories if needed
-              fileNames.push(fileName);
+              if(extension === "" || (extension !== "" && fileName.endsWith(extension))) {
+                fileNames.push(fileName);
+              }
             }
           });
 
@@ -84,7 +86,7 @@
       async function load_packages(pyodide){
 
         let packageAddress = "http://localhost:8000/Packages/";
-        let packages = await fetchDirectoryListing(packageAddress);
+        let packages = await fetchDirectoryListing(packageAddress, ".whl")
 
         for(const pyPackage of packages){
           await pyodide.loadPackage(packageAddress + pyPackage);
