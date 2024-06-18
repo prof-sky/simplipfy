@@ -1,4 +1,5 @@
 import os.path
+from enum import Enum
 
 import lcapy
 import json
@@ -11,6 +12,7 @@ from lcapy import mnacpts
 from lcapy.cexpr import ConstantFrequencyResponseDomainExpression
 from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
 from lcapy import DrawWithSchemdraw
+from sympy.printing import latex as toLatexStr
 
 
 class Solution:
@@ -291,6 +293,33 @@ class Solution:
             DrawWithSchemdraw(self[step].circuit,
                               fileName=iter_filename).draw(path=path)
 
+    def makeLatexEquation(self, cpt1: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
+                          cpt2: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
+                          cptResult: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
+                          cptRelation) -> str:
+
+        cptTypes = cpt1.type
+
+        # inverse sum means 1/x1 + 1/x2 = 1/_xresult e.g parallel resistor
+        parallelRel = {"R": "inverseSum", "C": "sum", "L": "inverseSum", "Z": "inverseSum"}
+        rowRel = {"R": "sum", "C": "inverseSum", "L": "sum", "Z": "sum"}
+
+        cpt1 = self.elementSpecificValue(cpt1)
+        cpt2 = self.elementSpecificValue(cpt2)
+        cptRes = self.elementSpecificValue(cptResult)
+
+        if cptRelation == "parallel":
+            useFunc = parallelRel[cptTypes]
+        else:
+            useFunc = rowRel[cptTypes]
+
+        if useFunc == "parallel":
+            equation = "\\frac{1}{" + toLatexStr(cpt1) + "} + \\frac{1}{" + toLatexStr(cpt2) + "} = " + toLatexStr(cptRes)
+        else:
+            equation = toLatexStr(cpt1) + " + " + toLatexStr(cpt2) + " = " + toLatexStr(cptRes)
+
+        return equation
+
     def exportStepAsJson(self, step, path: str = None, filename: str ="circuit", debug: bool = False):
         """
         saves a step as a .json File with the following information:
@@ -334,6 +363,7 @@ class Solution:
                        "value1": None,
                        "value2": None,
                        "result": None,
+                       "latex-equation": None,
                        "unit": None
                        }
 
@@ -342,20 +372,24 @@ class Solution:
 
         else:
             import sympy as sp
-            comp1 = self.elementSpecificValue(lastStep.circuit[name1])
-            comp2 = self.elementSpecificValue(lastStep.circuit[name2])
+            cpt1 = lastStep.circuit[name1]
+            cpt2 = lastStep.circuit[name2]
+            cptRes = thisStep.circuit[newName]
 
-            print(f"Comp1: {comp1}; str: {sp.printing.latex(comp1)}")
-            print(f"Comp2: {comp2}; str: {sp.printing.latex(comp2)}")
+            equation = self.makeLatexEquation(cpt1, cpt2, cptRes, thisStep.relation)
+            print(f"latex Equation:\t {equation}")
+
+            assert self.getUnit(cpt1) == self.getUnit(cpt2)
 
             as_dict = {"name1": name1,
                        "name2": name2,
                        "newName": newName,
                        "relation": thisStep.relation,
-                       "value1": str(self.elementSpecificValue(lastStep.circuit[name1])),
-                       "value2": str(self.elementSpecificValue(lastStep.circuit[name2])),
-                       "result": str(self.elementSpecificValue(thisStep.circuit[newName])),
-                       "unit": str(self.getUnit(lastStep.circuit[name1])),
+                       "value1": str(self.elementSpecificValue(cpt1)),
+                       "value2": str(self.elementSpecificValue(cpt2)),
+                       "result": str(self.elementSpecificValue(cptRes)),
+                       "latex-equation": equation,
+                       "unit": str(self.getUnit(cpt1)),
                        }
 
         if debug:
