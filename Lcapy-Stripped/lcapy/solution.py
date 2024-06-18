@@ -341,6 +341,13 @@ class Solution:
             raise ValueError(f"missing information in {step}: {name1}, {name2}, {newName}, {thisStep}, {lastStep}")
 
         else:
+            import sympy as sp
+            comp1 = self.elementSpecificValue(lastStep.circuit[name1])
+            comp2 = self.elementSpecificValue(lastStep.circuit[name2])
+
+            print(f"Comp1: {comp1}; str: {sp.printing.latex(comp1)}")
+            print(f"Comp2: {comp2}; str: {sp.printing.latex(comp2)}")
+
             as_dict = {"name1": name1,
                        "name2": name2,
                        "newName": newName,

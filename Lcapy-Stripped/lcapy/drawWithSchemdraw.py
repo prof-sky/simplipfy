@@ -31,7 +31,7 @@ class DrawWithSchemdraw:
 
         # elm.style(elm.STYLE_IEC)
         # TODO would be nice to dont need this
-        print("Enforce svg backend")
+        # print("Enforce svg backend")
         schemdraw.use(backend='svg')
 
         for line in self.netlist.splitlines():

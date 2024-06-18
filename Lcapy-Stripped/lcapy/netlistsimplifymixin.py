@@ -405,7 +405,7 @@ class NetlistSimplifyMixin:
         :return: the simplified circuit as a circuit and the name of the simplified component as a string
         """
         if len(selected) > 2:
-            warn(f"first two components selected length exceeded 2", RuntimeWarning)
+            warn(f"first two components selected, length exceeded 2", RuntimeWarning)
             selected = selected[0:2]
 
         oldCpts = set(net.cpts)
