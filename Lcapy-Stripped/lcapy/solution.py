@@ -94,6 +94,7 @@ class Solution:
         :param setTo: bool value True enable False disable
         :return: nothing
         """
+
         if setTo is not None:
             state.show_units = setTo
             return
@@ -136,12 +137,16 @@ class Solution:
             return OrderedSet(self.available_steps)
 
     @staticmethod
-    def elementSpecificValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> lcapy.ConstantDomainExpression:
+    def getElementSpecificValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z, unit=False) -> lcapy.ConstantDomainExpression:
         """
         accesses the value resistance, capacitance, inductance, or impedance of an element based on its type
         :param element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
+        :param unit: if True the Unit (ohm, F, H) are added to the str
         :return: lcapy.ConstantDomainExpression
         """
+        if unit:
+            return Solution.addUnitToValue(element)
+
         if isinstance(element, mnacpts.R):
             return element.R
         elif isinstance(element, mnacpts.C):
@@ -154,7 +159,7 @@ class Solution:
             raise NotImplementedError(f"{type(element)} not supported edit Solution.accessSpecificValue() to support")
 
     @staticmethod
-    def addUnit(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
+    def addUnitToValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
             ConstantFrequencyResponseDomainExpression or ConstantFrequencyResponseDomainImpedance):
         """
         returns the value of an element with its unit
@@ -162,13 +167,13 @@ class Solution:
         :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
         """
         if isinstance(element, mnacpts.R):
-            return lcapy.resistance(Solution.elementSpecificValue(element))
+            return lcapy.resistance(Solution.getElementSpecificValue(element))
         elif isinstance(element, mnacpts.C):
-            return lcapy.capacitance(Solution.elementSpecificValue(element))
+            return lcapy.capacitance(Solution.getElementSpecificValue(element))
         elif isinstance(element, mnacpts.L):
-            return lcapy.inductance(Solution.elementSpecificValue(element))
+            return lcapy.inductance(Solution.getElementSpecificValue(element))
         elif isinstance(element, mnacpts.Z):
-            return lcapy.impedance(Solution.elementSpecificValue(element))
+            return lcapy.impedance(Solution.getElementSpecificValue(element))
         else:
             raise NotImplementedError(f"{type(element)} not supported edit Solution.addUnit to support")
 
@@ -216,10 +221,10 @@ class Solution:
         solText = "\n-------------------------------"
         solText += f"\nSimplified {name1} and {name2} to {newName}"
         solText += f"\nthe components are in {thisStep.relation}"
-        solText += f"\n{name1}: {self.addUnit(lastStep.circuit[name1])}"
-        solText += f"\n{name2}: {self.addUnit(lastStep.circuit[name2])}"
+        solText += f"\n{name1}: {self.addUnitToValue(lastStep.circuit[name1])}"
+        solText += f"\n{name2}: {self.addUnitToValue(lastStep.circuit[name2])}"
         solText += (f"\n{newName} (Result):" +
-                    f"{self.addUnit(thisStep.circuit[newName])}")
+                    f"{self.addUnitToValue(thisStep.circuit[newName])}")
         return solText
 
     def _nextSolutionText(self, skip: set = None, returnSolutionStep: bool = False) -> str or (str, SolutionStep):
@@ -304,9 +309,11 @@ class Solution:
         parallelRel = {"R": "inverseSum", "C": "sum", "L": "inverseSum", "Z": "inverseSum"}
         rowRel = {"R": "sum", "C": "inverseSum", "L": "sum", "Z": "sum"}
 
-        valCpt1 = self.elementSpecificValue(valCpt1)
-        valCpt2 = self.elementSpecificValue(valCpt2)
-        valCptRes = self.elementSpecificValue(cptResult)
+        curSate = lcapy.state.show_units
+        self.showUnits(True)
+        valCpt1 = self.getElementSpecificValue(valCpt1, unit=True)
+        valCpt2 = self.getElementSpecificValue(valCpt2, unit=True)
+        valCptRes = self.getElementSpecificValue(cptResult, unit=True)
 
         if cptRelation == "parallel":
             useFunc = parallelRel[cptTypes]
@@ -322,6 +329,7 @@ class Solution:
         else:
             equation = latex(valCpt1) + " + " + latex(valCpt2) + " = " + latex(valCptRes)
 
+        self.showUnits(curSate)
         return equation
 
     def exportStepAsJson(self, step, path: str = None, filename: str ="circuit", debug: bool = False):
@@ -389,9 +397,9 @@ class Solution:
                        "name2": name2,
                        "newName": newName,
                        "relation": thisStep.relation,
-                       "value1": str(self.elementSpecificValue(cpt1)),
-                       "value2": str(self.elementSpecificValue(cpt2)),
-                       "result": str(self.elementSpecificValue(cptRes)),
+                       "value1": str(self.getElementSpecificValue(cpt1)),
+                       "value2": str(self.getElementSpecificValue(cpt2)),
+                       "result": str(self.getElementSpecificValue(cptRes)),
                        "latex-equation": equation,
                        "unit": str(self.getUnit(cpt1)),
                        }
