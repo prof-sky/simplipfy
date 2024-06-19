@@ -12,7 +12,7 @@ from lcapy import mnacpts
 from lcapy.cexpr import ConstantFrequencyResponseDomainExpression
 from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
 from lcapy import DrawWithSchemdraw
-from sympy.printing import latex as toLatexStr
+from sympy.printing import latex
 
 
 class Solution:
@@ -293,30 +293,34 @@ class Solution:
             DrawWithSchemdraw(self[step].circuit,
                               fileName=iter_filename).draw(path=path)
 
-    def makeLatexEquation(self, cpt1: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
-                          cpt2: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
+    def makeLatexEquation(self, valCpt1: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
+                          valCpt2: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
                           cptResult: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
                           cptRelation) -> str:
 
-        cptTypes = cpt1.type
+        cptTypes = valCpt1.type
 
         # inverse sum means 1/x1 + 1/x2 = 1/_xresult e.g parallel resistor
         parallelRel = {"R": "inverseSum", "C": "sum", "L": "inverseSum", "Z": "inverseSum"}
         rowRel = {"R": "sum", "C": "inverseSum", "L": "sum", "Z": "sum"}
 
-        cpt1 = self.elementSpecificValue(cpt1)
-        cpt2 = self.elementSpecificValue(cpt2)
-        cptRes = self.elementSpecificValue(cptResult)
+        valCpt1 = self.elementSpecificValue(valCpt1)
+        valCpt2 = self.elementSpecificValue(valCpt2)
+        valCptRes = self.elementSpecificValue(cptResult)
 
         if cptRelation == "parallel":
             useFunc = parallelRel[cptTypes]
-        else:
+        elif cptRelation == "series":
             useFunc = rowRel[cptTypes]
+        else:
+            raise AttributeError(
+                f"Unknown relation between elements {cptRelation}. Known relations are: parallel, series"
+            )
 
         if useFunc == "parallel":
-            equation = "\\frac{1}{" + toLatexStr(cpt1) + "} + \\frac{1}{" + toLatexStr(cpt2) + "} = " + toLatexStr(cptRes)
+            equation = "\\frac{1}{" + latex(valCpt1) + "} + \\frac{1}{" + latex(valCpt2) + "} = " + latex(valCptRes)
         else:
-            equation = toLatexStr(cpt1) + " + " + toLatexStr(cpt2) + " = " + toLatexStr(cptRes)
+            equation = latex(valCpt1) + " + " + latex(valCpt2) + " = " + latex(valCptRes)
 
         return equation
 
