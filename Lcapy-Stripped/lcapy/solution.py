@@ -22,9 +22,7 @@ class Solution:
         solution to a circuit. The input is of this class is the output of simplify_Stepwise
         :param steps:
         """
-        # self.showUnits(setTo=True)
         self._attributes = {}
-        self.savedUnitSate = False
         self.available_steps = []
         self.mapKey = dict([("initialCircuit", "step0")])
         # convert the steps returned from simplify_stepwise to SolutionSteps
@@ -88,27 +86,6 @@ class Solution:
         else:
             self.__setitem__(key, value)
 
-    def showUnits(self, setTo: bool = None, saveSate: bool = False):
-        """
-        changes the global state object from lcapy to show or not show units when printing
-        :param setTo: bool value True enable False disable
-        :param saveSate: bool value if True safes state to self.savedUnitSate
-        :return: nothing
-        """
-        if saveSate:
-            self.savedUnitSate = state.show_units
-
-        if setTo is not None:
-            state.show_units = setTo
-            return
-        else:
-            if state.show_units:
-                state.show_units = False
-                return
-            else:
-                state.show_units = True
-                return
-
     def addKeyMapping(self, accessKey, realKey: str):
         """
         If a KeyError is thrown a dictionary is searched. If it is in the dictionary the __getItem__ or __getAttr__
@@ -150,17 +127,19 @@ class Solution:
         if unit:
             return Solution.addUnitToValue(element)
 
+        lcapy.state.show_units = False
         if isinstance(element, mnacpts.R):
-            return element.R
+            returnVal = element.R
         elif isinstance(element, mnacpts.C):
-            return element.C
+            returnVal = element.C
         elif isinstance(element, mnacpts.L):
-            return element.L
+            returnVal = element.L
         elif isinstance(element, mnacpts.Z):
-            return element.Z
+            returnVal = element.Z
         else:
             raise NotImplementedError(f"{type(element)} not supported edit Solution.accessSpecificValue() to support")
 
+        return returnVal
     @staticmethod
     def addUnitToValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
             ConstantFrequencyResponseDomainExpression or ConstantFrequencyResponseDomainImpedance):
@@ -169,6 +148,7 @@ class Solution:
         :param element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
         :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
         """
+        state.show_units = True
         if isinstance(element, mnacpts.R):
             return lcapy.resistance(Solution.getElementSpecificValue(element))
         elif isinstance(element, mnacpts.C):
@@ -312,11 +292,11 @@ class Solution:
         parallelRel = {"R": "inverseSum", "C": "sum", "L": "inverseSum", "Z": "inverseSum"}
         rowRel = {"R": "sum", "C": "inverseSum", "L": "sum", "Z": "sum"}
 
-        self.showUnits(setTo=True, saveSate=True)
         valCpt1 = self.getElementSpecificValue(valCpt1, unit=True)
         valCpt2 = self.getElementSpecificValue(valCpt2, unit=True)
         valCptRes = self.getElementSpecificValue(cptResult, unit=True)
 
+        state.show_units = True
         if cptRelation == "parallel":
             useFunc = parallelRel[cptTypes]
         elif cptRelation == "series":
@@ -331,7 +311,6 @@ class Solution:
         else:
             equation = latex(valCpt1) + " + " + latex(valCpt2) + " = " + latex(valCptRes)
 
-        self.showUnits(self.savedUnitSate)
         return equation
 
     def exportStepAsJson(self, step, path: str = None, filename: str ="circuit", debug: bool = False):
@@ -351,7 +330,7 @@ class Solution:
         :param filename: svg-File will be named <filename>_step<n>.svg n = 0 | 1 | ...| len(availableSteps)
         :return: nothing
         """
-        self.showUnits(setTo=True, saveSate=True)
+        state.show_units = True
 
         if path is None:
             path = ""
@@ -382,7 +361,6 @@ class Solution:
             raise ValueError(f"missing information in {step}: {name1}, {name2}, {newName}, {thisStep}, {lastStep}")
 
         else:
-            import sympy as sp
             cpt1 = lastStep.circuit[name1]
             cpt2 = lastStep.circuit[name2]
             cptRes = thisStep.circuit[newName]
@@ -409,7 +387,6 @@ class Solution:
         with open(os.path.join(path, filename + "_" + step + ".json"), "w", encoding="utf-8") as f:
             json.dump(as_dict, f, ensure_ascii=False, indent=4)
 
-        self.showUnits(setTo=self.savedUnitSate)
         return
 
     def export(self, path: str = None, filename: str = "circuit", debug: bool = False):
