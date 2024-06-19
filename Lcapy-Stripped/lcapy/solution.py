@@ -148,17 +148,19 @@ class Solution:
         :param element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
         :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
         """
-        state.show_units = True
         if isinstance(element, mnacpts.R):
-            return lcapy.resistance(Solution.getElementSpecificValue(element))
+            returnVal = lcapy.resistance(Solution.getElementSpecificValue(element))
         elif isinstance(element, mnacpts.C):
-            return lcapy.capacitance(Solution.getElementSpecificValue(element))
+            returnVal = lcapy.capacitance(Solution.getElementSpecificValue(element))
         elif isinstance(element, mnacpts.L):
-            return lcapy.inductance(Solution.getElementSpecificValue(element))
+            returnVal = lcapy.inductance(Solution.getElementSpecificValue(element))
         elif isinstance(element, mnacpts.Z):
-            return lcapy.impedance(Solution.getElementSpecificValue(element))
+            returnVal = lcapy.impedance(Solution.getElementSpecificValue(element))
         else:
             raise NotImplementedError(f"{type(element)} not supported edit Solution.addUnit to support")
+
+        state.show_units = True
+        return returnVal
 
     @staticmethod
     def getUnit(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
@@ -330,7 +332,6 @@ class Solution:
         :param filename: svg-File will be named <filename>_step<n>.svg n = 0 | 1 | ...| len(availableSteps)
         :return: nothing
         """
-        state.show_units = True
 
         if path is None:
             path = ""
@@ -369,14 +370,15 @@ class Solution:
             print(f"latex Equation:\t {equation}")
 
             assert self.getUnit(cpt1) == self.getUnit(cpt2)
+            state.show_units = True
 
             as_dict = {"name1": name1,
                        "name2": name2,
                        "newName": newName,
                        "relation": thisStep.relation,
-                       "value1": str(self.getElementSpecificValue(cpt1)),
-                       "value2": str(self.getElementSpecificValue(cpt2)),
-                       "result": str(self.getElementSpecificValue(cptRes)),
+                       "value1": latex(self.getElementSpecificValue(cpt1, unit=True)),
+                       "value2": latex(self.getElementSpecificValue(cpt2, unit=True)),
+                       "result": latex(self.getElementSpecificValue(cptRes, unit=True)),
                        "latex-equation": equation,
                        "unit": str(self.getUnit(cpt1)),
                        }
