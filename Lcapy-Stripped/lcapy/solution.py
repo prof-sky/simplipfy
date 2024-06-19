@@ -22,7 +22,7 @@ class Solution:
         solution to a circuit. The input is of this class is the output of simplify_Stepwise
         :param steps:
         """
-        self.showUnits(setTo=True)
+        # self.showUnits(setTo=True)
         self._attributes = {}
         self.available_steps = []
         self.mapKey = dict([("initialCircuit", "step0")])
