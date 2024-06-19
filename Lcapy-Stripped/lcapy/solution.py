@@ -354,7 +354,7 @@ class Solution:
                        "value1": None,
                        "value2": None,
                        "result": None,
-                       "latex-equation": None,
+                       "latexEquation": None,
                        "unit": None
                        }
 
@@ -379,7 +379,7 @@ class Solution:
                        "value1": latex(self.getElementSpecificValue(cpt1, unit=True)),
                        "value2": latex(self.getElementSpecificValue(cpt2, unit=True)),
                        "result": latex(self.getElementSpecificValue(cptRes, unit=True)),
-                       "latex-equation": equation,
+                       "latexEquation": equation,
                        "unit": str(self.getUnit(cpt1)),
                        }
 
