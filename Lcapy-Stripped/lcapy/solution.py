@@ -24,6 +24,7 @@ class Solution:
         """
         # self.showUnits(setTo=True)
         self._attributes = {}
+        self.savedUnitSate = False
         self.available_steps = []
         self.mapKey = dict([("initialCircuit", "step0")])
         # convert the steps returned from simplify_stepwise to SolutionSteps
@@ -87,13 +88,15 @@ class Solution:
         else:
             self.__setitem__(key, value)
 
-    @staticmethod
-    def showUnits(setTo: bool = None):
+    def showUnits(self, setTo: bool = None, saveSate: bool = False):
         """
         changes the global state object from lcapy to show or not show units when printing
         :param setTo: bool value True enable False disable
+        :param saveSate: bool value if True safes state to self.savedUnitSate
         :return: nothing
         """
+        if saveSate:
+            self.savedUnitSate = state.show_units
 
         if setTo is not None:
             state.show_units = setTo
@@ -309,8 +312,7 @@ class Solution:
         parallelRel = {"R": "inverseSum", "C": "sum", "L": "inverseSum", "Z": "inverseSum"}
         rowRel = {"R": "sum", "C": "inverseSum", "L": "sum", "Z": "sum"}
 
-        curSate = lcapy.state.show_units
-        self.showUnits(True)
+        self.showUnits(setTo=True, saveSate=True)
         valCpt1 = self.getElementSpecificValue(valCpt1, unit=True)
         valCpt2 = self.getElementSpecificValue(valCpt2, unit=True)
         valCptRes = self.getElementSpecificValue(cptResult, unit=True)
@@ -329,7 +331,7 @@ class Solution:
         else:
             equation = latex(valCpt1) + " + " + latex(valCpt2) + " = " + latex(valCptRes)
 
-        self.showUnits(curSate)
+        self.showUnits(self.savedUnitSate)
         return equation
 
     def exportStepAsJson(self, step, path: str = None, filename: str ="circuit", debug: bool = False):
@@ -349,10 +351,7 @@ class Solution:
         :param filename: svg-File will be named <filename>_step<n>.svg n = 0 | 1 | ...| len(availableSteps)
         :return: nothing
         """
-        setStateBack = False
-        if state.show_units:
-            self.showUnits(False)
-            setStateBack = True
+        self.showUnits(setTo=True, saveSate=True)
 
         if path is None:
             path = ""
@@ -410,8 +409,7 @@ class Solution:
         with open(os.path.join(path, filename + "_" + step + ".json"), "w", encoding="utf-8") as f:
             json.dump(as_dict, f, ensure_ascii=False, indent=4)
 
-        if setStateBack:
-            self.showUnits(True)
+        self.showUnits(setTo=self.savedUnitSate)
         return
 
     def export(self, path: str = None, filename: str = "circuit", debug: bool = False):
