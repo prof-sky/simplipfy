@@ -367,7 +367,6 @@ class Solution:
             cptRes = thisStep.circuit[newName]
 
             equation = self.makeLatexEquation(cpt1, cpt2, cptRes, thisStep.relation)
-            print(f"latex Equation:\t {equation}")
 
             assert self.getUnit(cpt1) == self.getUnit(cpt2)
             state.show_units = True
