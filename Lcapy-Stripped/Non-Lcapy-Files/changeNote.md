@@ -1,3 +1,6 @@
+## 1.22+InskaLE.0.4
+return filenames from draw and export functions. Add function to draw a standalone step.
+
 ## 1.22+InskaLE.0.3
 removed unnecessary print of latex expression
 

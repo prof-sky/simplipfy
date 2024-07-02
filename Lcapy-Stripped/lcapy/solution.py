@@ -253,15 +253,8 @@ class Solution:
     def check_path(path: str):
         if not os.path.isdir(path) and os.path.isfile(path):
             raise ValueError(f"{path} is a file not a directory")
-        elif not os.path.isdir(path):
+        elif not os.path.isdir(path) and not path == "":
             os.mkdir(path)
-
-    @staticmethod
-    def remove_extension(filename: str) -> str:
-        if filename.find('.') >= 0:
-            return filename[0:filename.find('.')]
-
-        return filename
 
     def draw(self, filename: str = "circuit", path: str = None):
         """
@@ -276,12 +269,28 @@ class Solution:
             path = ""
 
         Solution.check_path(path)
-        filename = Solution.remove_extension(filename)
+        filename = os.path.splitext(filename)[0]
 
         for step in self.available_steps:
-            iter_filename = filename + f"_{step}.svg"
-            DrawWithSchemdraw(self[step].circuit,
-                              fileName=iter_filename).draw(path=path)
+            self.drawStep(step, filename=filename, path=path)
+
+    def drawStep(self, step, filename=None, path: str = None) -> str:
+        """
+        draws the circuit for a specific step
+        :param step: step0, step1, step2, ..., step<n> ..., self.getAvailableSteps returns all valid steps
+        :param filename: optional filename, files will be named filename_step<n>.svg n = 0,1 ..., len(availableSteps)
+        :param path: directory in which to save the json-File in, if None path is current directory
+        :return: nothing
+        """
+        if path is None:
+            path = ""
+
+        if filename is None:
+            filename = self.filename
+
+        DrawWithSchemdraw(self[step].circuit, fileName=filename + f"_{step}.svg").draw(path=path)
+
+        return os.path.join(path, filename + f"_{step}.svg")
 
     def makeLatexEquation(self, valCpt1: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
                           valCpt2: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
@@ -315,7 +324,7 @@ class Solution:
 
         return equation
 
-    def exportStepAsJson(self, step, path: str = None, filename: str ="circuit", debug: bool = False):
+    def exportStepAsJson(self, step, path: str = None, filename: str ="circuit", debug: bool = False) -> str:
         """
         saves a step as a .json File with the following information:
         name1 and name2 -> names of the simplified components
@@ -337,7 +346,7 @@ class Solution:
             path = ""
 
         Solution.check_path(path)
-        filename = Solution.remove_extension(filename)
+        filename = os.path.splitext(filename)[0]
 
         name1 = self[step].cpt1
         name2 = self[step].cpt2
@@ -385,10 +394,11 @@ class Solution:
         if debug:
             print(as_dict)
 
-        with open(os.path.join(path, filename + "_" + step + ".json"), "w", encoding="utf-8") as f:
+        fullPathName = os.path.join(path, filename) + "_" + step + ".json"
+        with open(fullPathName, "w", encoding="utf-8") as f:
             json.dump(as_dict, f, ensure_ascii=False, indent=4)
 
-        return
+        return fullPathName
 
     def export(self, path: str = None, filename: str = "circuit", debug: bool = False):
         """

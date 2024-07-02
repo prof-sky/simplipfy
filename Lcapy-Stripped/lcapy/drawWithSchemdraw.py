@@ -10,7 +10,7 @@ class DrawWithSchemdraw:
     """
     Use the schemdraw package to draw a netlist generated with lcapy
     """
-    def __init__(self, circuit: Circuit, fileName: str = "circuit.svg", removeDangling: bool = True):
+    def __init__(self, circuit: Circuit, fileName: str = "circuit", removeDangling: bool = True):
         """
         Use the schemdraw package to draw a netlist generated with lcapy. Only supports svg-files as output
         :param circuit: lcapy.Circuit object
@@ -26,7 +26,7 @@ class DrawWithSchemdraw:
             self.netlist = circuit.netlist()
 
         self.netLines = []
-        self.fileName = fileName
+        self.fileName = os.path.splitext(fileName)[0]
         self.invertDrawParam = {"up": "down", "down": "up", "left": "right", "right": "left"}
 
         # elm.style(elm.STYLE_IEC)
@@ -110,9 +110,17 @@ class DrawWithSchemdraw:
             else:
                 raise RuntimeError(f"unknown element type {line.type}")
 
-        self.cirDraw.save(self.fileName)
+        if os.path.splitext(self.fileName)[1] == ".svg":
+            saveName = self.fileName
+        else:
+            saveName = self.fileName + ".svg"
+        self.cirDraw.save(saveName)
+
         if path:
-            newPath = os.path.join(path, self.fileName)
+            newPath = os.path.join(path, saveName)
             if os.path.exists(newPath):
                 os.remove(newPath)
-            os.rename(self.fileName, newPath)
+            os.rename(saveName, newPath)
+            return newPath
+
+        return saveName
