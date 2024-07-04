@@ -317,7 +317,7 @@ class Solution:
                 f"Unknown relation between elements {cptRelation}. Known relations are: parallel, series"
             )
 
-        if useFunc == "parallel":
+        if cptRelation == "parallel":
             equation = "\\frac{1}{" + latex(valCpt1) + "} + \\frac{1}{" + latex(valCpt2) + "} = " + latex(valCptRes)
         else:
             equation = latex(valCpt1) + " + " + latex(valCpt2) + " = " + latex(valCptRes)

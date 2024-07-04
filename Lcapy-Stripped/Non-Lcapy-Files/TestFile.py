@@ -5,8 +5,8 @@ from lcapy import DrawWithSchemdraw
 import os
 
 # filename = "Circuit_inductors.txt"
-filename = "Circuit_resistors.txt"
-# filename = "Circuit_capacitors.txt"
+# filename = "Circuit_resistors.txt"
+filename = "Circuit_capacitors.txt"
 # filename = "Circuit_mixed.txt"
 
 # cct = Circuit(FileToImpedance(filename))
@@ -82,8 +82,7 @@ class SolveInUserOrder:
 test = SolveInUserOrder(filename=filename, savePath="Solutions/")
 print(test.createInitialStep())
 
-print(test.simplifyTwoCpts(["R3", "R4"]))
-print(test.simplifyTwoCpts(["R4", "R5"]))
-print(test.simplifyTwoCpts(["R2", "R3"]))
-print(test.simplifyTwoCpts(["Rsim1", "Rsim2"]))
-print(test.simplifyTwoCpts(["R1", "Rsim3"]))
+print(test.simplifyTwoCpts(["C4", "C5"]))
+print(test.simplifyTwoCpts(["C2", "C3"]))
+print(test.simplifyTwoCpts(["Csim1", "Csim2"]))
+print(test.simplifyTwoCpts(["C1", "Csim3"]))

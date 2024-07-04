@@ -1,3 +1,6 @@
+## 1.22+InskaLE.0.5
+Fix error that the inverse sum is not used when needed.
+
 ## 1.22+InskaLE.0.4
 return filenames from draw and export functions. Add function to draw a standalone step.
 
