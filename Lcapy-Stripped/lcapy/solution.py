@@ -317,10 +317,12 @@ class Solution:
                 f"Unknown relation between elements {cptRelation}. Known relations are: parallel, series"
             )
 
-        if cptRelation == "parallel":
+        if useFunc == "inverseSum":
             equation = "\\frac{1}{" + latex(valCpt1) + "} + \\frac{1}{" + latex(valCpt2) + "} = " + latex(valCptRes)
-        else:
+        elif useFunc == "sum":
             equation = latex(valCpt1) + " + " + latex(valCpt2) + " = " + latex(valCptRes)
+        else:
+            raise NotImplementedError(f"Unknown function {useFunc}")
 
         return equation
 
