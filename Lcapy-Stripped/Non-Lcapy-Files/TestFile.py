@@ -33,6 +33,7 @@ class SolveInUserOrder:
         self.savePath = savePath
         self.circuit = Circuit(FileToImpedance(filePath+filename))
         self.steps = [(self.circuit, None, None, None, None)]
+        self.circuit.namer.reset()
 
         return
 
