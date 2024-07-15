@@ -6,14 +6,9 @@ import os
 
 # filename = "Circuit_inductors.txt"
 # filename = "Circuit_resistors.txt"
-filename = "Circuit_capacitors.txt"
+# filename = "Circuit_capacitors.txt"
 # filename = "Circuit_mixed.txt"
-
-# cct = Circuit(FileToImpedance(filename))
-# steps = cct.simplify_stepwise()
-# sol = Solution(steps)
-# sol.draw(path="Solutions")
-# sol.export(path="Solutions")
+filename = "Circuit_Wires.txt"
 
 
 class SolveInUserOrder:
@@ -79,10 +74,36 @@ class SolveInUserOrder:
         return Solution(self.steps)
 
 
-test = SolveInUserOrder(filename=filename, savePath="Solutions/")
-print(test.createInitialStep())
+def clearDir(path):
+    toRemove = os.listdir(path)
+    for remove in toRemove:
+        os.remove(os.path.join(path, remove))
 
-print(test.simplifyTwoCpts(["C4", "C5"]))
-print(test.simplifyTwoCpts(["C2", "C3"]))
-print(test.simplifyTwoCpts(["Csim1", "Csim2"]))
-print(test.simplifyTwoCpts(["C1", "Csim3"]))
+
+def solve(filename):
+    clearDir("Solutions")
+    cct = Circuit(FileToImpedance(filename))
+    steps = cct.simplify_stepwise()
+
+    name = os.path.splitext(os.path.split(filename)[1])[0]
+
+    sol = Solution(steps)
+    sol.draw(path="Solutions", filename=name)
+    sol.export(path="Solutions", filename=name)
+
+
+def soveInUserOrder():
+    clearDir("Solutions")
+
+    test = SolveInUserOrder(filename=filename, savePath="Solutions/")
+    print(test.createInitialStep())
+
+    print(test.simplifyTwoCpts(["C4", "C5"]))
+    print(test.simplifyTwoCpts(["C2", "C3"]))
+    print(test.simplifyTwoCpts(["Csim1", "Csim2"]))
+    print(test.simplifyTwoCpts(["C1", "Csim3"]))
+
+
+# solve(filename)
+cct = Circuit(filename)
+cct.simplify().draw()

@@ -1,0 +1,10 @@
+V1 0 1 ac {10} 10; up
+W 1 2; right
+W 2 7; down
+W 2 3; right
+R1 3 6 10; down
+W 3 4; right
+R2 4 5 10; down
+W 5 6; right
+W 6 7; right
+W 7 0; right
