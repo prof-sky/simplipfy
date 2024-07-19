@@ -18,7 +18,7 @@ class NetlistLine:
             raise RuntimeError("Cant parse netlist line: %s"
                                "make sure each line has a name startNode endNode; drawing annotation "
                                "e.g. looks like: "
-                               "V1 0 1 dc {10]; up --- "
+                               "V1 0 1 dc {10}; up --- "
                                "W 2 3; left --- "
                                "C3 6 7 {100}; down", self.line)
 
