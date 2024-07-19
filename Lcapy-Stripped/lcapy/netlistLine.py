@@ -1,5 +1,6 @@
 from warnings import warn
 
+
 class NetlistLine:
     def __init__(self, line: str, validate: bool = True):
         self.line = line.replace('{', '').replace('}', '')
