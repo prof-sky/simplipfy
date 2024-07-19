@@ -97,7 +97,7 @@ class DrawWithSchemdraw:
             if line.type == "R" or line.type == "Z":
                 self.addElement(elm.Resistor(id_=id_, d=line.drawParam), line)
             elif line.type == "L":
-                self.addElement(elm.Inductor(id_=id_, d=line.drawParam), line)
+                self.addElement(elm.Resistor(id_=id_, d=line.drawParam, fill=True), line)
             elif line.type == "C":
                 self.addElement(elm.Capacitor(id_=id_, d=line.drawParam), line)
             elif line.type == "W":
