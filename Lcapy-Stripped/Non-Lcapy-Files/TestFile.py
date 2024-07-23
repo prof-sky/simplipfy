@@ -1,6 +1,8 @@
 from lcapy import Circuit
 from lcapy import Solution
 from lcapy import FileToImpedance
+from lcapy.impedanceConverter import ComponentToImpedance
+from lcapy.impedanceConverter import ImpedanceToComponent
 from lcapy import DrawWithSchemdraw
 import os
 
@@ -105,6 +107,15 @@ def soveInUserOrder():
     print(test.simplifyTwoCpts(["C1", "Csim3"]))
 
 
-solve(filename)
+s1 = "R1 4 5 {R1}; down\n"
+s2 = "C2 5 6 {C1}; down\n"
+s3 = "L3 6 7 {L3}; down\n"
+
+ComponentToImpedance(s1)
+ImpedanceToComponent(ComponentToImpedance(s1))
+ImpedanceToComponent(ComponentToImpedance(s2))
+ImpedanceToComponent(ComponentToImpedance(s3))
+
+# solve(filename)
 # cct = Circuit(filename)
 # cct.simplify().draw()
