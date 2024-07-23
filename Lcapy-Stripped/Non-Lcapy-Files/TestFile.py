@@ -4,11 +4,11 @@ from lcapy import FileToImpedance
 from lcapy import DrawWithSchemdraw
 import os
 
-# filename = "Circuit_inductors.txt"
+filename = "Circuit_inductors.txt"
 # filename = "Circuit_resistors.txt"
 # filename = "Circuit_capacitors.txt"
 # filename = "Circuit_mixed.txt"
-filename = "Circuit_Wires.txt"
+# filename = "Circuit_Wires.txt"
 
 
 class SolveInUserOrder:
@@ -105,6 +105,6 @@ def soveInUserOrder():
     print(test.simplifyTwoCpts(["C1", "Csim3"]))
 
 
-# solve(filename)
-cct = Circuit(filename)
-cct.simplify().draw()
+solve(filename)
+# cct = Circuit(filename)
+# cct.simplify().draw()

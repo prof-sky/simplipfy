@@ -4,6 +4,7 @@ import os
 from warnings import warn
 from lcapy import Circuit
 from lcapy import NetlistLine
+from typing import List
 
 
 class DrawWithSchemdraw:
@@ -25,7 +26,7 @@ class DrawWithSchemdraw:
         else:
             self.netlist = circuit.netlist()
 
-        self.netLines = []
+        self.netLines: List[NetlistLine] = []
         self.fileName = os.path.splitext(fileName)[0]
         self.invertDrawParam = {"up": "down", "down": "up", "left": "right", "right": "left"}
 
@@ -97,7 +98,7 @@ class DrawWithSchemdraw:
             if line.type == "R" or line.type == "Z":
                 self.addElement(elm.Resistor(id_=id_, d=line.drawParam), line)
             elif line.type == "L":
-                self.addElement(elm.Inductor(id_=id_, d=line.drawParam), line)
+                self.addElement(elm.Resistor(id_=id_, d=line.drawParam, fill=True), line)
             elif line.type == "C":
                 self.addElement(elm.Capacitor(id_=id_, d=line.drawParam), line)
             elif line.type == "W":
@@ -110,6 +111,17 @@ class DrawWithSchemdraw:
             else:
                 raise RuntimeError(f"unknown element type {line.type}")
 
+        # count the occurrences of each node and if it is greater than 2 set a dot
+        counts = {}
+        for line in self.netLines:
+            counts[line.startNode] = counts.get(line.startNode, 0) + 1
+            counts[line.endNode] = counts.get(line.endNode, 0) + 1
+
+        for node in counts.keys():
+            if counts[node] > 2:
+                self.cirDraw.add(elm.Dot().at(self.nodePos[node]))
+
+        # save the created svg file
         if os.path.splitext(self.fileName)[1] == ".svg":
             saveName = self.fileName
         else:
