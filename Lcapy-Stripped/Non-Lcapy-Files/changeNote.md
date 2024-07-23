@@ -1,3 +1,6 @@
+## 1.22+InskaLE.0.6
+show dots on branch knots, when there are more than two occurrences of the same node in the circuit.
+
 ## 1.22+InskaLE.0.5
 Fix error that the inverse sum is not used when needed.
 
@@ -12,8 +15,8 @@ The json-File is extended by latexEquation. The calculation from the simplificat
 elements. The expression is converted from sympy to a latex string
 
 ## V1.22+inskale.0.1
-Creates a step by step Solution where only to Elements are simplified
-in one step and exports the Steps into an json-File. The Circuits
+Creates a step-by-step Solution where only to Elements are simplified
+in one step and exports the Steps into a json-File. The Circuits
 (more specific the Netlists) can be drawn with the additional package
-Schemdraw and dont need LaTeX installation. Only Supported Elements are
+Schemdraw and don't need LaTeX installation. Only Supported Elements are
 Resistors, Inductors, Wires, Voltage Sources, Impedances (special form of Resistors)
