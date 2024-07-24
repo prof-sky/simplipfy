@@ -59,15 +59,23 @@ def ImpedanceToComponent(strNetlistLine: str = None, netlistLine: NetlistLine = 
     :return strNetlistLine (str)
     """
 
-    if not strNetlistLine and not netlistLine:
+    if netlistLine:
+        netLine = netlistLine
+    elif strNetlistLine:
+        netLine = NetlistLine(strNetlistLine)
+    else:
         raise AttributeError("strNetlistLine or netlistLine need a value")
 
-    if not strNetlistLine:
-        netLine = netlistLine
-    else:
-        netLine = NetlistLine(strNetlistLine)
+    netLine.value, netLine.type = ValueToComponent(netLine.value)
 
-    value = sp.parse_expr(netLine.value, local_dict={'omega_0': 1, 'j': sp.I})
+    print(f"Netlist Line: {netLine.reconstruct()}")
+    return netLine.reconstruct()
+
+
+def ValueToComponent(value) -> (str, str):
+
+    # ToDo omega_0 shall not be assumed to be 1 instead shall be circuit value
+    value = sp.parse_expr(value, local_dict={'omega_0': 1, 'j': sp.I})
     freeSymbols = value.free_symbols
 
     if len(freeSymbols) > 1:
@@ -81,22 +89,23 @@ def ImpedanceToComponent(strNetlistLine: str = None, netlistLine: NetlistLine = 
     # ToDo potential errors with floating point comparison with 0
     if sp.re(value) == 0:
         if sp.im(value) > 0:
-            netLine.value = sp.im(value)
-            netLine.type = "L"
-            print(f"Inductor: {netLine.value} H")
+            returnVal = sp.im(value)
+            returnType = "L"
+            print(f"Inductor: {returnVal} H")
         elif sp.im(value) < 0:
-            netLine.value = -1/sp.im(value)
-            netLine.type = "C"
-            print(f"Capacitor: {netLine.value} F")
+            returnVal = -1 / sp.im(value)
+            returnType = "C"
+            print(f"Capacitor: {returnVal} F")
     elif sp.im(value) == 0:
-        netLine.value = sp.re(value)
-        netLine.type = "R"
-        print(f"Resistor: {netLine.value} Ohm")
+        returnVal = sp.re(value)
+        returnType = "R"
+        print(f"Resistor: {returnVal} Ohm")
     else:
+        returnVal = value
+        returnType = "Z"
         print("Impedance")
 
-    print(f"Netlist Line: {netLine.reconstruct()}")
-    return netLine.reconstruct(),
+    return str(returnVal), returnType
 
 
 def FileToImpedance(filename: str) -> str:
@@ -108,10 +117,10 @@ def FileToImpedance(filename: str) -> str:
     """
     netlistString = open(filename, "r").read()
     netlist = netlistString.split("\n")
-    if NeedsConversion(netlist):
+    if True:
         conv_netlist = ""
         for line in netlist:
-            conv_netlist += ComponentToImpedance(line)
+            conv_netlist += ComponentToImpedance(line, newLine=True)
 
         return conv_netlist
     else:
@@ -121,7 +130,7 @@ def FileToImpedance(filename: str) -> str:
 def StrToImpedance(netlist: str) -> str:
     conv_netlist = ""
     for line in netlist.split("\n"):
-        conv_netlist += ComponentToImpedance(line)
+        conv_netlist += ComponentToImpedance(line, newLine=True)
 
     return conv_netlist
 

@@ -13,6 +13,9 @@ from lcapy.cexpr import ConstantFrequencyResponseDomainExpression
 from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
 from lcapy import DrawWithSchemdraw
 from sympy.printing import latex
+from lcapy.impedanceConverter import ImpedanceToComponent
+from lcapy.impedanceConverter import ValueToComponent
+from lcapy.netlistLine import NetlistLine
 
 
 class Solution:
@@ -292,35 +295,29 @@ class Solution:
 
         return os.path.join(path, filename + f"_{step}.svg")
 
-    def makeLatexEquation(self, valCpt1: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
-                          valCpt2: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
-                          cptResult: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
-                          cptRelation) -> str:
+    def makeLatexEquation(self, expStr1: str, expStr2: str, expStrRslt: str, cptRelation, compType: str) -> str:
 
-        cptTypes = valCpt1.type
+        if compType not in ["R", "L", "C", "Z"]:
+            raise ValueError(f"{compType} is unknown component type has to be R, L or C")
 
         # inverse sum means 1/x1 + 1/x2 = 1/_xresult e.g parallel resistor
         parallelRel = {"R": "inverseSum", "C": "sum", "L": "inverseSum", "Z": "inverseSum"}
         rowRel = {"R": "sum", "C": "inverseSum", "L": "sum", "Z": "sum"}
 
-        valCpt1 = self.getElementSpecificValue(valCpt1, unit=True)
-        valCpt2 = self.getElementSpecificValue(valCpt2, unit=True)
-        valCptRes = self.getElementSpecificValue(cptResult, unit=True)
-
         state.show_units = True
         if cptRelation == "parallel":
-            useFunc = parallelRel[cptTypes]
+            useFunc = parallelRel[compType]
         elif cptRelation == "series":
-            useFunc = rowRel[cptTypes]
+            useFunc = rowRel[compType]
         else:
             raise AttributeError(
                 f"Unknown relation between elements {cptRelation}. Known relations are: parallel, series"
             )
 
         if useFunc == "inverseSum":
-            equation = "\\frac{1}{" + latex(valCpt1) + "} + \\frac{1}{" + latex(valCpt2) + "} = " + latex(valCptRes)
+            equation = "\\frac{1}{" + latex(expStr1) + "} + \\frac{1}{" + latex(expStr2) + "} = " + latex(expStrRslt)
         elif useFunc == "sum":
-            equation = latex(valCpt1) + " + " + latex(valCpt2) + " = " + latex(valCptRes)
+            equation = latex(expStr1) + " + " + latex(expStr2) + " = " + latex(expStrRslt)
         else:
             raise NotImplementedError(f"Unknown function {useFunc}")
 
@@ -366,31 +363,86 @@ class Solution:
                        "value2": None,
                        "result": None,
                        "latexEquation": None,
-                       "unit": None
+                       "hasConversion": False,
+                       "convVal1": None,
+                       "convVal2": None
                        }
 
         elif not (name1 or name2 or newName or lastStep or thisStep or step):
             raise ValueError(f"missing information in {step}: {name1}, {name2}, {newName}, {thisStep}, {lastStep}")
 
         else:
+            state.show_units = True
             cpt1 = lastStep.circuit[name1]
             cpt2 = lastStep.circuit[name2]
             cptRes = thisStep.circuit[newName]
 
-            equation = self.makeLatexEquation(cpt1, cpt2, cptRes, thisStep.relation)
+            valCpt1 = str(self.getElementSpecificValue(cpt1))
+            valCpt2 = str(self.getElementSpecificValue(cpt2))
+            valCptRes = str(self.getElementSpecificValue(cptRes))
 
-            assert self.getUnit(cpt1) == self.getUnit(cpt2)
-            state.show_units = True
+            convValCpt1, cvc1Type = ValueToComponent(valCpt1)
+            convValCpt2, cvc2Type = ValueToComponent(valCpt2)
+            convValCptRes, cvcrType = ValueToComponent(valCptRes)
+
+            if not valCpt1 == convValCpt1 and not valCpt2 == convValCpt2 and not valCptRes == convValCptRes:
+                if cvc1Type == cvc2Type:
+                    eqVal1 = convValCpt1
+                    eqVal2 = convValCpt2
+                    eqRes = convValCptRes
+                    compType = cvc1Type
+                    assert compType in ["R", "L", "C"]
+                    hasConversion = True
+                    convValCpt1 = valCpt1
+                    convValCpt2 = valCpt2
+                    convValCptRes = valCptRes
+                else:
+                    eqVal1 = valCpt1
+                    eqVal2 = valCpt2
+                    eqRes = convValCptRes
+                    compType = valCptRes
+                    assert compType == "Z"
+                    hasConversion = True
+                    convValCpt1 = None
+                    convValCpt2 = None
+                    convValCptRes = valCptRes
+
+            elif valCpt1 == convValCpt1 and valCpt2 == convValCpt2 and not valCptRes == convValCptRes:
+                eqVal1 = valCpt1
+                eqVal2 = valCpt2
+                eqRes = valCptRes
+                compType = NetlistLine(str(cpt1)).type
+                assert compType == "Z"
+                hasConversion = True
+                convValCpt1 = None
+                convValCpt2 = None
+                # convValCptRes = convValCptRes
+
+            else:
+                eqVal1 = valCpt1
+                eqVal2 = valCpt2
+                eqRes = valCptRes
+                compType = NetlistLine(str(cpt1)).type
+                assert compType == "Z"
+                hasConversion = False
+                convValCpt1 = None
+                convValCpt2 = None
+                convValCptRes = None
+
+            equation = self.makeLatexEquation(eqVal1, eqVal2, eqRes, thisStep.relation, compType)
 
             as_dict = {"name1": name1,
                        "name2": name2,
                        "newName": newName,
                        "relation": thisStep.relation,
-                       "value1": latex(self.getElementSpecificValue(cpt1, unit=True)),
-                       "value2": latex(self.getElementSpecificValue(cpt2, unit=True)),
-                       "result": latex(self.getElementSpecificValue(cptRes, unit=True)),
+                       "value1": eqVal1,
+                       "value2": eqVal2,
+                       "result": eqRes,
                        "latexEquation": equation,
-                       "unit": str(self.getUnit(cpt1)),
+                       "hasConversion": hasConversion,
+                       "convVal1": convValCpt1,
+                       "convVal2": convValCpt2,
+                       "convResult": convValCptRes
                        }
 
         if debug:
