@@ -1,5 +1,6 @@
 import sympy.functions.elementary.complexes
 
+import lcapy.netlistLine
 from lcapy import NetlistLine
 import sympy as sp
 
@@ -8,7 +9,8 @@ def ComponentToImpedance(netlistLine: str,
                          skipElementTypes=None,
                          replaceElementType=None,
                          replaceValueWith=None,
-                         debug=False
+                         debug=False,
+                         newLine=False
                          ) -> str:
     """
     Converts the value in {} of Elements specified in replaceElementType to the given Value in the Dict.
@@ -31,23 +33,40 @@ def ComponentToImpedance(netlistLine: str,
     netLine = NetlistLine(netlistLine, validate=True)
 
     if netLine.type in skipElementTypes:
-        return netLine.line + "\n"
-
-    if netLine.type in list(replaceElementType.keys()):
+        returnVal = netLine.line
+    elif netLine.type in list(replaceElementType.keys()):
         netLine.value = '{'+replaceValueWith[netLine.type].replace("value", netLine.value)+'}'
         netLine.type = replaceElementType[netLine.type]
-
-    newLine = netLine.reconstruct()
+        returnVal = netLine.reconstruct()
+    else:
+        returnVal = netLine.line
 
     if debug:
-        print(f"{netlistLine} -> {newLine}")
+        print(f"{netlistLine} -> {returnVal}")
 
-    return newLine + "\n"
+    if newLine:
+        return returnVal + "\n"
+    else:
+        return returnVal
 
 
-def ImpedanceToComponent(netlistLine: str):
-    from lcapy import j
-    netLine = NetlistLine(netlistLine)
+def ImpedanceToComponent(strNetlistLine: str = None, netlistLine: NetlistLine = None) -> str:
+    """
+    Takes a strNetlistLine (Z1 4 5 {R1}; down) or NetlistLine() created from a strNetlistLine and converts it to its
+    corresponding Component (R, L, or C) if it is not possible it returns the input strNetlistLine
+    :param strNetlistLine a line of a lcapy.Circuit.netlist() string
+    :param netlistLine an Object from lcapy.netlistLine.NetlistLine(), created from strNetlistLine
+    :return strNetlistLine (str)
+    """
+
+    if not strNetlistLine and not netlistLine:
+        raise AttributeError("strNetlistLine or netlistLine need a value")
+
+    if not strNetlistLine:
+        netLine = netlistLine
+    else:
+        netLine = NetlistLine(strNetlistLine)
+
     value = sp.parse_expr(netLine.value, local_dict={'omega_0': 1, 'j': sp.I})
     freeSymbols = value.free_symbols
 
@@ -77,6 +96,7 @@ def ImpedanceToComponent(netlistLine: str):
         print("Impedance")
 
     print(f"Netlist Line: {netLine.reconstruct()}")
+    return netLine.reconstruct(),
 
 
 def FileToImpedance(filename: str) -> str:

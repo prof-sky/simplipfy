@@ -107,9 +107,9 @@ def soveInUserOrder():
     print(test.simplifyTwoCpts(["C1", "Csim3"]))
 
 
-s1 = "R1 4 5 {R1}; down\n"
-s2 = "C2 5 6 {C1}; down\n"
-s3 = "L3 6 7 {L3}; down\n"
+s1 = "R1 4 5 {R1}; down"
+s2 = "C2 5 6 {C1}; down"
+s3 = "L3 6 7 {L3}; down"
 
 ComponentToImpedance(s1)
 ImpedanceToComponent(ComponentToImpedance(s1))
