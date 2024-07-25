@@ -416,7 +416,7 @@ class Solution:
                     eqVal1 = self.addUnit(valCpt1, "Z")
                     eqVal2 = self.addUnit(valCpt2, "Z")
                     eqRes = self.addUnit(valCptRes, "Z")
-                    compType = cvcrType
+                    compType = NetlistLine(str(cptRes)).type
                     assert compType == "Z"
                     hasConversion = True
                     convValCpt1 = None
@@ -461,7 +461,8 @@ class Solution:
                        "convResult": convValCptRes
                        }
             for key in ["value1", "value2", "result", "convVal1", "convVal2", "convResult"]:
-                as_dict[key] = latex(as_dict[key])
+                if as_dict[key]:
+                    as_dict[key] = latex(as_dict[key])
 
         if debug:
             print(as_dict)

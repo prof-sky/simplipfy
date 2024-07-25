@@ -1,11 +1,14 @@
 import sympy.functions.elementary.complexes
 
-import lcapy.netlistLine
 from lcapy import NetlistLine
+from lcapy import j
+from lcapy import omega0 as lcapy_omega0
+from lcapy import state
 import sympy as sp
 
 
 def ComponentToImpedance(netlistLine: str,
+                         omega_0: float = None,
                          skipElementTypes=None,
                          replaceElementType=None,
                          replaceValueWith=None,
@@ -32,10 +35,20 @@ def ComponentToImpedance(netlistLine: str,
 
     netLine = NetlistLine(netlistLine, validate=True)
 
+    if omega_0 is not None:
+        _omega_0 = omega_0
+    else:
+        _omega_0 = lcapy_omega0
+
     if netLine.type in skipElementTypes:
         returnVal = netLine.line
     elif netLine.type in list(replaceElementType.keys()):
-        netLine.value = '{'+replaceValueWith[netLine.type].replace("value", netLine.value)+'}'
+        state.show_units = False
+
+        expr = replaceValueWith[netLine.type]
+        parsedVal = sp.parse_expr(netLine.value)
+        netLine.value = '{'+str(sp.parse_expr(expr, {"value": parsedVal, "omega_0": _omega_0, "j": j}))+'}'
+
         netLine.type = replaceElementType[netLine.type]
         returnVal = netLine.reconstruct()
     else:
@@ -72,12 +85,21 @@ def ImpedanceToComponent(strNetlistLine: str = None, netlistLine: NetlistLine = 
     return netLine.reconstruct()
 
 
-def ValueToComponent(value) -> (sp.Mul, str):
-
+def ValueToComponent(value, omega_0: float = None) -> (sp.Mul, str):
     # ToDo omega_0 shall not be assumed to be 1 instead shall be circuit value
-    _value = sp.parse_expr(value, local_dict={'omega_0': 1, 'j': sp.I})
+    if omega_0 is not None:
+        _omega_0 = omega_0
+    else:
+        _omega_0 = lcapy_omega0
 
-    freeSymbols = _value.free_symbols
+    _value = sp.parse_expr(value, local_dict={'omega_0': _omega_0, 'j': j})
+    if _value == sp.zoo and _omega_0 == 0:
+        return _value, "C"
+    # if there is a resistor with 0 ohms and omega_0 is also 0 this gives back an inductor instead of a resistor
+    elif _value == 0 and _omega_0 == 0:
+        return _value, "L"
+
+    freeSymbols = _value.free_symbols - {_omega_0}
 
     if len(freeSymbols) > 1:
         raise AttributeError(f"Too many free symbols in {_value}, free symbols: {freeSymbols}")
@@ -86,13 +108,14 @@ def ValueToComponent(value) -> (sp.Mul, str):
     for freeSymbol in freeSymbols:
         sub_dict[str(freeSymbol)] = sp.Symbol(str(freeSymbol), finite=True, real=True, positive=True)
 
+    # using the sp.im(_value) funktion equals _value/j
     _value = _value.subs(sub_dict)
     if sp.re(_value) == 0:
         if sp.im(_value) > 0:
-            returnVal = sp.im(_value)
+            returnVal = sp.im(_value) / _omega_0
             returnType = "L"
         elif sp.im(_value) < 0:
-            returnVal = -1 / sp.im(_value)
+            returnVal = -1 / (sp.im(_value) * _omega_0)
             returnType = "C"
     elif sp.im(_value) == 0:
         returnVal = sp.re(_value)
