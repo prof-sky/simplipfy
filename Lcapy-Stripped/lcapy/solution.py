@@ -295,7 +295,7 @@ class Solution:
 
         return os.path.join(path, filename + f"_{step}.svg")
 
-    def makeLatexEquation(self, expStr1: str, expStr2: str, expStrRslt: str, cptRelation, compType: str) -> str:
+    def makeLatexEquation(self, expStr1, expStr2, expStrRslt, cptRelation, compType: str) -> str:
 
         if compType not in ["R", "L", "C", "Z"]:
             raise ValueError(f"{compType} is unknown component type has to be R, L or C")
@@ -322,6 +322,22 @@ class Solution:
             raise NotImplementedError(f"Unknown function {useFunc}")
 
         return equation
+
+    @staticmethod
+    def addUnit(val, cptType):
+        lcapy.state.show_units = True
+        if cptType == "R":
+            returnVal = lcapy.resistance(val)
+        elif cptType == "C":
+            returnVal = lcapy.capacitance(val)
+        elif cptType == "L":
+            returnVal = lcapy.inductance(val)
+        elif cptType == "Z":
+            returnVal = lcapy.impedance(val)
+        else:
+            raise NotImplementedError(f"{cptType} not supported edit Solution.addUnit to support")
+        return returnVal
+
 
     def exportStepAsJson(self, step, path: str = None, filename: str ="circuit", debug: bool = False) -> str:
         """
@@ -387,41 +403,41 @@ class Solution:
 
             if not valCpt1 == convValCpt1 and not valCpt2 == convValCpt2 and not valCptRes == convValCptRes:
                 if cvc1Type == cvc2Type:
-                    eqVal1 = convValCpt1
-                    eqVal2 = convValCpt2
-                    eqRes = convValCptRes
+                    eqVal1 = self.addUnit(convValCpt1, cvc1Type)
+                    eqVal2 = self.addUnit(convValCpt2, cvc2Type)
+                    eqRes = self.addUnit(convValCptRes, cvcrType)
                     compType = cvc1Type
                     assert compType in ["R", "L", "C"]
-                    hasConversion = True
-                    convValCpt1 = valCpt1
-                    convValCpt2 = valCpt2
-                    convValCptRes = valCptRes
+                    hasConversion = False
+                    convValCpt1 = None
+                    convValCpt2 = None
+                    convValCptRes = None
                 else:
-                    eqVal1 = valCpt1
-                    eqVal2 = valCpt2
-                    eqRes = convValCptRes
-                    compType = valCptRes
+                    eqVal1 = self.addUnit(valCpt1, "Z")
+                    eqVal2 = self.addUnit(valCpt2, "Z")
+                    eqRes = self.addUnit(valCptRes, "Z")
+                    compType = cvcrType
                     assert compType == "Z"
                     hasConversion = True
                     convValCpt1 = None
                     convValCpt2 = None
-                    convValCptRes = valCptRes
+                    convValCptRes = self.addUnit(convValCptRes, cvcrType)
 
             elif valCpt1 == convValCpt1 and valCpt2 == convValCpt2 and not valCptRes == convValCptRes:
-                eqVal1 = valCpt1
-                eqVal2 = valCpt2
-                eqRes = valCptRes
+                eqVal1 = self.addUnit(valCpt1, "Z")
+                eqVal2 = self.addUnit(valCpt2, "Z")
+                eqRes = self.addUnit(valCptRes, "Z")
                 compType = NetlistLine(str(cpt1)).type
                 assert compType == "Z"
                 hasConversion = True
                 convValCpt1 = None
                 convValCpt2 = None
-                # convValCptRes = convValCptRes
+                convValCptRes = self.addUnit(convValCptRes, cvcrType)
 
             else:
-                eqVal1 = valCpt1
-                eqVal2 = valCpt2
-                eqRes = valCptRes
+                eqVal1 = self.addUnit(valCpt1, "Z")
+                eqVal2 = self.addUnit(valCpt2, "Z")
+                eqRes = self.addUnit(valCptRes, "Z")
                 compType = NetlistLine(str(cpt1)).type
                 assert compType == "Z"
                 hasConversion = False
@@ -444,6 +460,8 @@ class Solution:
                        "convVal2": convValCpt2,
                        "convResult": convValCptRes
                        }
+            for key in ["value1", "value2", "result", "convVal1", "convVal2", "convResult"]:
+                as_dict[key] = latex(as_dict[key])
 
         if debug:
             print(as_dict)

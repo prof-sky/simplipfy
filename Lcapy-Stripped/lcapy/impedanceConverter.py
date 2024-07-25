@@ -72,32 +72,32 @@ def ImpedanceToComponent(strNetlistLine: str = None, netlistLine: NetlistLine = 
     return netLine.reconstruct()
 
 
-def ValueToComponent(value) -> (str, str):
+def ValueToComponent(value) -> (sp.Mul, str):
 
     # ToDo omega_0 shall not be assumed to be 1 instead shall be circuit value
-    value = sp.parse_expr(value, local_dict={'omega_0': 1, 'j': sp.I})
-    freeSymbols = value.free_symbols
+    _value = sp.parse_expr(value, local_dict={'omega_0': 1, 'j': sp.I})
+
+    freeSymbols = _value.free_symbols
 
     if len(freeSymbols) > 1:
-        raise AttributeError(f"Too many free symbols in {value}, free symbols: {freeSymbols}")
+        raise AttributeError(f"Too many free symbols in {_value}, free symbols: {freeSymbols}")
 
     sub_dict = {}
     for freeSymbol in freeSymbols:
         sub_dict[str(freeSymbol)] = sp.Symbol(str(freeSymbol), finite=True, real=True, positive=True)
 
-    value = value.subs(sub_dict)
-    # ToDo potential errors with floating point comparison with 0
-    if sp.re(value) == 0:
-        if sp.im(value) > 0:
-            returnVal = sp.im(value)
+    _value = _value.subs(sub_dict)
+    if sp.re(_value) == 0:
+        if sp.im(_value) > 0:
+            returnVal = sp.im(_value)
             returnType = "L"
             print(f"Inductor: {returnVal} H")
-        elif sp.im(value) < 0:
-            returnVal = -1 / sp.im(value)
+        elif sp.im(_value) < 0:
+            returnVal = -1 / sp.im(_value)
             returnType = "C"
             print(f"Capacitor: {returnVal} F")
-    elif sp.im(value) == 0:
-        returnVal = sp.re(value)
+    elif sp.im(_value) == 0:
+        returnVal = sp.re(_value)
         returnType = "R"
         print(f"Resistor: {returnVal} Ohm")
     else:
@@ -105,7 +105,7 @@ def ValueToComponent(value) -> (str, str):
         returnType = "Z"
         print("Impedance")
 
-    return str(returnVal), returnType
+    return returnVal, returnType
 
 
 def FileToImpedance(filename: str) -> str:
