@@ -209,6 +209,7 @@ class Figure:
         self.svgcanvas = kwargs.get('svg')
         self.id_ = kwargs.get('id_','default_id')
         self.class_ = kwargs.get('class_','default_class')
+        self.value_ = kwargs.get('value_','na')
 
 
     def set_bbox(self, bbox: BBox) -> None:
@@ -253,7 +254,8 @@ class Figure:
              color: str = 'black', ls: Linestyle = '-', lw: float = 2,
              fill: str = 'none', capstyle: Capstyle = 'round',
              joinstyle: Joinstyle = 'round', clip: Optional[BBox] = None, zorder: int = 2,
-             id_: Optional[str] = None, class_: Optional[str] = None) -> None:
+             id_: Optional[str] = None, class_: Optional[str] = None,
+             value_: Optional[str] = None) -> None:
         ''' Plot a path '''
         et = ET.Element('path')
         d = 'M {},{} '.format(*self.xform(x[0], y[0]))
@@ -269,9 +271,11 @@ class Figure:
         d = d.strip()
         id_= id_ or self.id_
         class_ = class_ or self.class_
+        value_=value_ or self.value_
         et.set('d', d)
         et.set('id', id_)
         et.set('class', class_)
+        et.set('value',value_)
         et.set('style', getstyle(color=color, ls=ls, lw=lw, capstyle=capstyle,
                                  joinstyle=joinstyle, fill=fill))
         self.addclip(et, clip)
@@ -436,7 +440,8 @@ class Figure:
             joinstyle: Joinstyle = 'round', 
             zorder: int = 1,
             clip: Optional[BBox] = None,
-            id_: Optional[str] = None, class_: Optional[str] = None) -> None:
+            id_: Optional[str] = None, class_: Optional[str] = None,
+            value_: Optional[str] = None) -> None:
         dstrs = []
         for point in path:
             if isinstance(point, str):
@@ -448,9 +453,11 @@ class Figure:
         et = ET.Element('path')
         id_=id_ or self.id_
         class_=class_ or self.class_
+        value_=value_ or self.value_
         et.set('d', ' '.join(dstrs))
         et.set('id', id_)
         et.set('class', class_)
+        et.set('value', value_)
         et.set('style', getstyle(color=color, ls=ls, lw=lw, capstyle=capstyle,
                                  joinstyle=joinstyle, fill=fill))
         self.addclip(et, clip)
