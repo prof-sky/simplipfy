@@ -91,19 +91,15 @@ def ValueToComponent(value) -> (sp.Mul, str):
         if sp.im(_value) > 0:
             returnVal = sp.im(_value)
             returnType = "L"
-            print(f"Inductor: {returnVal} H")
         elif sp.im(_value) < 0:
             returnVal = -1 / sp.im(_value)
             returnType = "C"
-            print(f"Capacitor: {returnVal} F")
     elif sp.im(_value) == 0:
         returnVal = sp.re(_value)
         returnType = "R"
-        print(f"Resistor: {returnVal} Ohm")
     else:
         returnVal = value
         returnType = "Z"
-        print("Impedance")
 
     return returnVal, returnType
 
