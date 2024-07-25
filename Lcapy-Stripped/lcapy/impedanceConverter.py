@@ -81,7 +81,6 @@ def ImpedanceToComponent(strNetlistLine: str = None, netlistLine: NetlistLine = 
 
     netLine.value, netLine.type = ValueToComponent(netLine.value)
 
-    print(f"Netlist Line: {netLine.reconstruct()}")
     return netLine.reconstruct()
 
 
@@ -136,14 +135,11 @@ def FileToImpedance(filename: str) -> str:
     """
     netlistString = open(filename, "r").read()
     netlist = netlistString.split("\n")
-    if True:
-        conv_netlist = ""
-        for line in netlist:
-            conv_netlist += ComponentToImpedance(line, newLine=True)
+    conv_netlist = ""
+    for line in netlist:
+        conv_netlist += ComponentToImpedance(line, newLine=True)
 
-        return conv_netlist
-    else:
-        return netlistString
+    return conv_netlist
 
 
 def StrToImpedance(netlist: str) -> str:

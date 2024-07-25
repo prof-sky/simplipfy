@@ -5,6 +5,7 @@ from warnings import warn
 from lcapy import Circuit
 from lcapy import NetlistLine
 from typing import List
+from lcapy.impedanceConverter import ImpedanceToComponent
 
 
 class DrawWithSchemdraw:
@@ -94,6 +95,8 @@ class DrawWithSchemdraw:
         DrawWithSchemdraw.orderNetlistLines(self.netLines)
 
         for line in self.netLines:
+            if line.type == "Z":
+                line = NetlistLine(ImpedanceToComponent(netlistLine=line))
             id_ = line.label()
             if line.type == "R" or line.type == "Z":
                 self.addElement(elm.Resistor(id_=id_, d=line.drawParam), line)
