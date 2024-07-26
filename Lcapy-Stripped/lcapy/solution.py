@@ -1,8 +1,12 @@
 import os.path
 from enum import Enum
 
-import lcapy
+import sympy
+
 import json
+from lcapy import ConstantDomainExpression
+from lcapy import resistance, inductance, capacitance, voltage, impedance
+from lcapy.units import ohms, farads, henrys
 from .solutionStep import SolutionStep
 from ordered_set import OrderedSet
 from typing import Iterable
@@ -16,6 +20,10 @@ from sympy.printing import latex
 from lcapy.impedanceConverter import ImpedanceToComponent
 from lcapy.impedanceConverter import ValueToComponent
 from lcapy.netlistLine import NetlistLine
+from sympy.physics.units import Hz
+from sympy import parse_expr
+from lcapy import omega0
+
 
 
 class Solution:
@@ -120,7 +128,7 @@ class Solution:
             return OrderedSet(self.available_steps)
 
     @staticmethod
-    def getElementSpecificValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z, unit=False) -> lcapy.ConstantDomainExpression:
+    def getElementSpecificValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z, unit=False) -> ConstantDomainExpression:
         """
         accesses the value resistance, capacitance, inductance, or impedance of an element based on its type
         :param element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
@@ -130,7 +138,7 @@ class Solution:
         if unit:
             return Solution.addUnitToValue(element)
 
-        lcapy.state.show_units = False
+        state.show_units = False
         if isinstance(element, mnacpts.R):
             returnVal = element.R
         elif isinstance(element, mnacpts.C):
@@ -152,13 +160,13 @@ class Solution:
         :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
         """
         if isinstance(element, mnacpts.R):
-            returnVal = lcapy.resistance(Solution.getElementSpecificValue(element))
+            returnVal = resistance(Solution.getElementSpecificValue(element))
         elif isinstance(element, mnacpts.C):
-            returnVal = lcapy.capacitance(Solution.getElementSpecificValue(element))
+            returnVal = capacitance(Solution.getElementSpecificValue(element))
         elif isinstance(element, mnacpts.L):
-            returnVal = lcapy.inductance(Solution.getElementSpecificValue(element))
+            returnVal = inductance(Solution.getElementSpecificValue(element))
         elif isinstance(element, mnacpts.Z):
-            returnVal = lcapy.impedance(Solution.getElementSpecificValue(element))
+            returnVal = impedance(Solution.getElementSpecificValue(element))
         else:
             raise NotImplementedError(f"{type(element)} not supported edit Solution.addUnit to support")
 
@@ -178,13 +186,13 @@ class Solution:
         :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
         """
         if isinstance(element, mnacpts.R):
-            return lcapy.units.ohms
+            return ohms
         elif isinstance(element, mnacpts.C):
-            return lcapy.units.farads
+            return farads
         elif isinstance(element, mnacpts.L):
-            return lcapy.units.henrys
+            return henrys
         elif isinstance(element, mnacpts.Z):
-            return lcapy.units.ohms
+            return ohms
         else:
             raise NotImplementedError(f"{type(element)} not supported edit Solution.addUnit to support")
 
@@ -325,15 +333,17 @@ class Solution:
 
     @staticmethod
     def addUnit(val, cptType):
-        lcapy.state.show_units = True
+        state.show_units = True
         if cptType == "R":
-            returnVal = lcapy.resistance(val)
+            returnVal = resistance(val)
         elif cptType == "C":
-            returnVal = lcapy.capacitance(val)
+            returnVal = capacitance(val)
         elif cptType == "L":
-            returnVal = lcapy.inductance(val)
+            returnVal = inductance(val)
         elif cptType == "Z":
-            returnVal = lcapy.impedance(val)
+            returnVal = impedance(val)
+        elif cptType == "V":
+            returnVal = voltage(val)
         else:
             raise NotImplementedError(f"{cptType} not supported edit Solution.addUnit to support")
         return returnVal
@@ -370,19 +380,40 @@ class Solution:
         lastStep = self[step].lastStep
 
         if not (name1 and name2 and newName and lastStep) and thisStep:
-            # this is the initial step which does not have those elements
-            as_dict = {"name1": None,
-                       "name2": None,
-                       "newName": None,
-                       "relation": None,
-                       "value1": None,
-                       "value2": None,
-                       "result": None,
-                       "latexEquation": None,
-                       "hasConversion": False,
-                       "convVal1": None,
-                       "convVal2": None
-                       }
+            # this is the initial step which is used as an overview of the circuit
+            as_dict = {}
+            state.show_units = True
+
+            for cptName in thisStep.circuit.elements.keys():
+                cpt = thisStep.circuit.elements[cptName]
+                if cpt.type == "V" and cpt.has_ac:
+                    as_dict[cptName] = latex(
+                        self.addUnit(
+                            NetlistLine(str(cpt)).value,
+                            cpt.type
+                        )
+                    )
+                    # ToDo omega_0 is in Hz but is 2*pi*f the question is should omega_0 be specified in netlist or f
+                    if cpt.has_ac and cpt.args[1] is not None:
+                        if cpt.args[1] is not None:
+                            as_dict["omega_0"] = latex(parse_expr(str(cpt.args[1])) * Hz)
+                        else:
+                            as_dict["omega_0"] = latex(omega0)
+                    elif cpt.has_dc:
+                        as_dict["omega_0"] = latex(sympy.Mul(0) * Hz)
+                    else:
+                        raise AssertionError("Voltage Source is not ac or dc")
+
+                elif not cpt.type == "W":
+                    cCpt = NetlistLine(ImpedanceToComponent(str(cpt)))
+                    as_dict[cCpt.type + cCpt.typeSuffix] = latex(
+                        self.addUnit(
+                            cCpt.value,
+                            cCpt.type
+                        )
+                    )
+            # ToDo Remove print in release
+            print(as_dict)
 
         elif not (name1 or name2 or newName or lastStep or thisStep or step):
             raise ValueError(f"missing information in {step}: {name1}, {name2}, {newName}, {thisStep}, {lastStep}")
