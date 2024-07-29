@@ -4,11 +4,13 @@ from lcapy import NetlistLine
 from lcapy import j
 from lcapy import omega0 as lcapy_omega0
 from lcapy import state
+from lcapy import Circuit
 import sympy as sp
+from typing import Union
 
 
 def ComponentToImpedance(netlistLine: str,
-                         omega_0: float = None,
+                         omega_0: Union[float, str] = None,
                          skipElementTypes=None,
                          replaceElementType=None,
                          replaceValueWith=None,
@@ -24,7 +26,7 @@ def ComponentToImpedance(netlistLine: str,
     replaceElementType = {"R": "Z", "L": "Z", "C": "Z"}
     replaceValueWith = {"R": "value", "L": "j*value*omega_0", "C": "-j/(value*omega_0)"}
 
-    returns ZC2 5 6 {-j/(100*omega_0}; down
+    returns Z2 5 6 {-j/(100*omega_0}; down
     """
     if skipElementTypes is None:
         skipElementTypes = ["V", "W"]
@@ -35,8 +37,10 @@ def ComponentToImpedance(netlistLine: str,
 
     netLine = NetlistLine(netlistLine, validate=True)
 
-    if omega_0 is not None:
+    if isinstance(omega_0, float):
         _omega_0 = omega_0
+    elif isinstance(omega_0, str):
+        _omega_0 = sp.Symbol(omega_0, real=True)
     else:
         _omega_0 = lcapy_omega0
 
@@ -63,13 +67,16 @@ def ComponentToImpedance(netlistLine: str,
         return returnVal
 
 
-def ImpedanceToComponent(strNetlistLine: str = None, netlistLine: NetlistLine = None) -> str:
+def ImpedanceToComponent(strNetlistLine: str = None,
+                         netlistLine: NetlistLine = None,
+                         omega_0: Union[float, str] = None) -> str:
     """
     Takes a strNetlistLine (Z1 4 5 {R1}; down) or NetlistLine() created from a strNetlistLine and converts it to its
     corresponding Component (R, L, or C) if it is not possible it returns the input strNetlistLine
     :param strNetlistLine a line of a lcapy.Circuit.netlist() string
     :param netlistLine an Object from lcapy.netlistLine.NetlistLine(), created from strNetlistLine
-    :return strNetlistLine (str)
+    :param omega_0 is the circular frequency used for the conversion. If None, standard variable omega_0 is used. If string, sympy Symbol with string as name is created and used. If float, float value is used.
+    :return: strNetlistLine (str); R1 4 5 100; down
     """
 
     if netlistLine:
@@ -79,15 +86,17 @@ def ImpedanceToComponent(strNetlistLine: str = None, netlistLine: NetlistLine = 
     else:
         raise AttributeError("strNetlistLine or netlistLine need a value")
 
-    netLine.value, netLine.type = ValueToComponent(netLine.value)
+    netLine.value, netLine.type = ValueToComponent(netLine.value, omega_0=omega_0)
 
     return netLine.reconstruct()
 
 
-def ValueToComponent(value, omega_0: float = None) -> (sp.Mul, str):
-    # ToDo omega_0 shall not be assumed to be 1 instead shall be circuit value
-    if omega_0 is not None:
+def ValueToComponent(value, omega_0: Union[float, str] = None) -> (sp.Mul, str):
+
+    if isinstance(omega_0, float):
         _omega_0 = omega_0
+    elif isinstance(omega_0, str):
+        _omega_0 = sp.Symbol(omega_0, real=True)
     else:
         _omega_0 = lcapy_omega0
 
@@ -135,17 +144,30 @@ def FileToImpedance(filename: str) -> str:
     """
     netlistString = open(filename, "r").read()
     netlist = netlistString.split("\n")
+
+    cct = Circuit(netlistString)
+    sources = []
+    if cct.voltage_sources:
+        sources.extend(cct.voltage_sources)
+    if cct.current_sources:
+        sources.extend(cct.current_sources)
+
+    if len(sources) > 1:
+        raise NotImplementedError("Implementation can only handle one Source")
+    else:
+        if len(cct.elements[sources[0]].args) >= 3:
+            value = cct.elements[sources[0]].args[2]
+            try:
+                omega_0 = float(value)
+            except ValueError:
+                omega_0 = value
+            print("Omega: " + cct.elements[sources[0]].args[2])
+        else:
+            omega_0 = None
+
     conv_netlist = ""
     for line in netlist:
-        conv_netlist += ComponentToImpedance(line, newLine=True)
-
-    return conv_netlist
-
-
-def StrToImpedance(netlist: str) -> str:
-    conv_netlist = ""
-    for line in netlist.split("\n"):
-        conv_netlist += ComponentToImpedance(line, newLine=True)
+        conv_netlist += ComponentToImpedance(line, newLine=True, omega_0=omega_0)
 
     return conv_netlist
 
