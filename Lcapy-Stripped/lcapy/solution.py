@@ -17,12 +17,6 @@ from lcapy.cexpr import ConstantFrequencyResponseDomainExpression
 from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
 from lcapy import DrawWithSchemdraw
 from sympy.printing import latex
-from lcapy.impedanceConverter import ImpedanceToComponent
-from lcapy.impedanceConverter import ValueToComponent
-from lcapy.netlistLine import NetlistLine
-from sympy.physics.units import Hz
-from sympy import parse_expr
-from lcapy import omega0
 
 
 
@@ -303,10 +297,11 @@ class Solution:
 
         return os.path.join(path, filename + f"_{step}.svg")
 
-    def makeLatexEquation(self, expStr1, expStr2, expStrRslt, cptRelation, compType: str) -> str:
+    @staticmethod
+    def makeLatexEquation(expStr1, expStr2, expStrRslt, cptRelation, compType: str) -> str:
 
         if compType not in ["R", "L", "C", "Z"]:
-            raise ValueError(f"{compType} is unknown component type has to be R, L or C")
+            raise ValueError(f"{compType} is unknown component type has to be R, L, C or Z")
 
         # inverse sum means 1/x1 + 1/x2 = 1/_xresult e.g parallel resistor
         parallelRel = {"R": "inverseSum", "C": "sum", "L": "inverseSum", "Z": "inverseSum"}
@@ -348,7 +343,6 @@ class Solution:
             raise NotImplementedError(f"{cptType} not supported edit Solution.addUnit to support")
         return returnVal
 
-
     def exportStepAsJson(self, step, path: str = None, filename: str ="circuit", debug: bool = False) -> str:
         """
         saves a step as a .json File with the following information:
@@ -379,122 +373,8 @@ class Solution:
         thisStep = self[step]
         lastStep = self[step].lastStep
 
-
-        if not (name1 and name2 and newName and lastStep) and thisStep:
-            # this is the initial step which is used as an overview of the circuit
-            as_dict = {}
-            state.show_units = True
-
-            for cptName in thisStep.circuit.elements.keys():
-                cpt = thisStep.circuit.elements[cptName]
-                if cpt.type == "V" and cpt.has_ac:
-                    as_dict[cptName] = latex(
-                        self.addUnit(
-                            NetlistLine(str(cpt)).value,
-                            cpt.type
-                        )
-                    )
-                    # ToDo omega_0 is in Hz but is 2*pi*f the question is how should omega_0 be specified in netlist
-                    if cpt.has_ac:
-                        if cpt.args[2] is not None:
-                            as_dict["omega_0"] = latex(parse_expr(str(cpt.args[2])) * Hz)
-                        else:
-                            as_dict["omega_0"] = latex(omega0)
-                    elif cpt.has_dc:
-                        as_dict["omega_0"] = latex(sympy.Mul(0) * Hz)
-                    else:
-                        raise AssertionError("Voltage Source is not ac or dc")
-
-                elif not cpt.type == "W":
-                    cCpt = NetlistLine(ImpedanceToComponent(str(cpt)))
-                    as_dict[cCpt.type + cCpt.typeSuffix] = latex(
-                        self.addUnit(
-                            cCpt.value,
-                            cCpt.type
-                        )
-                    )
-            # ToDo Remove print in release
-            print(as_dict)
-
-        elif not (name1 or name2 or newName or lastStep or thisStep or step):
-            raise ValueError(f"missing information in {step}: {name1}, {name2}, {newName}, {thisStep}, {lastStep}")
-
-        else:
-            state.show_units = True
-            cpt1 = lastStep.circuit[name1]
-            cpt2 = lastStep.circuit[name2]
-            cptRes = thisStep.circuit[newName]
-
-            valCpt1 = str(self.getElementSpecificValue(cpt1))
-            valCpt2 = str(self.getElementSpecificValue(cpt2))
-            valCptRes = str(self.getElementSpecificValue(cptRes))
-
-            convValCpt1, cvc1Type = ValueToComponent(valCpt1)
-            convValCpt2, cvc2Type = ValueToComponent(valCpt2)
-            convValCptRes, cvcrType = ValueToComponent(valCptRes)
-
-            if not valCpt1 == convValCpt1 and not valCpt2 == convValCpt2 and not valCptRes == convValCptRes:
-                if cvc1Type == cvc2Type:
-                    eqVal1 = self.addUnit(convValCpt1, cvc1Type)
-                    eqVal2 = self.addUnit(convValCpt2, cvc2Type)
-                    eqRes = self.addUnit(convValCptRes, cvcrType)
-                    compType = cvc1Type
-                    assert compType in ["R", "L", "C"]
-                    hasConversion = False
-                    convValCpt1 = None
-                    convValCpt2 = None
-                    convValCptRes = None
-                else:
-                    eqVal1 = self.addUnit(valCpt1, "Z")
-                    eqVal2 = self.addUnit(valCpt2, "Z")
-                    eqRes = self.addUnit(valCptRes, "Z")
-                    compType = NetlistLine(str(cptRes)).type
-                    assert compType == "Z"
-                    hasConversion = True
-                    convValCpt1 = None
-                    convValCpt2 = None
-                    convValCptRes = self.addUnit(convValCptRes, cvcrType)
-
-            elif valCpt1 == convValCpt1 and valCpt2 == convValCpt2 and not valCptRes == convValCptRes:
-                eqVal1 = self.addUnit(valCpt1, "Z")
-                eqVal2 = self.addUnit(valCpt2, "Z")
-                eqRes = self.addUnit(valCptRes, "Z")
-                compType = NetlistLine(str(cpt1)).type
-                assert compType == "Z"
-                hasConversion = True
-                convValCpt1 = None
-                convValCpt2 = None
-                convValCptRes = self.addUnit(convValCptRes, cvcrType)
-
-            else:
-                eqVal1 = self.addUnit(valCpt1, "Z")
-                eqVal2 = self.addUnit(valCpt2, "Z")
-                eqRes = self.addUnit(valCptRes, "Z")
-                compType = NetlistLine(str(cpt1)).type
-                assert compType == "Z"
-                hasConversion = False
-                convValCpt1 = None
-                convValCpt2 = None
-                convValCptRes = None
-
-            equation = self.makeLatexEquation(eqVal1, eqVal2, eqRes, thisStep.relation, compType)
-
-            as_dict = {"name1": name1,
-                       "name2": name2,
-                       "newName": newName,
-                       "relation": thisStep.relation,
-                       "value1": eqVal1,
-                       "value2": eqVal2,
-                       "result": eqRes,
-                       "latexEquation": equation,
-                       "hasConversion": hasConversion,
-                       "convVal1": convValCpt1,
-                       "convVal2": convValCpt2,
-                       "convResult": convValCptRes
-                       }
-            for key in ["value1", "value2", "result", "convVal1", "convVal2", "convResult"]:
-                if as_dict[key]:
-                    as_dict[key] = latex(as_dict[key])
+        from lcapy.jsonExport import JsonExport
+        as_dict = JsonExport.getDictForStep(name1, name2, newName, thisStep, lastStep)
 
         if debug:
             print(as_dict)
@@ -516,5 +396,6 @@ class Solution:
         :param filename: svg-File will be named <filename>_step<n>.svg n = 0,1 ..., len(availableSteps)
         :return:
         """
+
         for step in self.available_steps:
             self.exportStepAsJson(step, path=path, filename=filename, debug=debug)
