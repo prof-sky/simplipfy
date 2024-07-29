@@ -34,7 +34,7 @@ class NetlistLine:
         elif self.type == "Z":
             self.ac_dc, self.value, self.omega = self.parseZ(values)
         elif self.type == "V":
-            self.ac_dc, self.value, self.omega = self.parseV(values)
+            self.ac_dc, self.value, self.phase, self.omega = self.parseV(values)
 
         self.reconstructed = self.reconstruct()
 
@@ -75,7 +75,7 @@ class NetlistLine:
         return None, value, None
 
     @staticmethod
-    def parseV(values) -> (str, str, str):
+    def parseV(values) -> (str, str, str, str):
         # with ac or dc but without value for source and omega
         if len(values) == 4:
             ac_dc = values[3]
@@ -87,13 +87,22 @@ class NetlistLine:
             value = values[4]
             return ac_dc, value, None
 
-        # with ac dc statement, value and omega for source
+        #
         elif len(values) == 6:
             ac_dc = values[3]
             value = values[4]
-            omega = values[5]
+            phase = values[5]
 
-            return ac_dc, value, omega
+            return ac_dc, value, phase, None
+
+        # with ac dc statement, value, phase and omega for source
+        elif len(values) == 7:
+            ac_dc = values[3]
+            value = values[4]
+            phase = values[5]
+            omega = values[6]
+
+            return ac_dc, value, phase, omega
 
     def label(self):
         if not self.type == "W":
@@ -113,13 +122,17 @@ class NetlistLine:
         elif self.type in ["R", "L", "C", "Z", "ZR", "ZL", "ZC"]:
             reconstructed =\
                 f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.value}; {self.drawParam}"
-        elif self.type == "V" and not self.omega:
+        elif self.type == "V" and not self.omega and not self.phase:
             reconstructed =\
                 (f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.ac_dc} {self.value};"
                  f" {self.drawParam}")
+        elif self.type == "V" and not self.omega and self.phase:
+            reconstructed =\
+                (f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.ac_dc} {self.value} {self.phase};"
+                 f" {self.drawParam}")
         else:
             reconstructed =\
-                (f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.ac_dc} {self.value} {self.omega};"
+                (f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.ac_dc} {self.value} {self.phase} {self.omega};"
                  f" {self.drawParam}")
 
         return reconstructed
@@ -142,5 +155,5 @@ class NetlistLine:
             warn(f"potential error while parsing {self.line}: reconstructed -> {self.reconstructed}")
 
     def __str__(self):
-        return self.reconstructed
+        return self.reconstruct()
 

@@ -379,6 +379,7 @@ class Solution:
         thisStep = self[step]
         lastStep = self[step].lastStep
 
+
         if not (name1 and name2 and newName and lastStep) and thisStep:
             # this is the initial step which is used as an overview of the circuit
             as_dict = {}
@@ -393,10 +394,10 @@ class Solution:
                             cpt.type
                         )
                     )
-                    # ToDo omega_0 is in Hz but is 2*pi*f the question is should omega_0 be specified in netlist or f
-                    if cpt.has_ac and cpt.args[1] is not None:
-                        if cpt.args[1] is not None:
-                            as_dict["omega_0"] = latex(parse_expr(str(cpt.args[1])) * Hz)
+                    # ToDo omega_0 is in Hz but is 2*pi*f the question is how should omega_0 be specified in netlist
+                    if cpt.has_ac:
+                        if cpt.args[2] is not None:
+                            as_dict["omega_0"] = latex(parse_expr(str(cpt.args[2])) * Hz)
                         else:
                             as_dict["omega_0"] = latex(omega0)
                     elif cpt.has_dc:
