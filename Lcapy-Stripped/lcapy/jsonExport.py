@@ -1,5 +1,6 @@
 import typing
 
+import sympy
 from sympy import latex
 
 import lcapy
@@ -98,7 +99,7 @@ class JsonExport:
 
         for cptName in self.thisStep.circuit.elements.keys():
             cpt = self.thisStep.circuit.elements[cptName]
-            if cpt.type == "V" and cpt.has_ac:
+            if cpt.type == "V":
                 as_dict[cptName] = latex(
                     uwa.addUnit(
                         NetlistLine(str(cpt)).value,
@@ -108,16 +109,21 @@ class JsonExport:
                 # ToDo omega_0 is in Hz but is 2*pi*f the question is how should omega_0 be specified in netlist
                 if cpt.has_ac:
                     if cpt.args[2] is not None:
-                        as_dict["omega_0"] = latex(parse_expr(str(cpt.args[2])) * Hz)
+                        as_dict["omega_0"] = latex(parse_expr(str(cpt.args[2]), local_dict={"pi": sympy.pi}) * Hz)
+                        try:
+                            self.omega_0 = float(cpt.args[2])
+                        except ValueError:
+                            self.omega_0 = str(cpt.args[2])
                     else:
                         as_dict["omega_0"] = latex(omega0)
+                        self.omega_0 = "omega_0"
                 elif cpt.has_dc:
                     as_dict["omega_0"] = latex(Mul(0) * Hz)
                 else:
                     raise AssertionError("Voltage Source is not ac or dc")
 
             elif not cpt.type == "W":
-                cCpt = NetlistLine(ImpedanceToComponent(str(cpt), omega_0=omega0))
+                cCpt = NetlistLine(ImpedanceToComponent(str(cpt), omega_0=self.omega_0))
                 as_dict[cCpt.type + cCpt.typeSuffix] = latex(
                     uwa.addUnit(
                         cCpt.value,

@@ -95,19 +95,24 @@ def ValueToComponent(value, omega_0: Union[float, str] = None) -> (sp.Mul, str):
 
     if isinstance(omega_0, float):
         _omega_0 = omega_0
-    elif isinstance(omega_0, str):
-        _omega_0 = sp.Symbol(omega_0, real=True)
+
+    # omega_0 and omega are already existing symbols and thus create an unintended behavior
+    elif isinstance(omega_0, str) and not omega_0 == "omega_0" and not omega_0 == "omega":
+        _omega_0 = sp.parse_expr(omega_0, local_dict={'pi': sp.pi})
+        if isinstance(_omega_0, sp.Symbol):
+            _omega_0 = sp.Symbol(omega_0, real=True)
+
     else:
         _omega_0 = lcapy_omega0
 
-    _value = sp.parse_expr(value, local_dict={'omega_0': _omega_0, 'j': j})
+    _value = sp.parse_expr(value, local_dict={'omega_0': _omega_0, 'j': j, 'pi': sp.pi})
     if _value == sp.zoo and _omega_0 == 0:
         return _value, "C"
     # if there is a resistor with 0 ohms and omega_0 is also 0 this gives back an inductor instead of a resistor
     elif _value == 0 and _omega_0 == 0:
         return _value, "L"
 
-    freeSymbols = _value.free_symbols - {_omega_0}
+    freeSymbols = _value.free_symbols - {_omega_0, 'pi'}
 
     if len(freeSymbols) > 1:
         raise AttributeError(f"Too many free symbols in {_value}, free symbols: {freeSymbols}")
@@ -146,24 +151,9 @@ def FileToImpedance(filename: str) -> str:
     netlist = netlistString.split("\n")
 
     cct = Circuit(netlistString)
-    sources = []
-    if cct.voltage_sources:
-        sources.extend(cct.voltage_sources)
-    if cct.current_sources:
-        sources.extend(cct.current_sources)
+    sources = getSourcesFromCircuit(cct)
 
-    if len(sources) > 1:
-        raise NotImplementedError("Implementation can only handle one Source")
-    else:
-        if len(cct.elements[sources[0]].args) >= 3:
-            value = cct.elements[sources[0]].args[2]
-            try:
-                omega_0 = float(value)
-            except ValueError:
-                omega_0 = value
-            print("Omega: " + cct.elements[sources[0]].args[2])
-        else:
-            omega_0 = None
+    omega_0 = getOmegaFromCircuit(cct, sources)
 
     conv_netlist = ""
     for line in netlist:
@@ -188,3 +178,30 @@ def NeedsConversion(netlist: [str], checkForTypes=None) -> bool:
             hasType[netLine.type] = True
 
     return bool(sum(hasType.values())-1)
+
+
+def getOmegaFromCircuit(circuit: 'Circuit', sources: list) -> Union[float, sp.Mul, None]:
+    if len(circuit.elements[sources[0]].args) >= 3:
+        value = circuit.elements[sources[0]].args[2]
+        try:
+            omega_0 = float(value)
+        except ValueError:
+            omega_0 = value
+
+    else:
+        omega_0 = None
+
+    return omega_0
+
+
+def getSourcesFromCircuit(circuit: 'Circuit') -> list:
+    sources = []
+    if circuit.voltage_sources:
+        sources.extend(circuit.voltage_sources)
+    if circuit.current_sources:
+        sources.extend(circuit.current_sources)
+
+    if len(sources) > 1:
+        raise ValueError("Current implementation can only handle one Source")
+
+    return sources
