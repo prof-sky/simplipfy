@@ -18,7 +18,7 @@ class JsonExportStepValues:
         self.convVal1: Union[str, None] = convVal1
         self.convVal2: Union[str, None] = convVal2
         self.convResult: Union[str, None] = convResult
-        self.hasConversion: bool = convVal1 or convVal2 or convResult
+        self.hasConversion: bool = bool(bool(convVal1) or bool(convVal2) or bool(convResult))
 
     def toDict(self):
         return {
