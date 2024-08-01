@@ -11,10 +11,7 @@ from typing import Iterable
 from warnings import warn
 from lcapy import state
 from lcapy.mnacpts import R, L, C, Z
-from lcapy.cexpr import ConstantFrequencyResponseDomainExpression
-from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
 from lcapy import DrawWithSchemdraw
-from sympy.printing import latex
 from lcapy.jsonExport import JsonExport
 from lcapy.unitWorkAround import UnitWorkAround as uwa
 from typing import Union
@@ -142,7 +139,8 @@ class Solution:
         elif isinstance(element, Z):
             returnVal = element.Z
         else:
-            raise NotImplementedError(f"{type(element)} not supported edit Solution.accessSpecificValue() to support")
+            raise NotImplementedError(f"{type(element)} "
+                                      f"not supported edit Solution.getElementSpecificValue() to support")
 
         return returnVal
 

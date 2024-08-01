@@ -8,6 +8,7 @@ from lcapy import state
 from sympy import Mul
 from lcapy.impedanceConverter import ImpedanceToComponent
 from lcapy.impedanceConverter import ValueToComponent
+from lcapy.impedanceConverter import getSourcesFromCircuit, getOmegaFromCircuit
 from lcapy.netlistLine import NetlistLine
 from sympy.physics.units import Hz
 from sympy import parse_expr
@@ -36,6 +37,7 @@ class JsonExport:
         self.cvc1Type = None  # convertedValueComponent1Type
         self.cvc2Type = None  # convertedValueComponent2Type
         self.cvcrType = None  # convertedValueComponentResultType
+        self.omega_0 = None
 
     def updateObjectValues(self, step, solution: 'lcapy.Solution'):
         self.name1 = solution[step].cpt1
@@ -43,6 +45,7 @@ class JsonExport:
         self.newName = solution[step].newCptName
         self.thisStep = solution[step]
         self.lastStep = solution[step].lastStep
+        self.omega_0 = getOmegaFromCircuit(solution[step].circuit, getSourcesFromCircuit(solution[step].circuit))
 
         if not self._isInitialStep():
             self.cpt1 = self.lastStep.circuit[self.name1]
@@ -53,9 +56,9 @@ class JsonExport:
             self.valCpt2 = str(solution.getElementSpecificValue(self.cpt2))
             self.valCptRes = str(solution.getElementSpecificValue(self.cptRes))
 
-            self.convValCpt1, self.cvc1Type = ValueToComponent(self.valCpt1, omega_0=omega0)
-            self.convValCpt2, self.cvc2Type = ValueToComponent(self.valCpt2, omega_0=omega0)
-            self.convValCptRes, self.cvcrType = ValueToComponent(self.valCptRes, omega_0=omega0)
+            self.convValCpt1, self.cvc1Type = ValueToComponent(self.valCpt1, omega_0=self.omega_0)
+            self.convValCpt2, self.cvc2Type = ValueToComponent(self.valCpt2, omega_0=self.omega_0)
+            self.convValCptRes, self.cvcrType = ValueToComponent(self.valCptRes, omega_0=self.omega_0)
 
     def getDictForStep(self, step, solution: 'lcapy.Solution'):
         self.updateObjectValues(step, solution)
@@ -135,6 +138,11 @@ class JsonExport:
         return as_dict
 
     def _checkEssentialInformation(self) -> bool:
+        """
+        this function makes sure that all information that is needed to compute a solution step is available,
+        exception is the initial step that does acquire the information it needs.
+        :returns: true if information is available, false otherwise
+        """
         return not (self.name1 or self.name2 or self.newName or self.lastStep or self.thisStep or self.step)
 
     def _allValuesConvertableToComponent(self) -> bool:
@@ -155,14 +163,14 @@ class JsonExport:
         equation = self.makeLatexEquation(eqVal1, eqVal2, eqRes, self.thisStep.relation, compType)
 
         return JsonExportStepValues(self.name1, self.name2, self.newName, self.thisStep.relation,
-                                    eqVal1, eqVal2, eqRes, equation,
+                                     eqVal1, eqVal2, eqRes, equation,
                                     convVal1=None, convVal2=None, convResult=None).toDict()
 
     def _handleDifferentTypeAndConvertibleToComponent(self) -> dict:
         eqVal1 = uwa.addUnit(self.valCpt1, "Z")
         eqVal2 = uwa.addUnit(self.valCpt2, "Z")
         eqRes = uwa.addUnit(self.valCptRes, "Z")
-        compType = NetlistLine(str(self.cptRes)).type
+        compType = self.cptRes.type
         assert compType == "Z"
         convValCptRes = uwa.addUnit(self.convValCptRes, self.cvcrType)
 
@@ -181,7 +189,7 @@ class JsonExport:
         eqVal1 = uwa.addUnit(self.valCpt1, "Z")
         eqVal2 = uwa.addUnit(self.valCpt2, "Z")
         eqRes = uwa.addUnit(self.valCptRes, "Z")
-        compType = NetlistLine(str(self.cpt1)).type
+        compType = self.cpt1.type
         assert compType == "Z"
         convValCptRes = uwa.addUnit(self.convValCptRes, self.cvcrType)
 
@@ -195,7 +203,7 @@ class JsonExport:
         eqVal1 = uwa.addUnit(self.valCpt1, "Z")
         eqVal2 = uwa.addUnit(self.valCpt2, "Z")
         eqRes = uwa.addUnit(self.valCptRes, "Z")
-        compType = NetlistLine(str(self.cpt1)).type
+        compType = self.cpt1.type
         assert compType == "Z"
 
         equation = self.makeLatexEquation(eqVal1, eqVal2, eqRes, self.thisStep.relation, compType)
