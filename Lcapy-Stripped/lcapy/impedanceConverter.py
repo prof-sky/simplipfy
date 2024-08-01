@@ -96,14 +96,17 @@ def ValueToComponent(value, omega_0: Union[float, str] = None) -> (sp.Mul, str):
     if isinstance(omega_0, float):
         _omega_0 = omega_0
 
-    # omega_0 and omega are already existing symbols and thus create an unintended behavior
-    elif isinstance(omega_0, str) and not omega_0 == "omega_0" and not omega_0 == "omega":
+    # omega_0, omega0 and omega are already existing symbols and thus create an unintended behavior
+    elif isinstance(omega_0, str) and omega_0 not in ["omega_0", "omega0", "omega"]:
         _omega_0 = sp.parse_expr(omega_0, local_dict={'pi': sp.pi})
         if isinstance(_omega_0, sp.Symbol):
-            _omega_0 = sp.Symbol(omega_0, real=True)
+            _omega_0 = sp.Symbol(omega_0, real=True, nonzero=True, finite=True)
 
     else:
         _omega_0 = lcapy_omega0
+
+    if not isinstance(value, str):
+        value = str(value)
 
     _value = sp.parse_expr(value, local_dict={'omega_0': _omega_0, 'j': j, 'pi': sp.pi})
     if _value == sp.zoo and _omega_0 == 0:
@@ -123,14 +126,14 @@ def ValueToComponent(value, omega_0: Union[float, str] = None) -> (sp.Mul, str):
 
     # using the sp.im(_value) funktion equals _value/j
     _value = _value.subs(sub_dict)
-    if sp.re(_value) == 0:
-        if sp.im(_value) > 0:
+    if sp.re(_value).is_zero:
+        if not sp.im(_value).is_negative and not sp.im(_value).is_zero:
             returnVal = sp.im(_value) / _omega_0
             returnType = "L"
-        elif sp.im(_value) < 0:
+        elif sp.im(_value).is_negative:
             returnVal = -1 / (sp.im(_value) * _omega_0)
             returnType = "C"
-    elif sp.im(_value) == 0:
+    elif sp.im(_value).is_zero:
         returnVal = sp.re(_value)
         returnType = "R"
     else:
