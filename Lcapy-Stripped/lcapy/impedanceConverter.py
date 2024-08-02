@@ -186,11 +186,13 @@ def NeedsConversion(netlist: [str], checkForTypes=None) -> bool:
 def getOmegaFromCircuit(circuit: 'Circuit', sources: list) -> Union[float, sp.Mul, None]:
     if len(circuit.elements[sources[0]].args) >= 3:
         value = circuit.elements[sources[0]].args[2]
-        try:
-            omega_0 = float(value)
-        except ValueError:
-            omega_0 = value
-
+        if isinstance(value, str):
+            try:
+                omega_0 = float(value)
+            except ValueError:
+                omega_0 = value
+        else:
+            omega_0 = None
     else:
         omega_0 = None
 

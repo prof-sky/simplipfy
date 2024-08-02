@@ -259,7 +259,9 @@ class Solution:
         relation -> if the simplification was parallel or in series
         value1 and value2 -> the value of the component e.g. 10 ohm or 10 F ...
         result -> the value of the new Component
-        unit -> the unit of the components (ohm, F, H)
+        hasConversion -> if a value is transformed to or from impedance
+        convVal1, convVal2, convResult -> the value that was transformed from
+
 
         raises a value Error if information is missing in a step use try/except or when Path does not point to a file
         :param debug: if ture print the dictionary that is used for creating the json file

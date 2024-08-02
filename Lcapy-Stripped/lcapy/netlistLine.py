@@ -79,13 +79,13 @@ class NetlistLine:
         # with ac or dc but without value for source and omega
         if len(values) == 4:
             ac_dc = values[3]
-            return ac_dc, None, None
+            return ac_dc, None, None, None
 
         # with ac dc statement and with value for source
         elif len(values) == 5:
             ac_dc = values[3]
             value = values[4]
-            return ac_dc, value, None
+            return ac_dc, value, None, None
 
         #
         elif len(values) == 6:
