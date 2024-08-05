@@ -1,11 +1,13 @@
 from lcapy import Circuit
 from lcapy import Solution
 from lcapy import FileToImpedance
+from lcapy.impedanceConverter import ComponentToImpedance
+from lcapy.impedanceConverter import ImpedanceToComponent
 from lcapy import DrawWithSchemdraw
 import os
 
-filename = "Circuit_inductors.txt"
-# filename = "Circuit_resistors.txt"
+# filename = "Circuit_inductors.txt"
+filename = "Circuit_resistors.txt"
 # filename = "Circuit_capacitors.txt"
 # filename = "Circuit_mixed.txt"
 # filename = "Circuit_Wires.txt"
@@ -93,18 +95,19 @@ def solve(filename):
     sol.export(path="Solutions", filename=name)
 
 
-def soveInUserOrder():
+def soveInUserOrder(filename):
     clearDir("Solutions")
 
     test = SolveInUserOrder(filename=filename, savePath="Solutions/")
     print(test.createInitialStep())
 
-    print(test.simplifyTwoCpts(["C4", "C5"]))
-    print(test.simplifyTwoCpts(["C2", "C3"]))
-    print(test.simplifyTwoCpts(["Csim1", "Csim2"]))
-    print(test.simplifyTwoCpts(["C1", "Csim3"]))
+    print(test.simplifyTwoCpts(["Z4", "Z5"]))
+    print(test.simplifyTwoCpts(["Z1", "Zsim1"]))
+    print(test.simplifyTwoCpts(["Z2", "Z3"]))
+    print(test.simplifyTwoCpts(["Zsim2", "Zsim3"]))
 
 
-solve(filename)
+# solve(filename)
+soveInUserOrder(filename)
 # cct = Circuit(filename)
 # cct.simplify().draw()

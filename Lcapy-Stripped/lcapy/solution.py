@@ -1,18 +1,20 @@
 import os.path
 from enum import Enum
 
-import lcapy
+import sympy
+
 import json
+from lcapy import ConstantDomainExpression
 from .solutionStep import SolutionStep
 from ordered_set import OrderedSet
 from typing import Iterable
 from warnings import warn
 from lcapy import state
-from lcapy import mnacpts
-from lcapy.cexpr import ConstantFrequencyResponseDomainExpression
-from lcapy.exprclasses import ConstantFrequencyResponseDomainImpedance
+from lcapy.mnacpts import R, L, C, Z
 from lcapy import DrawWithSchemdraw
-from sympy.printing import latex
+from lcapy.jsonExport import JsonExport
+from lcapy.unitWorkAround import UnitWorkAround as uwa
+from typing import Union
 
 
 class Solution:
@@ -117,7 +119,7 @@ class Solution:
             return OrderedSet(self.available_steps)
 
     @staticmethod
-    def getElementSpecificValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z, unit=False) -> lcapy.ConstantDomainExpression:
+    def getElementSpecificValue(element: Union[R, C, L, Z], unit=False) -> ConstantDomainExpression:
         """
         accesses the value resistance, capacitance, inductance, or impedance of an element based on its type
         :param element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
@@ -125,65 +127,22 @@ class Solution:
         :return: lcapy.ConstantDomainExpression
         """
         if unit:
-            return Solution.addUnitToValue(element)
+            return uwa.addUnit(Solution.getElementSpecificValue(element), element.type)
 
-        lcapy.state.show_units = False
-        if isinstance(element, mnacpts.R):
+        state.show_units = False
+        if isinstance(element, R):
             returnVal = element.R
-        elif isinstance(element, mnacpts.C):
+        elif isinstance(element, C):
             returnVal = element.C
-        elif isinstance(element, mnacpts.L):
+        elif isinstance(element, L):
             returnVal = element.L
-        elif isinstance(element, mnacpts.Z):
+        elif isinstance(element, Z):
             returnVal = element.Z
         else:
-            raise NotImplementedError(f"{type(element)} not supported edit Solution.accessSpecificValue() to support")
+            raise NotImplementedError(f"{type(element)} "
+                                      f"not supported edit Solution.getElementSpecificValue() to support")
 
         return returnVal
-    @staticmethod
-    def addUnitToValue(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
-            ConstantFrequencyResponseDomainExpression or ConstantFrequencyResponseDomainImpedance):
-        """
-        returns the value of an element with its unit
-        :param element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
-        :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
-        """
-        if isinstance(element, mnacpts.R):
-            returnVal = lcapy.resistance(Solution.getElementSpecificValue(element))
-        elif isinstance(element, mnacpts.C):
-            returnVal = lcapy.capacitance(Solution.getElementSpecificValue(element))
-        elif isinstance(element, mnacpts.L):
-            returnVal = lcapy.inductance(Solution.getElementSpecificValue(element))
-        elif isinstance(element, mnacpts.Z):
-            returnVal = lcapy.impedance(Solution.getElementSpecificValue(element))
-        else:
-            raise NotImplementedError(f"{type(element)} not supported edit Solution.addUnit to support")
-
-        state.show_units = True
-        return returnVal
-
-    @staticmethod
-    def getUnit(element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z) -> (
-            ConstantFrequencyResponseDomainExpression or ConstantFrequencyResponseDomainImpedance):
-        """
-        returns the unit of an element
-        for R 1*ohm
-        for C 1*F
-        for L 1*H
-        for Z 1*ohm (impedance has unit ohm)
-        :param element: element: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z
-        :return: for R, C, L ConstantFrequencyResponseDomainExpression; for Z ConstantFrequencyResponseDomainImpedance
-        """
-        if isinstance(element, mnacpts.R):
-            return lcapy.units.ohms
-        elif isinstance(element, mnacpts.C):
-            return lcapy.units.farads
-        elif isinstance(element, mnacpts.L):
-            return lcapy.units.henrys
-        elif isinstance(element, mnacpts.Z):
-            return lcapy.units.ohms
-        else:
-            raise NotImplementedError(f"{type(element)} not supported edit Solution.addUnit to support")
 
     def solutionText(self, step: str) -> str:
         """
@@ -206,10 +165,10 @@ class Solution:
         solText = "\n-------------------------------"
         solText += f"\nSimplified {name1} and {name2} to {newName}"
         solText += f"\nthe components are in {thisStep.relation}"
-        solText += f"\n{name1}: {self.addUnitToValue(lastStep.circuit[name1])}"
-        solText += f"\n{name2}: {self.addUnitToValue(lastStep.circuit[name2])}"
+        solText += f"\n{name1}: {self.getElementSpecificValue(lastStep.circuit[name1], unit=True)}"
+        solText += f"\n{name2}: {self.getElementSpecificValue(lastStep.circuit[name2], unit=True)}"
         solText += (f"\n{newName} (Result):" +
-                    f"{self.addUnitToValue(thisStep.circuit[newName])}")
+                    f"{self.getElementSpecificValue(thisStep.circuit[newName], unit=True)}")
         return solText
 
     def _nextSolutionText(self, skip: set = None, returnSolutionStep: bool = False) -> str or (str, SolutionStep):
@@ -292,40 +251,6 @@ class Solution:
 
         return os.path.join(path, filename + f"_{step}.svg")
 
-    def makeLatexEquation(self, valCpt1: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
-                          valCpt2: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
-                          cptResult: mnacpts.R | mnacpts.C | mnacpts.L | mnacpts.Z,
-                          cptRelation) -> str:
-
-        cptTypes = valCpt1.type
-
-        # inverse sum means 1/x1 + 1/x2 = 1/_xresult e.g parallel resistor
-        parallelRel = {"R": "inverseSum", "C": "sum", "L": "inverseSum", "Z": "inverseSum"}
-        rowRel = {"R": "sum", "C": "inverseSum", "L": "sum", "Z": "sum"}
-
-        valCpt1 = self.getElementSpecificValue(valCpt1, unit=True)
-        valCpt2 = self.getElementSpecificValue(valCpt2, unit=True)
-        valCptRes = self.getElementSpecificValue(cptResult, unit=True)
-
-        state.show_units = True
-        if cptRelation == "parallel":
-            useFunc = parallelRel[cptTypes]
-        elif cptRelation == "series":
-            useFunc = rowRel[cptTypes]
-        else:
-            raise AttributeError(
-                f"Unknown relation between elements {cptRelation}. Known relations are: parallel, series"
-            )
-
-        if useFunc == "inverseSum":
-            equation = "\\frac{1}{" + latex(valCpt1) + "} + \\frac{1}{" + latex(valCpt2) + "} = " + latex(valCptRes)
-        elif useFunc == "sum":
-            equation = latex(valCpt1) + " + " + latex(valCpt2) + " = " + latex(valCptRes)
-        else:
-            raise NotImplementedError(f"Unknown function {useFunc}")
-
-        return equation
-
     def exportStepAsJson(self, step, path: str = None, filename: str ="circuit", debug: bool = False) -> str:
         """
         saves a step as a .json File with the following information:
@@ -334,7 +259,9 @@ class Solution:
         relation -> if the simplification was parallel or in series
         value1 and value2 -> the value of the component e.g. 10 ohm or 10 F ...
         result -> the value of the new Component
-        unit -> the unit of the components (ohm, F, H)
+        hasConversion -> if a value is transformed to or from impedance
+        convVal1, convVal2, convResult -> the value that was transformed from
+
 
         raises a value Error if information is missing in a step use try/except or when Path does not point to a file
         :param debug: if ture print the dictionary that is used for creating the json file
@@ -350,48 +277,8 @@ class Solution:
         Solution.check_path(path)
         filename = os.path.splitext(filename)[0]
 
-        name1 = self[step].cpt1
-        name2 = self[step].cpt2
-        newName = self[step].newCptName
-        thisStep = self[step]
-        lastStep = self[step].lastStep
-
-        if not (name1 and name2 and newName and lastStep) and thisStep:
-            # this is the initial step which does not have those elements
-            as_dict = {"name1": None,
-                       "name2": None,
-                       "newName": None,
-                       "relation": None,
-                       "value1": None,
-                       "value2": None,
-                       "result": None,
-                       "latexEquation": None,
-                       "unit": None
-                       }
-
-        elif not (name1 or name2 or newName or lastStep or thisStep or step):
-            raise ValueError(f"missing information in {step}: {name1}, {name2}, {newName}, {thisStep}, {lastStep}")
-
-        else:
-            cpt1 = lastStep.circuit[name1]
-            cpt2 = lastStep.circuit[name2]
-            cptRes = thisStep.circuit[newName]
-
-            equation = self.makeLatexEquation(cpt1, cpt2, cptRes, thisStep.relation)
-
-            assert self.getUnit(cpt1) == self.getUnit(cpt2)
-            state.show_units = True
-
-            as_dict = {"name1": name1,
-                       "name2": name2,
-                       "newName": newName,
-                       "relation": thisStep.relation,
-                       "value1": latex(self.getElementSpecificValue(cpt1, unit=True)),
-                       "value2": latex(self.getElementSpecificValue(cpt2, unit=True)),
-                       "result": latex(self.getElementSpecificValue(cptRes, unit=True)),
-                       "latexEquation": equation,
-                       "unit": str(self.getUnit(cpt1)),
-                       }
+        jsonExport = JsonExport()
+        as_dict = jsonExport.getDictForStep(step, self)
 
         if debug:
             print(as_dict)
@@ -413,5 +300,6 @@ class Solution:
         :param filename: svg-File will be named <filename>_step<n>.svg n = 0,1 ..., len(availableSteps)
         :return:
         """
+
         for step in self.available_steps:
             self.exportStepAsJson(step, path=path, filename=filename, debug=debug)

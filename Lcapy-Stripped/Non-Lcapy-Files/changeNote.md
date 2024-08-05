@@ -1,3 +1,13 @@
+## 1.22+InskaLE.0.7
+The step0-json now contains all components of the circuit in its initial state (without) simplifications
+and the frequency omega_0 in Hz if it is an AC circuit. If it is a DC circuit omega_0 is equal to 0.
+simplification is done in impedance in all cases if the result can be transformed to R, L or C
+the calculation and the saved values are transformed accordingly. If components are R, L or C and the
+result is a component which is a mixture of those tree the calculation is displayed in impedance to the
+user and the transformation of the components as well. Therefore, there are tree new values in the
+export-Jason convVal1 convVal2 and convRes these are populated if on of the values value1 value2 or 
+result values can be transformed. Also, there is an omega_0 value for AC analysis.
+
 ## 1.22+InskaLE.0.6
 show dots on branch knots, when there are more than two occurrences of the same node in the circuit.
 

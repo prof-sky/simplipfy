@@ -69,7 +69,7 @@ from .seqclasses import *
 from .netlistLine import NetlistLine
 from .drawWithSchemdraw import DrawWithSchemdraw
 from .solution import Solution
-from .convertToImpedance import FileToImpedance
+from .impedanceConverter import FileToImpedance
 
 import sys
 import pkg_resources
