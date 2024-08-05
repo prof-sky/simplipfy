@@ -7,7 +7,7 @@ from math import log10
 class SIPrefix:
     def __init__(self):
         self.prefixes: dict[int, Prefix] =\
-            {int(log10(PREFIXES[prefixKey].scale_factor)): PREFIXES[prefixKey] for prefixKey in PREFIXES.keys()}
+            {PREFIXES[prefixKey]._exponent: PREFIXES[prefixKey] for prefixKey in PREFIXES.keys()}
 
     @staticmethod
     def _findExponent(value: Union[float, int, Mul]) -> int:
@@ -28,12 +28,12 @@ class SIPrefix:
         return exponent
 
     def _findSIPrefix(self, exponent) -> Prefix:
-        return self.prefixes[exponent]
+        return self.prefixes[min(self.prefixes.keys(), key=lambda x: abs(x-exponent))]
 
     def getSIPrefix(self, value) -> Prefix:
         return self._findSIPrefix(self._findExponent(value))
 
     def getSIPrefixedValue(self, value):
         prefix = self.getSIPrefix(value)
-        exp = self._findExponent(value)
+        exp = prefix._exponent
         return value * (1/10**exp) * prefix
