@@ -1,4 +1,5 @@
 from sympy import Mul
+from lcapy import ConstantFrequencyResponseDomainExpression as cfrde
 from sympy.physics.units.prefixes import PREFIXES, Prefix
 from typing import Union
 
@@ -27,7 +28,7 @@ class SIUnitPrefixer:
         return exponent
 
     @staticmethod
-    def _findExponentMul(value: Mul) -> int:
+    def _findExponentMul(value: Union[Mul, cfrde]) -> int:
         """
         this function assumes all symbols to be 1 to determine the prefix based on the numerical value in the expression
         """
@@ -36,27 +37,39 @@ class SIUnitPrefixer:
         for freeSymbol in value.free_symbols:
             sub_dict[freeSymbol] = 1
 
-        _value = float(value.evalf(subs=sub_dict))
+        if isinstance(value, Mul):
+            _value = float(value.evalf(subs=sub_dict))
+        elif isinstance(value, cfrde):
+            _value = float(value.expr.evalf(subs=sub_dict))
+        else:
+            raise TypeError(f"_findExponentMul needs type Mul or cfrde")
 
         return SIUnitPrefixer._findExponentFloatInt(_value)
 
     def _findSIPrefix(self, exponent) -> Prefix:
         return self.prefixes[min(self.prefixes.keys(), key=lambda x: abs(x-exponent))]
 
-    def getSIPrefix(self, value: Union[float, int, Mul]) -> Prefix:
-        if isinstance(value, Mul):
+    def getSIPrefix(self, value: Union[float, int, Mul, cfrde]) -> Prefix:
+        if isinstance(value, (Mul, cfrde)):
             return self._findSIPrefix(self._findExponentMul(value))
         else:
             return self._findSIPrefix(self._findExponentFloatInt(value))
 
-    def getSIPrefixedValue(self, value: Union[float, int, Mul], minExponent=3):
+    def getSIPrefixedValue(self, value: Union[float, int, Mul, cfrde], minExponent=3):
+        """
+        add the nearest unit prefix to float, int, lcapy.ConstantFrequencyResponseDomainExpression or sympy.Mul
+        prefixes are sympy.physics.units.prefixes.PREFIXES
+        """
 
-        if isinstance(value, Mul) or isinstance(value, float):
+        if isinstance(value, (Mul, cfrde, float)):
             value = value
         elif isinstance(value, int):
             value = float(value)
+        elif value is None:
+            return None
         else:
-            raise TypeError("value has to be type float, int or sympy.Mul")
+            raise TypeError("value has to be type float, int or sympy.Mul or "
+                            f"lcapy.ConstantFrequencyResponseDomainExpression not {type(value)}")
 
         prefix = self.getSIPrefix(value)
         exp = prefix._exponent
