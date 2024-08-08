@@ -41,7 +41,14 @@ class JsonExport:
         self.cvcrType = None  # convertedValueComponentResultType
         self.omega_0 = None
 
+        self.precision = 3
+
         self.prefixer = SIUnitPrefixer()
+        self.prefixedLatexStr = lambda x: latex(
+            self.prefixer.getSIPrefixedValue(x).evalf(n=self.precision),
+            imaginary_unit="j"
+        )
+        self.latexStr = lambda x: latex(x.evalf(n=self.precision), imaginary_unit="j")
 
     def updateObjectValues(self, step, solution: 'lcapy.Solution'):
         self.name1 = solution[step].cpt1
@@ -91,7 +98,7 @@ class JsonExport:
 
             for key in ["value1", "value2", "result", "convVal1", "convVal2", "convResult"]:
                 if values[key]:
-                    values[key] = latex(values[key])
+                    values[key] = self.latexStr(values[key])
 
             return values
 
@@ -241,13 +248,13 @@ class JsonExport:
             )
 
         if not compType == "Z":
-            expStr1 = latex(self.prefixer.getSIPrefixedValue(exp1).evalf(n=3))
-            expStr2 = latex(self.prefixer.getSIPrefixedValue(exp2).evalf(n=3))
-            expStrRslt = latex(self.prefixer.getSIPrefixedValue(expRslt).evalf(n=3))
+            expStr1 = self.prefixedLatexStr(exp1)
+            expStr2 = self.prefixedLatexStr(exp2)
+            expStrRslt = self.prefixedLatexStr(expRslt)
         else:
-            expStr1 = latex(exp1.evalf(n=3))
-            expStr2 = latex(exp2.evalf(n=3))
-            expStrRslt = latex(expRslt.evalf(n=3))
+            expStr1 = self.latexStr(exp1)
+            expStr2 = self.latexStr(exp2)
+            expStrRslt = self.latexStr(expRslt)
 
         if useFunc == "inverseSum":
             equation = "\\frac{1}{" + expStr1 + "} + \\frac{1}{" + expStr2 + "} = " + expStrRslt

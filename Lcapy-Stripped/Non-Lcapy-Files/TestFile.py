@@ -7,8 +7,8 @@ from lcapy import DrawWithSchemdraw
 import os
 
 # filename = "Circuit_inductors.txt"
-filename = "Circuit_resistors.txt"
-# filename = "Circuit_capacitors.txt"
+# filename = "Circuit_resistors.txt"
+filename = "Circuit_capacitors.txt"
 # filename = "Circuit_mixed.txt"
 # filename = "Circuit_Wires.txt"
 
