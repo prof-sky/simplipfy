@@ -1,4 +1,7 @@
+import sympy.core
 from sympy import Mul
+
+import lcapy.state
 from lcapy import ConstantFrequencyResponseDomainExpression as cfrde
 from sympy.physics.units.prefixes import PREFIXES, Prefix
 from typing import Union
@@ -38,9 +41,15 @@ class SIUnitPrefixer:
             sub_dict[freeSymbol] = 1
 
         if isinstance(value, Mul):
-            _value = float(value.evalf(subs=sub_dict))
+            if value.is_real:
+                _value = float(value.evalf(subs=sub_dict))
+            else:
+                return 0
         elif isinstance(value, cfrde):
-            _value = float(value.expr.evalf(subs=sub_dict))
+            if value.expr.is_real:
+                _value = float(value.expr.evalf(subs=sub_dict))
+            else:
+                return 0
         else:
             raise TypeError(f"_findExponentMul needs type Mul or cfrde")
 
@@ -61,10 +70,13 @@ class SIUnitPrefixer:
         prefixes are sympy.physics.units.prefixes.PREFIXES
         """
 
-        if isinstance(value, (Mul, cfrde, float)):
+        if isinstance(value, (Mul, float)):
+            value = expr = value
+        elif isinstance(value, cfrde):
             value = value
+            expr = value.expr_with_units
         elif isinstance(value, int):
-            value = float(value)
+            value = expr = float(value)
         elif value is None:
             return None
         else:
@@ -75,20 +87,6 @@ class SIUnitPrefixer:
         exp = prefix._exponent
 
         if abs(exp) >= minExponent:
-            return 1.0 * value * 10**(-exp) * prefix
+            return 1.0 * expr * 10**(-exp) * prefix
         else:
             return value
-
-
-# prefixer = SIUnitPrefixer()
-# print(latex(prefixer.getSIPrefixedValue(10)))
-# print(latex(prefixer.getSIPrefixedValue(100)))
-# print(latex(prefixer.getSIPrefixedValue(1000)))
-# print(latex(prefixer.getSIPrefixedValue(100.0)))
-# print(latex(prefixer.getSIPrefixedValue(1000.0)))
-# print(latex(prefixer.getSIPrefixedValue(100*omega0).evalf()))
-# print(latex(prefixer.getSIPrefixedValue(1000*omega0).evalf()))
-# print(latex(prefixer.getSIPrefixedValue(1000000*omega0).evalf()))
-# print(latex(prefixer.getSIPrefixedValue(100000*omega0).evalf()))
-# print(latex(prefixer.getSIPrefixedValue(100.0*omega0).evalf()))
-# print(latex(prefixer.getSIPrefixedValue(1000.0*omega0).evalf()))

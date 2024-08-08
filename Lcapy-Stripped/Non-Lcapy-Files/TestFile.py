@@ -111,3 +111,23 @@ def soveInUserOrder(filename):
 soveInUserOrder(filename)
 # cct = Circuit(filename)
 # cct.simplify().draw()
+
+
+# Test unitPrefixer
+
+# state.show_units = True
+
+# prefixer = SIUnitPrefixer()
+# print(latex(prefixer.getSIPrefixedValue(10)))
+# print(latex(prefixer.getSIPrefixedValue(100)))
+# print(latex(prefixer.getSIPrefixedValue(1000)))
+# print(latex(prefixer.getSIPrefixedValue(100.0)))
+# print(latex(prefixer.getSIPrefixedValue(1000.0)))
+# print(latex(prefixer.getSIPrefixedValue(100*omega0)))
+# print(latex(prefixer.getSIPrefixedValue(1000*omega0)))
+# print(latex(prefixer.getSIPrefixedValue(1000000*omega0)))
+# print(latex(prefixer.getSIPrefixedValue(100000*omega0)))
+# print(latex(prefixer.getSIPrefixedValue(100.0*omega0)))
+# print(latex(prefixer.getSIPrefixedValue(1000.0*omega0)))
+# value = resistance(1000)
+# print(latex(prefixer.getSIPrefixedValue(value)))
