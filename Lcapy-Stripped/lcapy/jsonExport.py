@@ -116,7 +116,9 @@ class JsonExport:
 
                 if cpt.has_ac:
                     if cpt.args[2] is not None:
-                        as_dict["omega_0"] = latex(parse_expr(str(cpt.args[2]), local_dict={"pi": sympy.pi}) * Hz)
+                        as_dict["omega_0"] = latex(self.prefixer.getSIPrefixedValue(
+                            parse_expr(str(cpt.args[2]), local_dict={"pi": sympy.pi}) * Hz)
+                        )
                         try:
                             self.omega_0 = float(cpt.args[2])
                         except ValueError:
@@ -132,9 +134,11 @@ class JsonExport:
             elif not cpt.type == "W":
                 cCpt = NetlistLine(ImpedanceToComponent(str(cpt), omega_0=self.omega_0))
                 as_dict[cCpt.type + cCpt.typeSuffix] = latex(
-                    uwa.addUnit(
-                        cCpt.value,
-                        cCpt.type
+                    self.prefixer.getSIPrefixedValue(
+                        uwa.addUnit(
+                            cCpt.value,
+                            cCpt.type
+                        )
                     )
                 )
         # ToDo Remove print in release
@@ -237,13 +241,13 @@ class JsonExport:
             )
 
         if not compType == "Z":
-            expStr1 = latex(self.prefixer.getSIPrefixedValue(exp1))
-            expStr2 = latex(self.prefixer.getSIPrefixedValue(exp2))
-            expStrRslt = latex(self.prefixer.getSIPrefixedValue(expRslt))
+            expStr1 = latex(self.prefixer.getSIPrefixedValue(exp1).evalf(n=3))
+            expStr2 = latex(self.prefixer.getSIPrefixedValue(exp2).evalf(n=3))
+            expStrRslt = latex(self.prefixer.getSIPrefixedValue(expRslt).evalf(n=3))
         else:
-            expStr1 = latex(exp1)
-            expStr2 = latex(exp2)
-            expStrRslt = latex(expRslt)
+            expStr1 = latex(exp1.evalf(n=3))
+            expStr2 = latex(exp2.evalf(n=3))
+            expStrRslt = latex(expRslt.evalf(n=3))
 
         if useFunc == "inverseSum":
             equation = "\\frac{1}{" + expStr1 + "} + \\frac{1}{" + expStr2 + "} = " + expStrRslt

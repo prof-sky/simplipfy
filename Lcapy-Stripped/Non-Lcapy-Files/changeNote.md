@@ -7,6 +7,9 @@ result is a component which is a mixture of those tree the calculation is displa
 user and the transformation of the components as well. Therefore, there are tree new values in the
 export-Jason convVal1 convVal2 and convRes these are populated if on of the values value1 value2 or 
 result values can be transformed. Also, there is an omega_0 value for AC analysis.
+Prefixes for values are added when the calculation is not in impedance. The Prefixes available are
+available by importing: from sympy.physics.units.prefixes import PREFIXES
+Values are round to max. 3 decimal places.
 
 ## 1.22+InskaLE.0.6
 show dots on branch knots, when there are more than two occurrences of the same node in the circuit.

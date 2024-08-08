@@ -33,25 +33,28 @@ class SIUnitPrefixer:
     @staticmethod
     def _findExponentMul(value: Union[Mul, cfrde]) -> int:
         """
-        this function assumes all symbols to be 1 to determine the prefix based on the numerical value in the expression
+        this function assumes all symbols to be 1, to determine the prefix based on the numerical value in the
+        expression if it receives a type it can not handle it returns 0
         """
         sub_dict = {}
 
         for freeSymbol in value.free_symbols:
             sub_dict[freeSymbol] = 1
-
-        if isinstance(value, Mul):
-            if value.is_real:
-                _value = float(value.evalf(subs=sub_dict))
+        try:
+            if isinstance(value, Mul):
+                if value.is_real:
+                    _value = float(value.evalf(subs=sub_dict))
+                else:
+                    return 0
+            elif isinstance(value, cfrde):
+                if value.expr.is_real:
+                    _value = float(value.expr.evalf(subs=sub_dict))
+                else:
+                    return 0
             else:
                 return 0
-        elif isinstance(value, cfrde):
-            if value.expr.is_real:
-                _value = float(value.expr.evalf(subs=sub_dict))
-            else:
-                return 0
-        else:
-            raise TypeError(f"_findExponentMul needs type Mul or cfrde")
+        except TypeError:
+            return 0
 
         return SIUnitPrefixer._findExponentFloatInt(_value)
 
@@ -89,4 +92,5 @@ class SIUnitPrefixer:
         if abs(exp) >= minExponent:
             return 1.0 * expr * 10**(-exp) * prefix
         else:
-            return value
+            # if this returns value the evalf() function to convert to float removes the unit
+            return expr

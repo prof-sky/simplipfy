@@ -15,13 +15,24 @@ class JsonExportStepValues:
         self.name2: str = name2
         self.newName: str = newName
         self.relation: str = relation
-        self.value1 = prefixer.getSIPrefixedValue(value1)
-        self.value2 = prefixer.getSIPrefixedValue(value2)
-        self.result = prefixer.getSIPrefixedValue(result)
+        self.value1 = prefixer.getSIPrefixedValue(value1).evalf(n=3)
+        self.value2 = prefixer.getSIPrefixedValue(value2).evalf(n=3)
+        self.result = prefixer.getSIPrefixedValue(result).evalf(n=3)
         self.latexEquation: str = latexEquation
-        self.convVal1 = prefixer.getSIPrefixedValue(convVal1)
-        self.convVal2 = prefixer.getSIPrefixedValue(convVal2)
-        self.convResult = prefixer.getSIPrefixedValue(convResult)
+
+        if convVal1:
+            self.convVal1 = prefixer.getSIPrefixedValue(convVal1).evalf(n=3)
+        else:
+            self.convVal1 = None
+        if convVal2:
+            self.convVal2 = prefixer.getSIPrefixedValue(convVal2).evalf(n=3)
+        else:
+            self.convVal2 = None
+        if convResult:
+            self.convResult = prefixer.getSIPrefixedValue(convResult).evalf(n=3)
+        else:
+            self.convResult = None
+
         self.hasConversion: bool = bool(bool(convVal1) or bool(convVal2) or bool(convResult))
 
     def toDict(self) -> dict:
