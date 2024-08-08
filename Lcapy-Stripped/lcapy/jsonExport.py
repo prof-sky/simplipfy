@@ -2,6 +2,7 @@ import typing
 
 import sympy
 from sympy import latex
+from lcapy import ConstantFrequencyResponseDomainExpression as cfrde
 
 import lcapy
 from lcapy import state
@@ -15,6 +16,7 @@ from sympy import parse_expr
 from lcapy import omega0
 from lcapy.jsonExportStepValues import JsonExportStepValues
 from lcapy.unitWorkAround import UnitWorkAround as uwa
+from lcapy.unitPrefixer import SIUnitPrefixer
 
 
 class JsonExport:
@@ -38,6 +40,8 @@ class JsonExport:
         self.cvc2Type = None  # convertedValueComponent2Type
         self.cvcrType = None  # convertedValueComponentResultType
         self.omega_0 = None
+
+        self.prefixer = SIUnitPrefixer()
 
     def updateObjectValues(self, step, solution: 'lcapy.Solution'):
         self.name1 = solution[step].cpt1
@@ -109,7 +113,7 @@ class JsonExport:
                         cpt.type
                     )
                 )
-                # ToDo omega_0 is in Hz but is 2*pi*f the question is how should omega_0 be specified in netlist
+
                 if cpt.has_ac:
                     if cpt.args[2] is not None:
                         as_dict["omega_0"] = latex(parse_expr(str(cpt.args[2]), local_dict={"pi": sympy.pi}) * Hz)
@@ -163,7 +167,7 @@ class JsonExport:
         equation = self.makeLatexEquation(eqVal1, eqVal2, eqRes, self.thisStep.relation, compType)
 
         return JsonExportStepValues(self.name1, self.name2, self.newName, self.thisStep.relation,
-                                     eqVal1, eqVal2, eqRes, equation,
+                                    eqVal1, eqVal2, eqRes, equation,
                                     convVal1=None, convVal2=None, convResult=None).toDict()
 
     def _handleDifferentTypeAndConvertibleToComponent(self) -> dict:
@@ -212,8 +216,8 @@ class JsonExport:
                                     eqVal1, eqVal2, eqRes, equation,
                                     convVal1=None, convVal2=None, convResult=None).toDict()
 
-    @staticmethod
-    def makeLatexEquation(expStr1: str, expStr2: str, expStrRslt: str, cptRelation: str, compType: str) -> str:
+    def makeLatexEquation(self, exp1: cfrde, exp2: cfrde, expRslt: cfrde, cptRelation: str, compType: str) \
+            -> str:
 
         if compType not in ["R", "L", "C", "Z"]:
             raise ValueError(f"{compType} is unknown, component type has to be R, L, C or Z")
@@ -232,10 +236,19 @@ class JsonExport:
                 f"Unknown relation between elements {cptRelation}. Known relations are: parallel, series"
             )
 
+        if not compType == "Z":
+            expStr1 = latex(self.prefixer.getSIPrefixedValue(exp1))
+            expStr2 = latex(self.prefixer.getSIPrefixedValue(exp2))
+            expStrRslt = latex(self.prefixer.getSIPrefixedValue(expRslt))
+        else:
+            expStr1 = latex(exp1)
+            expStr2 = latex(exp2)
+            expStrRslt = latex(expRslt)
+
         if useFunc == "inverseSum":
-            equation = "\\frac{1}{" + latex(expStr1) + "} + \\frac{1}{" + latex(expStr2) + "} = " + latex(expStrRslt)
+            equation = "\\frac{1}{" + expStr1 + "} + \\frac{1}{" + expStr2 + "} = " + expStrRslt
         elif useFunc == "sum":
-            equation = latex(expStr1) + " + " + latex(expStr2) + " = " + latex(expStrRslt)
+            equation = expStr1 + " + " + expStr2 + " = " + expStrRslt
         else:
             raise NotImplementedError(f"Unknown function {useFunc}")
 
