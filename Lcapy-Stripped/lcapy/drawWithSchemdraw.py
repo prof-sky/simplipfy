@@ -7,6 +7,9 @@ from lcapy import NetlistLine
 from typing import List
 from lcapy.impedanceConverter import ImpedanceToComponent
 from lcapy.impedanceConverter import getSourcesFromCircuit, getOmegaFromCircuit
+from lcapy.unitWorkAround import UnitWorkAround as uw
+from sympy import latex
+from sympy import Mul
 
 
 class DrawWithSchemdraw:
@@ -41,6 +44,13 @@ class DrawWithSchemdraw:
 
         for line in self.netlist.splitlines():
             self.netLines.append(NetlistLine(line))
+
+    @staticmethod
+    def latexStr(line: NetlistLine):
+        if line.value is None or line.type is None:
+            return None
+        else:
+            return latex(Mul(uw.addUnit(line.value, line.type)).evalf(n=3), imaginary_unit="j")
 
     def addNodePositions(self, netLine: NetlistLine):
         if netLine.startNode not in self.nodePos.keys():
@@ -98,22 +108,23 @@ class DrawWithSchemdraw:
         DrawWithSchemdraw.orderNetlistLines(self.netLines)
 
         for line in self.netLines:
+            value = self.latexStr(line)
             if line.type == "Z":
                 line = NetlistLine(ImpedanceToComponent(netlistLine=line, omega_0=self.omega_0))
             id_ = line.label()
             if line.type == "R" or line.type == "Z":
-                self.addElement(elm.Resistor(id_=id_, d=line.drawParam), line)
+                self.addElement(elm.Resistor(id_=id_, value_=value, d=line.drawParam), line)
             elif line.type == "L":
-                self.addElement(elm.Resistor(id_=id_, d=line.drawParam, fill=True), line)
+                self.addElement(elm.Resistor(id_=id_, value_=value, d=line.drawParam, fill=True), line)
             elif line.type == "C":
-                self.addElement(elm.Capacitor(id_=id_, d=line.drawParam), line)
+                self.addElement(elm.Capacitor(id_=id_, value_=value, d=line.drawParam), line)
             elif line.type == "W":
                 self.addElement(elm.Line(d=line.drawParam), line)
             elif line.type == "V":
                 if line.ac_dc == "ac":
-                    self.addElement(elm.sources.SourceSin(id_=id_, d=line.drawParam), line)
+                    self.addElement(elm.sources.SourceSin(id_=id_, value_=value, d=line.drawParam), line)
                 elif line.ac_dc == "dc":
-                    self.addElement(elm.sources.SourceV(id_=id_, d=line.drawParam), line)
+                    self.addElement(elm.sources.SourceV(id_=id_, value_=value, d=line.drawParam), line)
             else:
                 raise RuntimeError(f"unknown element type {line.type}")
 
