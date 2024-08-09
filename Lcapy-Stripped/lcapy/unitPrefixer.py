@@ -3,6 +3,7 @@ from sympy import Mul
 
 import lcapy.state
 from lcapy import ConstantFrequencyResponseDomainExpression as cfrde
+from lcapy import ConstantTimeDomainVoltage as ctdv
 from sympy.physics.units.prefixes import PREFIXES, Prefix
 from typing import Union
 
@@ -75,7 +76,7 @@ class SIUnitPrefixer:
 
         if isinstance(value, (Mul, float)):
             value = expr = value
-        elif isinstance(value, cfrde):
+        elif isinstance(value, (cfrde, ctdv)):
             value = value
             expr = value.expr_with_units
         elif isinstance(value, int):

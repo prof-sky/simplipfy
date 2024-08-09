@@ -9,7 +9,8 @@ from lcapy.impedanceConverter import ImpedanceToComponent
 from lcapy.impedanceConverter import getSourcesFromCircuit, getOmegaFromCircuit
 from lcapy.unitWorkAround import UnitWorkAround as uw
 from sympy import latex
-from sympy import Mul
+from sympy import sympify
+from lcapy.unitPrefixer import SIUnitPrefixer
 
 
 class DrawWithSchemdraw:
@@ -45,12 +46,19 @@ class DrawWithSchemdraw:
         for line in self.netlist.splitlines():
             self.netLines.append(NetlistLine(line))
 
-    @staticmethod
-    def latexStr(line: NetlistLine):
+        self.prefixer = SIUnitPrefixer()
+
+    def latexStr(self, line: NetlistLine):
         if line.value is None or line.type is None:
             return None
         else:
-            return latex(Mul(uw.addUnit(line.value, line.type)).evalf(n=3), imaginary_unit="j")
+            return latex(
+                # in line only a string is saved, so it needs a unit. To get the unit prefix, convert it to sympy.Mul
+                # and use the SIUnitPrefixer Class to determine the prefix, use evalf(n=3) to convert to a
+                # floating point number and evaluate to 3 digits
+                self.prefixer.getSIPrefixedValue(uw.addUnit(line.value, line.type)).evalf(n=3),
+                imaginary_unit="j"
+            )
 
     def addNodePositions(self, netLine: NetlistLine):
         if netLine.startNode not in self.nodePos.keys():
@@ -108,9 +116,10 @@ class DrawWithSchemdraw:
         DrawWithSchemdraw.orderNetlistLines(self.netLines)
 
         for line in self.netLines:
-            value = self.latexStr(line)
+            value = None
             if line.type == "Z":
                 line = NetlistLine(ImpedanceToComponent(netlistLine=line, omega_0=self.omega_0))
+                value = self.latexStr(line)
             id_ = line.label()
             if line.type == "R" or line.type == "Z":
                 self.addElement(elm.Resistor(id_=id_, value_=value, d=line.drawParam), line)
