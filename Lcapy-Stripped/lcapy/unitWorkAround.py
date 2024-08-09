@@ -20,6 +20,8 @@ class UnitWorkAround:
             returnVal = impedance(val)
         elif cptType == "V":
             returnVal = voltage(val)
+        elif cptType == "W":
+            return val
         else:
             raise NotImplementedError(f"{cptType} not supported edit Solution.addUnit to support")
         return returnVal
