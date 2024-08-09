@@ -1,3 +1,7 @@
+## 1.22+InskaLE.0.8
+write the value of a component (its resistance, capacitance ...) with its unit and unit prefix in latex
+format into the svg under the tag value
+
 ## 1.22+InskaLE.0.7
 The step0-json now contains all components of the circuit in its initial state (without) simplifications
 and the frequency omega_0 in Hz if it is an AC circuit. If it is a DC circuit omega_0 is equal to 0.
