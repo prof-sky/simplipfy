@@ -275,7 +275,7 @@ class Figure:
         et.set('d', d)
         et.set('id', id_)
         et.set('class', class_)
-        et.set('value',value_)
+        et.set('data-value',value_)
         et.set('style', getstyle(color=color, ls=ls, lw=lw, capstyle=capstyle,
                                  joinstyle=joinstyle, fill=fill))
         self.addclip(et, clip)
@@ -457,7 +457,7 @@ class Figure:
         et.set('d', ' '.join(dstrs))
         et.set('id', id_)
         et.set('class', class_)
-        et.set('value', value_)
+        et.set('data-value', value_)
         et.set('style', getstyle(color=color, ls=ls, lw=lw, capstyle=capstyle,
                                  joinstyle=joinstyle, fill=fill))
         self.addclip(et, clip)
