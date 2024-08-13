@@ -39,7 +39,7 @@ class NetlistLine:
             # for sorting in drawWithSchemdraw, Nodes need to be integers
             raise ValueError(f"can't convert {values[1]} or {values[2]} to int. start- and endNode have to be integers")
 
-        if self.type == "R" or self.type == "L" or self.type == "C" or self.type == "Z":
+        if self.type in ["R", "L", "C", "Z"]:
             self.ac_dc, self.value, self.phase, self.omega = self.parseRLCZ()
         elif self.type == "W":
             self.ac_dc, self.value, self.phase, self.omega, self.typeSuffix = self.parseW()
@@ -55,9 +55,6 @@ class NetlistLine:
             return "dc"
         else:
             raise RuntimeError(f" if type is V (is: {self.type}) should be ac or dc not both")
-
-    def parseRLC(self, values) -> str:
-        return self.parseValue(values)
 
     @staticmethod
     def parseW() -> (None, None, None, None, str):
@@ -100,15 +97,18 @@ class NetlistLine:
     def reconstruct(self) -> str:
         """
         reconstructs self.line from the parsed elements self.type, self.typeSuffix, self.startNode, self.endNode,
-        self.ac_dc, self.value, self.omega, self.drawParam
+        self.ac_dc, self.value, self.phase, self.omega, self.drawParam
         :return: reconstructed string
         """
+        if isinstance(self.value, str):
+            self.value = self.value.replace("{", "").replace("}", "")
+
         if self.type == "W":
             reconstructed =\
                 f"{self.type+self.typeSuffix} {self.startNode} {self.endNode}; {self.drawParam}"
         elif self.type in ["R", "L", "C", "Z", "ZR", "ZL", "ZC"]:
             reconstructed =\
-                f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.value}; {self.drawParam}"
+                f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {{{self.value}}}; {self.drawParam}"
         elif self.type == "V" and not self.omega and not self.phase:
             reconstructed =\
                 (f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.ac_dc} {self.value};"
@@ -119,8 +119,8 @@ class NetlistLine:
                  f" {self.drawParam}")
         else:
             reconstructed =\
-                (f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.ac_dc} {self.value} {self.phase} {self.omega};"
-                 f" {self.drawParam}")
+                (f"{self.type+self.typeSuffix} {self.startNode} {self.endNode} {self.ac_dc} {self.value} {self.phase} "
+                 f"{self.omega}; {self.drawParam}")
 
         return reconstructed
 
@@ -142,7 +142,7 @@ class NetlistLine:
             warn(f"potential error while parsing {self.line}: reconstructed -> {self.reconstructed}")
 
     def __str__(self):
-        return self.reconstruct()
+        return str(self.cpt)
 
 
 class NetlistLineParser:

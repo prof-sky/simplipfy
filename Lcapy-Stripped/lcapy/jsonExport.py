@@ -20,7 +20,7 @@ from lcapy.unitPrefixer import SIUnitPrefixer
 
 
 class JsonExport:
-    def __init__(self):
+    def __init__(self, precision=3):
         self.name1 = None
         self.name2 = None
         self.newName = None
@@ -41,7 +41,7 @@ class JsonExport:
         self.cvcrType = None  # convertedValueComponentResultType
         self.omega_0 = None
 
-        self.precision = 3
+        self.precision = precision
 
         self.prefixer = SIUnitPrefixer()
         self.prefixedLatexStr = lambda x: latex(

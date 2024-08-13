@@ -133,6 +133,9 @@ def ValueToComponent(value, omega_0: Union[float, str] = None) -> (sp.Mul, str):
         elif sp.im(_value).is_negative:
             returnVal = -1 / (sp.im(_value) * _omega_0)
             returnType = "C"
+        else:
+            returnVal = value
+            returnType = "Z"
     elif sp.im(_value).is_zero:
         returnVal = sp.re(_value)
         returnType = "R"

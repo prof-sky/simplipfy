@@ -8,7 +8,10 @@ import os
 
 # filename = "Circuit_inductors.txt"
 # filename = "Circuit_resistors.txt"
-filename = "Circuit_capacitors.txt"
+# filename = "Circuit_capacitors.txt"
+filename = "Circuit_mixed_2pi30.txt"
+# filename = "Circuit_mixed_omega0.txt"
+# filename = "Circuit_mixed_30.txt"
 # filename = "Circuit_mixed.txt"
 # filename = "Circuit_Wires.txt"
 
