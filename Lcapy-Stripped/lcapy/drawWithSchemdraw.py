@@ -122,18 +122,18 @@ class DrawWithSchemdraw:
                 value = self.latexStr(line)
             id_ = line.label()
             if line.type == "R" or line.type == "Z":
-                self.addElement(elm.Resistor(id_=id_, value_=value, d=line.drawParam), line)
+                self.addElement(elm.Resistor(id_=id_, data_value=value, d=line.drawParam), line)
             elif line.type == "L":
-                self.addElement(elm.Resistor(id_=id_, value_=value, d=line.drawParam, fill=True), line)
+                self.addElement(elm.Resistor(id_=id_, data_value=value, d=line.drawParam, fill=True), line)
             elif line.type == "C":
-                self.addElement(elm.Capacitor(id_=id_, value_=value, d=line.drawParam), line)
+                self.addElement(elm.Capacitor(id_=id_, data_value=value, d=line.drawParam), line)
             elif line.type == "W":
                 self.addElement(elm.Line(d=line.drawParam), line)
             elif line.type == "V":
                 if line.ac_dc == "ac":
-                    self.addElement(elm.sources.SourceSin(id_=id_, value_=value, d=line.drawParam), line)
+                    self.addElement(elm.sources.SourceSin(id_=id_, data_value=value, d=line.drawParam), line)
                 elif line.ac_dc == "dc":
-                    self.addElement(elm.sources.SourceV(id_=id_, value_=value, d=line.drawParam), line)
+                    self.addElement(elm.sources.SourceV(id_=id_, data_value=value, d=line.drawParam), line)
             else:
                 raise RuntimeError(f"unknown element type {line.type}")
 
