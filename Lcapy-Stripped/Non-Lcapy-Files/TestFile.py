@@ -1,15 +1,24 @@
+import warnings
+
+import lcapy.componentnamer
 from lcapy import Circuit
 from lcapy import Solution
 from lcapy import FileToImpedance
-from lcapy.impedanceConverter import ComponentToImpedance
-from lcapy.impedanceConverter import ImpedanceToComponent
 from lcapy import DrawWithSchemdraw
 import os
+import argparse
+
+filenames = ["Circuit_inductors.txt"]
+
+parser = argparse.ArgumentParser(description='Test parameters')
+parser.add_argument("--allFiles", type=bool, default=False)
+
+args = parser.parse_args()
 
 # filename = "Circuit_inductors.txt"
 # filename = "Circuit_resistors.txt"
 # filename = "Circuit_capacitors.txt"
-filename = "Circuit_mixed_2pi30.txt"
+# filename = "Circuit_mixed_2pi30.txt"
 # filename = "Circuit_mixed_omega0.txt"
 # filename = "Circuit_mixed_30.txt"
 # filename = "Circuit_mixed.txt"
@@ -88,6 +97,7 @@ def clearDir(path):
 
 def solve(filename):
     clearDir("Solutions")
+    lcapy.componentnamer.ComponentNamer().reset()
     cct = Circuit(FileToImpedance(filename))
     steps = cct.simplify_stepwise()
 
@@ -98,7 +108,7 @@ def solve(filename):
     sol.export(path="Solutions", filename=name)
 
 
-def soveInUserOrder(filename):
+def solveInUserOrder(filename):
     clearDir("Solutions")
 
     test = SolveInUserOrder(filename=filename, savePath="Solutions/")
@@ -110,11 +120,17 @@ def soveInUserOrder(filename):
     print(test.simplifyTwoCpts(["Zsim2", "Zsim3"]))
 
 
-# solve(filename)
-soveInUserOrder(filename)
-# cct = Circuit(filename)
-# cct.simplify().draw()
+if args.allFiles:
+    for filename in filenames:
+        solve(filename)
+        if len(os.listdir("Solutions")) == 0:
+            raise AssertionError(f"{filename} did not produce an output")
+        elif len(os.listdir("Solutions")) == 1:
+            warnings.warn(f"{filename} only produced one solution")
+    exit(0)
 
+
+# solveInUserOrder(filename)
 
 # Test unitPrefixer
 
