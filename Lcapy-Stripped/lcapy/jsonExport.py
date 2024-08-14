@@ -1,5 +1,3 @@
-import typing
-
 import sympy
 from sympy import latex
 from lcapy import ConstantFrequencyResponseDomainExpression as cfrde
@@ -20,7 +18,7 @@ from lcapy.unitPrefixer import SIUnitPrefixer
 
 
 class JsonExport:
-    def __init__(self, precision=3):
+    def __init__(self, precision=4):
         self.name1 = None
         self.name2 = None
         self.newName = None
@@ -148,8 +146,6 @@ class JsonExport:
                         )
                     )
                 )
-        # ToDo Remove print in release
-        print(as_dict)
         return as_dict
 
     def _checkEssentialInformation(self) -> bool:
