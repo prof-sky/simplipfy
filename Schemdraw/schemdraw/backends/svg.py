@@ -450,9 +450,10 @@ class Figure:
         et = ET.Element('path')
         id_=id_ or self.id_
         value_=value_ or self.value_
+        val=f'\\\\(${value_}\\\\)'
         et.set('d', ' '.join(dstrs))
         et.set('id', id_)
-        et.set('class', value_)
+        et.set('class', val)
         et.set('style', getstyle(color=color, ls=ls, lw=lw, capstyle=capstyle,
                                  joinstyle=joinstyle, fill=fill))
         self.addclip(et, clip)
