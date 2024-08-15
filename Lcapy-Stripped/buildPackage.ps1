@@ -5,7 +5,7 @@ Write-Host "Execute test circuits" -ForegroundColor Green
 Start-Sleep -Milliseconds 500
 Set-Location $PSScriptRoot/Non-Lcapy-Files
 
-python TestFile.py --allFiles True
+python TestWithStandardCircuits.py
 if ($LASTEXITCODE -ne 0){
     Write-Host "An error occured while simplifiing the test circuits" -ForegroundColor Red
     Set-Location $curDir
