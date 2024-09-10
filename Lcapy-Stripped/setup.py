@@ -28,7 +28,8 @@ setup(name='lcapy',
                         'setuptools',
                         'wheel',
                         'property_cached',
-                        'schemdraw'
+                        'schemdraw',
+                        'ordered_set'
                         ],
       python_requires='>=3.7',  # >=3.6 should still work but not tested
       extras_require={
