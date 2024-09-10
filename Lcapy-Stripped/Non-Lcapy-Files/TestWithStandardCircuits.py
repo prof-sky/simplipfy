@@ -13,9 +13,10 @@ filenames = ["Circuit_inductors.txt",
 
 
 def clearDir(path):
-    toRemove = os.listdir(path)
-    for remove in toRemove:
-        os.remove(os.path.join(path, remove))
+    if os.path.exists(path) and os.path.isdir(path):
+        toRemove = os.listdir(path)
+        for remove in toRemove:
+            os.remove(os.path.join(path, remove))
 
 
 def check_for_solutions(path):
