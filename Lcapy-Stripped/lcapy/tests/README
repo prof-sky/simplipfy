@@ -1,8 +1,0 @@
-These tests scripts are run using pytest in the root directory of lcapy
-or in the lcapy/tests directory.
-
-They can be run individually, for example,
-
-pytest test_circuits.py
-
-If a test hangs, run with -v option to display which test is hanging.
