@@ -13,7 +13,17 @@ circuits
 - Schemdraw: a slightly modified version of the Schemdraw package
 
 # Set up local Python interpreter
-## 
+## install modified lcapy and schemdraw
+```
+cd .\path\to\inskale-git-repo\Inskale
+pip install -e .\lcapy-inskale
+pip uninstall schemdraw
+pip install -e .\schemdraw
+```
+the `-e` keyword is only necessary if you want to automatically apply changes to the packages without
+reinstalling them or modify them yourself
+
+## Required packages
 The lcapy package needs:
 - matplotlib
 - numpy
@@ -44,15 +54,10 @@ The schemdraw package needs:
 - latex2mathml
 
 Some IDEs read the setup.py and setup.cfg and offer to auto install needed packages.
-If you auto install the packages you have to uninstall schamdraw to install the modified version.
-The next step should also install all necessary packages, so don't install them by hand.
+The necessary packages should be installed from the step before, so don't install them by hand.
 
-## install modified lcapy and schemdraw
-```
-cd .\path\to\inskale-git-repo\Inskale
-pip install -e .\lcapy-inskale
-pip uninstall schemdraw
-pip install -e .\schemdraw
-```
-the `-e` keyword is only necessary if you want to automatically apply changes to the packages without
-reinstalling them or modify them yourself
+# Build packages
+in each package folder is a buildPackage.ps1. Those files build the package and in case
+of the lcapy-inskale package it also tests it before it gets build. The new build package is modved
+to Pyodide/Packages and the Pyodide/solve.py is updated automatically and annotated with the current
+Package version
