@@ -1,9 +1,17 @@
+# Tabel of Content
+1. [Setup lokal git copy](#setup-lokal-git-copy)
+2. [Structure](#structure)
+3. [Set up local Python interpreter](#set-up-local-python-interpreter)
+   1. [install modified lcapy and schemdraw](#install-modified-lcapy-and-schemdraw)
+   2. [Required Packages](#required-packages)
+4. [Build Packages](#build-packages)
+5. [Host inskale locally](#host-inskale-locally)
 # Setup lokal git copy
 ```
 git clone --recursive https://gitlab.hs-pforzheim.de/stefan.kray/inskale.git
 ```
 the `--recursive` keyword is important, to clone the submodule lcapy-inskale
-## Structure
+# Structure
 There are three folders inside the InskaLE Project.
 - lcapy-inskale: is a submodule that includes a fork of the lcapy GitHub repository to merge changes and updates easily.
 The submodule has to branches, the master which is the same as the fork from original repository and the lcapy-inskale
