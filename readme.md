@@ -53,11 +53,23 @@ The schemdraw package needs:
 - ziamath>=0.10
 - latex2mathml
 
-Some IDEs read the setup.py and setup.cfg and offer to auto install needed packages.
+Some IDEs read the `setup.py` and `setup.cfg` and offer to auto install needed packages.
 The necessary packages should be installed from the step before, so don't install them by hand.
 
 # Build packages
-in each package folder is a buildPackage.ps1. Those files build the package and in case
+in each package folder is a `buildPackage.ps1`. Those files build the package and in case
 of the lcapy-inskale package it also tests it before it gets build. The new build package is modved
 to Pyodide/Packages and the Pyodide/solve.py is updated automatically and annotated with the current
 Package version
+
+# Host inskale locally
+To host inskale locally you only have to go to the Pyodide Folder and execute `StartServer.ps1`
+this executes a simple http server integrated with Python. It executes it from a script called
+`GzipSimplePythonHttpServer.py` to support Gzip compression for .whl-Files. Inskale is then hosted on 
+`http:\\localhost:8000`. It is important to go to `http:\\` and not `https:\\` because the simple http server does
+not support the https protocol. For an integration into an IDE it the `StartServerProcess.ps1` and 
+`StopServerProcess.ps1` may be helpful. `StartServerProcess.ps1` starts a process and retrieves the process id and saves
+it into `server.pid`, which `StopServerProcess.ps1` uses to stop the process if the process is still running. 
+`StartServerProcess.ps1` calls `StopServerProcess.ps1` when `server.pid` is in the directory. Some IDEs can be
+configured to execute a skript before executing code so the Server can be started before the IDE accesses
+`http:\\localhost:8000` to debug and test inskale.
