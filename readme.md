@@ -6,6 +6,13 @@
    2. [Required Packages](#required-packages)
 4. [Build Packages](#build-packages)
 5. [Host inskale locally](#host-inskale-locally)
+6. [Write netlits](#Write netlits)
+   1. [Draw hints](#draw-hints)
+   2. [Supported components](#supported-components)
+   3. [Component W](#component-w)
+   4. [Components R, L, C, Z](#componets-r-l-c-z)
+   5. [Sources](#sources)
+   6. [Finding the start and end nodes](#finding-the-start-and-end-nodes)
 # Setup lokal git copy
 ```
 git clone --recursive https://gitlab.hs-pforzheim.de/stefan.kray/inskale.git
@@ -81,3 +88,80 @@ it into `server.pid`, which `StopServerProcess.ps1` uses to stop the process if 
 `StartServerProcess.ps1` calls `StopServerProcess.ps1` when `server.pid` is in the directory. Some IDEs can be
 configured to execute a skript before executing code so the Server can be started before the IDE accesses
 `http:\\localhost:8000` to debug and test inskale.
+
+# Write netlists
+
+## Draw hints
+possible draw hints are `right, left, up, down`
+
+## Supported components
+Supported components are: `W, R, L, C, Z, V` for Wire, Resistor, Inductor, Capacitor, Impedance, Voltage source
+
+## Component W
+A netlist line with the component `W` contains:
+```
+W<identifier> <start node> <end node>; <drawing hint>
+```
+the identifier is optional so it could  be:
+```
+W1 1 2; left
+W 1 2; left
+```
+All components have the length 1 you need as many wires as components to span the same length this is due to 
+implementation
+
+## Components R, L, C, Z
+A netlist line with `R, L, C or Z` always contains:
+```
+<component typy><identifier> <start node> <end node> {<value>}; <drawing hint>
+```
+e.g.
+```
+R1 1 2 {1000}; left
+```
+the value is encapsulated in `{}` to ensure that it is parsed correctly there are situations where the brackets can be
+ignored, but it is easiest to always use brackets to avoid parsing errors. The start and end node always has to be
+an integer. The identifier has to be unique across the components R, L, C, Z because they are transformed internally
+into impedances e.g. R1, C2, L3, L4 not R1, C1, L1, L2
+
+## Sources
+(07.10.24 current sources don't work yet)
+Sources have additional arguments. The DC source is defined as follows:
+```
+<component typy><identifier> <start node> <end node> dc {value}; <drawing hint>
+```
+with dc it create a dc source of type `V, I` for voltage- or current Source
+e.g.
+```
+V1 0 1 dc {10}; up
+```
+The AC source is defined as follows:
+```
+<component typy><identifier> <start node> <end node> ac {value1} {value2} {value3}; <drawing hint>
+```
+`{value1}` is the current or voltage of the source, `{value2}` is the phase of the source,
+and `{value3}` is the value for omega. Supported is `<value>`, `2*pi*<value for f> ` or `omega_0`. e.g.
+```
+V1 0 1 ac {10} {0} {100}; up
+V1 0 2 ac {10} {0} {2*pi*30}; up
+V1 0 2 ac {10} {0} {omega_0}; up
+```
+## Convert a circuit to netlist
+Start by finding the start and end nodes for components. The easiest way is to draw the circuit on paper and then
+mark the start and end point of each component. Enumerate the points. Now you can see the start and end nodes for
+each component.
+![Find start end node](FindStartEndNode.png)  
+Represented as a netlist the circuit in the picture would be:
+```
+V1 1 9 dc {10}; up
+W 1 2; up
+W 2 3; right
+R 3 4 {100}; down
+R 4 7 {100}; down
+W 4 5; right
+R 5 6 {100}; down
+W 6 7; left
+W 7 8; left
+W 8 9; up
+```
+the values of the components are chosen randomly.
