@@ -19,13 +19,15 @@ git clone --recursive https://gitlab.hs-pforzheim.de/stefan.kray/inskale.git
 ```
 the `--recursive` keyword is important, to clone the submodule lcapy-inskale
 # Structure
-There are three folders inside the InskaLE Project.
+There are four folders inside the InskaLE Project.
 - lcapy-inskale: is a submodule that includes a fork of the lcapy GitHub repository to merge changes and updates easily.
 The submodule has to branches, the master which is the same as the fork from original repository and the lcapy-inskale
 branch which hold the modifications for this project. 
 - Pyodide: includes all files that are needed to host pyodide and execute the lcapy package in a browser to simplify
 circuits
 - Schemdraw: a slightly modified version of the Schemdraw package
+- GitHubPageRelease: Submodule which is linked to a GitHub repo that deploys a GitHub Page. A new release on the GitHub
+Page can be created with ```[path to Inskale]\Pyodide\Scripts\makeGitHubPageRelease.ps1"```
 
 # Set up local Python interpreter
 ## install modified lcapy and schemdraw
@@ -142,9 +144,9 @@ The AC source is defined as follows:
 `{value1}` is the current or voltage of the source, `{value2}` is the phase of the source,
 and `{value3}` is the value for omega. Supported is `<value>`, `2*pi*<value for f> ` or `omega_0`. e.g.
 ```
-V1 0 1 ac {10} {0} {100}; up
-V1 0 2 ac {10} {0} {2*pi*30}; up
-V1 0 2 ac {10} {0} {omega_0}; up
+V1 1 0 ac {10} {0} {100}; up
+V1 1 0 ac {10} {0} {2*pi*30}; up
+V1 1 0 ac {10} {0} {omega_0}; up
 ```
 ## Convert a circuit to netlist
 Start by finding the start and end nodes for components. The easiest way is to draw the circuit on paper and then
