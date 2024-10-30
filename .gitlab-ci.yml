@@ -9,35 +9,51 @@ deploy-develop:
   before_script:
     - git config --global user.email "yannick.wieland@hs-pforzheim.de"
     - git config --global user.name "Automated Development Deployment"
+    - chmod +x ./Pyodide/Scripts/copyFiles.sh
+    - chmod +x ./Pyodide/Scripts/adjustURLsForRelease.sh
     - apk add rsync
     - apk add zip
 
   script:
-    - echo "print direcotries"
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/TheHowland/InskaLE.git .
-    - echo "list files from repo"
     - ls -a
-    - echo "remove files from directory"
-    - find . -mindepth 1 -not -path "./.git*" -delete
-    - echo "files after deletion"
-    - ls -a
-    - cd ..
-    - echo "copy files"
-    - echo -e ".git/\n.idea/\nCircuits.zip\nScripts/\nGzipSimplePythonHttpServer.py" > exclude-list.txt
-    - rsync -av --exclude-from='exclude-list.txt' Pyodide/ temp/
-    - rm exclude-list.txt
-    - cd temp
-    - zip -r Circuits.zip Circuits && rm -r Circuits
-    - echo "show copied files in temp"
-    - ls -a
+    - echo "CopyFiles:"
+    - ../Pyodide/Scripts/copyFiles.sh
     - echo "Update Urls:"
-    - chmod +x ../Pyodide/Scripts/adjustURLsForRelease.sh
     - ../Pyodide/Scripts/adjustURLsForRelease.sh
     - git add .
     - git commit -m "auto update release"
     - git push https://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@github.com/TheHowland/InskaLE.git
 
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+   - if: $CI_COMMIT_BRANCH == "main"
+
+deploy-release:
+  stage: deploy
+
+  before_script:
+  - git config --global user.email "yannick.wieland@hs-pforzheim.de"
+  - git config --global user.name "Automated Release Deployment"
+  - chmod +x ./Pyodide/Scripts/copyFiles.sh
+  - chmod +x ./Pyodide/Scripts/adjustURLsForRelease.sh
+  - apk add rsync
+  - apk add zip
+
+  script:
+    - mkdir temp
+    - cd temp/
+    - git clone https://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@github.com/prof-sky/inskale.git .
+    - echo "CopyFiles:"
+    - ../Pyodide/Scripts/copyFiles.sh
+    - echo "Update Urls:"
+    - ../Pyodide/Scripts/adjustURLsForRelease.sh
+    - git add .
+    - git commit -m "auto update release"
+    - git push https://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@github.com/prof-sky/inskale.git
+
+  rules:
+    - if: $CI_COMMIT_BRANCH == "release"
+
+
