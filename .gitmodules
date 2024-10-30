@@ -1,6 +1,3 @@
 [submodule "lcapy-inskale"]
 	path = lcapy-inskale
 	url = https://github.com/prof-sky/lcapy.git
-[submodule "GitHubPageRelease"]
-	path = GitHubPageRelease
-	url = https://github.com/TheHowland/InskaLE.git
