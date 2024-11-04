@@ -21,6 +21,10 @@ deploy-develop:
     - git checkout main
     - echo "Update config:"
     - ls
+    - cd src
+    - cd resources
+    - cd conf
+    - ls
     - cp ../Pyodide/Configurations/conf-gitHubPageHowland.json src/resources/conf/conf.json
     - ls -a
     - echo "CopyFiles:"
