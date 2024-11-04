@@ -14,15 +14,17 @@ deploy-develop:
     - apk add rsync
     - apk add zip
 
+
+conf-gitHubPageProfSky.json
   script:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/TheHowland/InskaLE.git .
+    - echo "Update config:"
+    - cp -rf ../Pyodide/Configurations/conf-gitHubPageHowland.json ./src/resources/conf/conf.json
     - ls -a
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
-    - echo "Update Urls:"
-    - ../Pyodide/Scripts/adjustURLsForRelease.sh
     - git add .
     - git commit -m "auto update release"
     - git push https://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@github.com/TheHowland/InskaLE.git
@@ -45,10 +47,10 @@ deploy-release:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/prof-sky/inskale.git .
+    - echo "Update config:"
+    - cp -rf ../Pyodide/Configurations/conf-gitHubPageProfSky.json ./src/resources/conf/conf.json
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
-    - echo "Update Urls:"
-    - ../Pyodide/Scripts/adjustURLsForRelease.sh
     - git add .
     - git commit -m "auto update release"
     - git push https://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@github.com/prof-sky/inskale.git
