@@ -18,9 +18,7 @@ deploy-develop:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/TheHowland/InskaLE.git .
-    - ls
     - echo "Update config:"
-    - cd ..
     - ls
     - cp ../Pyodide/Configurations/conf-gitHubPageHowland.json src/resources/conf/conf.json
     - ls -a
