@@ -29,8 +29,8 @@ conf-gitHubPageProfSky.json
     - git commit -m "auto update release"
     - git push https://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@github.com/TheHowland/InskaLE.git
 
-  rules:
-   - if: $CI_COMMIT_BRANCH == "main"
+  # rules:
+  #  - if: $CI_COMMIT_BRANCH == "main"
 
 deploy-release:
   stage: deploy
