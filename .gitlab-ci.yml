@@ -15,7 +15,6 @@ deploy-develop:
     - apk add zip
 
 
-conf-gitHubPageProfSky.json
   script:
     - mkdir temp
     - cd temp/
