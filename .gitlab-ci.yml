@@ -18,6 +18,7 @@ deploy-develop:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/TheHowland/InskaLE.git .
+    - git checkout main
     - echo "Update config:"
     - ls
     - cp ../Pyodide/Configurations/conf-gitHubPageHowland.json src/resources/conf/conf.json
@@ -45,8 +46,9 @@ deploy-release:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/prof-sky/inskale.git .
+    - git checkout release
     - echo "Update config:"
-    - cp -rf ../Pyodide/Configurations/conf-gitHubPageProfSky.json ./src/resources/conf/conf.json
+    - cp ../Pyodide/Configurations/conf-gitHubPageProfSky.json ./src/resources/conf/conf.json
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
     - git add .
