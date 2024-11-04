@@ -10,7 +10,6 @@ deploy-develop:
     - git config --global user.email "yannick.wieland@hs-pforzheim.de"
     - git config --global user.name "Automated Development Deployment"
     - chmod +x ./Pyodide/Scripts/copyFiles.sh
-    - chmod +x ./Pyodide/Scripts/adjustURLsForRelease.sh
     - apk add rsync
     - apk add zip
 
@@ -38,7 +37,6 @@ deploy-release:
   - git config --global user.email "yannick.wieland@hs-pforzheim.de"
   - git config --global user.name "Automated Release Deployment"
   - chmod +x ./Pyodide/Scripts/copyFiles.sh
-  - chmod +x ./Pyodide/Scripts/adjustURLsForRelease.sh
   - apk add rsync
   - apk add zip
 
