@@ -29,7 +29,7 @@ deploy-develop:
     - cd resources
     - cd conf
     - ls
-    - cp -f ../Pyodide/Configurations/conf-gitHubPageHowland.json src/resources/conf/conf.json
+    - cp ../Pyodide/Configurations/conf-gitHubPageHowland.json src/resources/conf/conf.json
     - ls -a
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
