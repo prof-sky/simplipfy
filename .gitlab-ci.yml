@@ -19,8 +19,7 @@ deploy-develop:
     - cd temp/
     - git clone https://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@github.com/TheHowland/InskaLE.git .
     - echo "Update config:"
-    - rsync ../Pyodide/Configurations/conf-gitHubPageHowland.json ./src/resources/conf/conf-gitHubPageHowland.json
-    - mv -f ./src/resources/conf/conf-gitHubPageHowland.json ./src/resources/conf/conf.json
+    - cp -f ../Pyodide/Configurations/conf-gitHubPageHowland.json src/resources/conf/config.json
     - ls -a
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
