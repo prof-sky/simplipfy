@@ -24,7 +24,6 @@ deploy-develop:
     - cd Configurations
     - ls
     - cd ..
-    - cd ..
     - cd src
     - cd resources
     - cd conf
