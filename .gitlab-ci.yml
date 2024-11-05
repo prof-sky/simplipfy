@@ -8,27 +8,30 @@ deploy-develop:
 
   before_script:
     - git config --global user.email "yannick.wieland@hs-pforzheim.de"
-    - git config --global user.name "Automated Development Deployment"
+    - git config --global user.name "Automated Release Development"
     - chmod +x ./Pyodide/Scripts/copyFiles.sh
-    - chmod +x ./Pyodide/Scripts/adjustURLsForRelease.sh
     - apk add rsync
     - apk add zip
+
 
   script:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/TheHowland/InskaLE.git .
-    - ls -a
+    - git checkout main
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
-    - echo "Update Urls:"
-    - ../Pyodide/Scripts/adjustURLsForRelease.sh
+    - echo "Update config:"
+    - cp ../Pyodide/Configurations/conf-gitHubPageHowland.json src/conf/conf.json
+    - echo "Configuration is:"
+    - echo "$(<src/conf/conf.json )"
+    - ls -a
     - git add .
-    - git commit -m "auto update release"
+    - git commit -m "auto update dev release"
     - git push https://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@github.com/TheHowland/InskaLE.git
 
   rules:
-   - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "main"
 
 deploy-release:
   stage: deploy
@@ -37,7 +40,6 @@ deploy-release:
   - git config --global user.email "yannick.wieland@hs-pforzheim.de"
   - git config --global user.name "Automated Release Deployment"
   - chmod +x ./Pyodide/Scripts/copyFiles.sh
-  - chmod +x ./Pyodide/Scripts/adjustURLsForRelease.sh
   - apk add rsync
   - apk add zip
 
@@ -45,10 +47,14 @@ deploy-release:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/prof-sky/inskale.git .
+    - git checkout release
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
-    - echo "Update Urls:"
-    - ../Pyodide/Scripts/adjustURLsForRelease.sh
+    - echo "Update config:"
+    - cp ../Pyodide/Configurations/conf-gitHubPageProfSky.json ./src/conf/conf.json
+    - echo "Configuration is:"
+    - echo "$(<src/conf/conf.json )"
+    - ls -a
     - git add .
     - git commit -m "auto update release"
     - git push https://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@github.com/prof-sky/inskale.git
