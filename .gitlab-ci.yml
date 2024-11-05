@@ -8,7 +8,7 @@ deploy-develop:
 
   before_script:
     - git config --global user.email "yannick.wieland@hs-pforzheim.de"
-    - git config --global user.name "Automated Development Deployment"
+    - git config --global user.name "Automated Release Development"
     - chmod +x ./Pyodide/Scripts/copyFiles.sh
     - apk add rsync
     - apk add zip
@@ -20,7 +20,9 @@ deploy-develop:
     - git clone https://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@github.com/TheHowland/InskaLE.git .
     - git checkout main
     - echo "Update config:"
+    - echo "$(<src/resources/conf/conf.json )"
     - cp ../Pyodide/Configurations/conf-gitHubPageHowland.json src/resources/conf/conf.json
+    - echo "$(<src/resources/conf/conf.json )"
     - ls -a
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
