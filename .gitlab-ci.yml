@@ -24,7 +24,7 @@ deploy-develop:
     - echo "Update config:"
     - cp ../Pyodide/Configurations/conf-gitHubPageHowland.json src/conf/conf.json
     - echo "Configuration is:"
-    - echo "$(src/conf/conf.json)"
+    - echo "$(<src/conf/conf.json )"
     - ls -a
     - git add .
     - git commit -m "auto update dev release"
