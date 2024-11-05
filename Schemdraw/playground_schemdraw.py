@@ -2,6 +2,14 @@ import schemdraw
 import schemdraw.elements as elm
 schemdraw.use(backend='svg')
 
+d = schemdraw.Drawing()
+R = elm.Resistor(id_="R1", value_="Test", d="down").label("R1")
+d.add(R)
+d.add(elm.CurrentLabelInline(direction='in', id_="arrow").at(R).label("I" + "1", id_="arrow"))
+d.add(elm.CurrentLabel(top=True, id_="arrow").at(R).label("V" + "1", loc='bottom', id_="arrow"))
+d.draw()
+
+exit(0)
 with schemdraw.Drawing() as d:
     I1 = elm.SourceI().label('5∠0° A').dot()
     d.push()

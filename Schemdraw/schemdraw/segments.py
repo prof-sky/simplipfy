@@ -285,7 +285,8 @@ class SegmentText:
                  mathfont: Optional[str] = None,
                  clip: Optional[BBox] = None,
                  zorder: Optional[int] = None,
-                 visible: bool = True):
+                 visible: bool = True,
+                 id_: Optional[str] = None):
         self.xy = pos
         self.text = label
         self.align = align
@@ -299,6 +300,7 @@ class SegmentText:
         self.clip = clip
         self.zorder = zorder
         self.visible = visible
+        self.id_ = id_
 
     def doreverse(self, centerx: float) -> None:
         ''' Reverse the path (flip horizontal about the centerx point) '''
@@ -403,6 +405,7 @@ class SegmentText:
         rotation = self.rotation if self.rotation else style.get('rotation', 0)
         rotmode = self.rotation_mode if self.rotation_mode else style.get('rotation_mode', 'anchor')
         zorder = self.zorder if self.zorder is not None else style.get('zorder', 3)
+        id_ = self.id_ if self.id_ is not None else "na"
 
         if not self.rotation_global:
             if rotation is None:
@@ -413,7 +416,7 @@ class SegmentText:
         fig.text(self.text, xy[0], xy[1],
                  color=color, fontsize=fontsize, fontfamily=font, mathfont=mathfont,
                  rotation=rotation, rotation_mode=rotmode,
-                 halign=align[0], valign=align[1], clip=self.clip, zorder=zorder)
+                 halign=align[0], valign=align[1], clip=self.clip, zorder=zorder, id_=id_)
 
         # Debug Text Bounding Box
         # (doesn't work when label is not rotated with element)
