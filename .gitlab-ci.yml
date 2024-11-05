@@ -20,9 +20,9 @@ deploy-develop:
     - git clone https://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@github.com/TheHowland/InskaLE.git .
     - git checkout main
     - echo "Update config:"
-    - echo "$(<src/resources/conf/conf.json )"
-    - cp ../Pyodide/Configurations/conf-gitHubPageHowland.json src/resources/conf/conf.json
-    - echo "$(<src/resources/conf/conf.json )"
+    - cp ../Pyodide/Configurations/conf-gitHubPageHowland.json src/conf/conf.json
+    - echo "Configuration is:"
+    - echo "$(<src/resources/conf.json )"
     - ls -a
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
@@ -49,7 +49,7 @@ deploy-release:
     - git clone https://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@github.com/prof-sky/inskale.git .
     - git checkout release
     - echo "Update config:"
-    - cp ../Pyodide/Configurations/conf-gitHubPageProfSky.json ./src/resources/conf/conf.json
+    - cp ../Pyodide/Configurations/conf-gitHubPageProfSky.json ./src/conf/conf.json
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
     - git add .
