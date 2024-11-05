@@ -18,7 +18,6 @@ deploy-develop:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/TheHowland/InskaLE.git .
-    - git fetch
     - git checkout main
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
@@ -46,8 +45,7 @@ deploy-release:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/prof-sky/inskale.git .
-    - git fetch
-    - git checkout release
+    - git checkout main
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
     - echo "Configuration is:"
