@@ -267,8 +267,6 @@ class Figure:
             d += f'{xx},{yy} '
 
         d = d.strip()
-        id_= id_ or self.id_
-        value_=value_ or self.value_
         et.set('d', d)
         et.set('id', id_)
         et.set('class', class_)
