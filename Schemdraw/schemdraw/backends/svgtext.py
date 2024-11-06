@@ -338,7 +338,7 @@ def text_tosvg(text: str, x: float, y: float, font: str = 'Arial', size: float =
                halign: Halign = 'center', valign: Valign = 'center',
                rotation: float = 0, rotation_mode: RotationMode = 'anchor',
                testmode: bool = False,
-               id_: str = None) -> ET.Element:
+               class_: str = None) -> ET.Element:
     ''' Convert text to svg <text> tag.
 
         Args:
@@ -355,7 +355,7 @@ def text_tosvg(text: str, x: float, y: float, font: str = 'Arial', size: float =
             Matplotlib https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/demo_text_rotation_mode.html
             testmode: For testing, draw rectable around text bounding box
                 and dot at text anchor
-            id_: value to identify tag in svg-file
+            class_: class of tag to categorize tag in svg-file
 
         Returns:
             Text formatted in svg <text> element string.
@@ -424,8 +424,8 @@ def text_tosvg(text: str, x: float, y: float, font: str = 'Arial', size: float =
     textelm.set('font-family', font)
     textelm.set('text-anchor', anchor)#
 
-    if id_ is not None:
-        textelm.set('id', id_)
+    if class_ is not None:
+        textelm.set('class', class_)
 
     if xform is not None:
         textelm.set('transform', xform)

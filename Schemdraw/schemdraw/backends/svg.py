@@ -207,8 +207,6 @@ class Figure:
         self._bgcolor: Optional[str] = None
         self._need_xlink = False
         self.svgcanvas = kwargs.get('svg')
-        self.id_ = kwargs.get('id_','default_id')
-        self.value_ = kwargs.get('value_','na')
 
 
     def set_bbox(self, bbox: BBox) -> None:
@@ -254,7 +252,8 @@ class Figure:
              fill: str = 'none', capstyle: Capstyle = 'round',
              joinstyle: Joinstyle = 'round', clip: Optional[BBox] = None, zorder: int = 2,
              id_: Optional[str] = None,
-             value_: Optional[str] = None) -> None:
+             value_: Optional[str] = None,
+             class_: Optional[str] = None) -> None:
         ''' Plot a path '''
         et = ET.Element('path')
         d = 'M {},{} '.format(*self.xform(x[0], y[0]))
@@ -272,7 +271,7 @@ class Figure:
         value_=value_ or self.value_
         et.set('d', d)
         et.set('id', id_)
-        et.set('class',value_)
+        et.set('class', class_)
         et.set('style', getstyle(color=color, ls=ls, lw=lw, capstyle=capstyle,
                                  joinstyle=joinstyle, fill=fill))
         self.addclip(et, clip)
@@ -286,7 +285,7 @@ class Figure:
              valign: Valign = 'center',
              rotation_mode: RotationMode = 'anchor',
              clip: Optional[BBox] = None, zorder: int = 3,
-             id_: Optional[str] = None) -> None:
+             class_: Optional[str] = None) -> None:
         ''' Add text to the figure '''
         if s == '':
             return
@@ -313,7 +312,7 @@ class Figure:
             texttag = svgtext.text_tosvg(s, x0, y0, font=fontfamily, size=fontsize,
                                          halign=halign, valign=valign, color=color,
                                          rotation=rotation, rotation_mode=rotation_mode,
-                                         testmode=False, id_=id_)
+                                         testmode=False, class_=class_)
         
         self.addclip(texttag, clip)
         self.svgelements.append((zorder, texttag))
@@ -352,7 +351,8 @@ class Figure:
 
     def arrow(self, xy: XY, theta: float,
               arrowwidth: float = .15, arrowlength: float = .25,
-              color: str = 'black', lw: float = 2, clip: Optional[BBox] = None, zorder: int = 1) -> None:
+              color: str = 'black', lw: float = 2, clip: Optional[BBox] = None, zorder: int = 1,
+              class_: Optional[str] = None) -> None:
         ''' Draw an arrowhead '''
         x, y = self.xform(*xy)
         dx = arrowlength/2 * math.cos(math.radians(theta)) * self.scale
@@ -380,7 +380,7 @@ class Figure:
         et1.set('d', d)
         et1.set('style', getstyle(color=color, lw=0, capstyle='butt',
                                   joinstyle='miter', fill=color))
-        et1.set('id', 'arrow')
+        et1.set('class', class_)
         self.addclip(et1, clip)
         self.svgelements.append((zorder, et1))
 
@@ -391,6 +391,7 @@ class Figure:
         # Keep original points for arrow head
         # and adjust points for line so they don't extrude from arrows.
         lpoints = list(p)
+
         if arrow is not None:
             if '<' in arrow:
                 th1 = math.atan2(p[0].y - p[1].y, p[0].x - p[1].x)

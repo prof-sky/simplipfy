@@ -2,12 +2,13 @@ import schemdraw
 import schemdraw.elements as elm
 schemdraw.use(backend='svg')
 
-d = schemdraw.Drawing()
-R = elm.Resistor(id_="R1", value_="Test", d="down").label("R1")
-d.add(R)
-d.add(elm.CurrentLabelInline(direction='in', id_="arrow").at(R).label("I" + "1", id_="arrow"))
-d.add(elm.CurrentLabel(top=True, id_="arrow").at(R).label("V" + "1", loc='bottom', id_="arrow"))
-d.draw()
+for i in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
+    d = schemdraw.Drawing()
+    R = elm.Resistor(value_="Test", d="down").label("R1")
+    d.add(R)
+    d.add(elm.CurrentLabelInline(direction='in', class_="arrow").at(R).label("I" + "1", class_="arrow"))
+    d.add(elm.CurrentLabel(top=True, class_="arrow", ofst=i).at(R).label("V" + "1", loc='bottom', class_="arrow"))
+    d.save(str(i)+".svg")
 
 exit(0)
 with schemdraw.Drawing() as d:
