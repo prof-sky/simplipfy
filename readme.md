@@ -167,3 +167,6 @@ W 7 8; left
 W 8 9; up
 ```
 the values of the components are chosen randomly.
+Best draw from plus to minus of the voltage source otherwise current and voltage arrows may be wrong
+due to schemdraw limitations. The direction of the source should be the opposite of the direction of the components
+(e.g. V -> up; R -> down | V -> right; R -> left)

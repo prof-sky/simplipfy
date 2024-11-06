@@ -337,7 +337,8 @@ def text_approx_size(text: str, font: str = 'Arial', size: float = 16) -> tuple[
 def text_tosvg(text: str, x: float, y: float, font: str = 'Arial', size: float = 16, color: str = 'black',
                halign: Halign = 'center', valign: Valign = 'center',
                rotation: float = 0, rotation_mode: RotationMode = 'anchor',
-               testmode: bool = False) -> ET.Element:
+               testmode: bool = False,
+               class_: str = None) -> ET.Element:
     ''' Convert text to svg <text> tag.
 
         Args:
@@ -354,6 +355,7 @@ def text_tosvg(text: str, x: float, y: float, font: str = 'Arial', size: float =
             Matplotlib https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/demo_text_rotation_mode.html
             testmode: For testing, draw rectable around text bounding box
                 and dot at text anchor
+            class_: class of tag to categorize tag in svg-file
 
         Returns:
             Text formatted in svg <text> element string.
@@ -420,7 +422,11 @@ def text_tosvg(text: str, x: float, y: float, font: str = 'Arial', size: float =
     textelm.set('fill', color)
     textelm.set('font-size', str(size))
     textelm.set('font-family', font)
-    textelm.set('text-anchor', anchor)
+    textelm.set('text-anchor', anchor)#
+
+    if class_ is not None:
+        textelm.set('class', class_)
+
     if xform is not None:
         textelm.set('transform', xform)
 

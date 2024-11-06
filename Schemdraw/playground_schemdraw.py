@@ -2,6 +2,15 @@ import schemdraw
 import schemdraw.elements as elm
 schemdraw.use(backend='svg')
 
+for i in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
+    d = schemdraw.Drawing()
+    R = elm.Resistor(value_="Test", d="down").label("R1")
+    d.add(R)
+    d.add(elm.CurrentLabelInline(direction='in', class_="arrow").at(R).label("I" + "1", class_="arrow"))
+    d.add(elm.CurrentLabel(top=True, class_="arrow", ofst=i).at(R).label("V" + "1", loc='bottom', class_="arrow").reverse())
+    d.save(str(i)+".svg")
+
+exit(0)
 with schemdraw.Drawing() as d:
     I1 = elm.SourceI().label('5∠0° A').dot()
     d.push()
