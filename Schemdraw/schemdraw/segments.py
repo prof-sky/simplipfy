@@ -108,9 +108,7 @@ class Segment:
                  clip: Optional[BBox] = None,
                  zorder: Optional[int] = None,
                  visible: bool = True,
-                 id_: Optional[str] = None,
-                 value_: Optional[str] = None,
-                 class_: Optional[str] = None):
+                 userparams=None):
         self.path: Sequence[XY] = [Point(p) for p in path]   # Untranformed path
         self.zorder = zorder
         self.color = color
@@ -124,9 +122,7 @@ class Segment:
         self.capstyle = capstyle
         self.joinstyle = joinstyle
         self.visible = visible
-        self.id_ = id_
-        self.class_ = class_
-        self.value_ = value_
+        self._userparams = userparams if userparams else {}
 
     def xform(self, transform, **style) -> 'Segment':
         ''' Return a new Segment that has been transformed
@@ -148,9 +144,8 @@ class Segment:
             'capstyle': self.capstyle if self.capstyle else style.get('capstyle', None),
             'joinstyle': self.joinstyle if self.joinstyle else style.get('joinstyle', None),
             'visible': self.visible,
-            'id_': self.id_,
-            'class_': self.class_,
-            'value_': self.value_}
+            'userparams': self._userparams}
+
         style = {k: v for k, v in style.items() if params.get(k) is None and k in params.keys()}
         params.update(style)
         return Segment(transform.transform_array(self.path), **params)
@@ -195,9 +190,9 @@ class Segment:
         lw = self.lw if self.lw else style.get('lw', 2)
         capstyle = self.capstyle if self.capstyle else style.get('capstyle', 'round')
         joinstyle = self.joinstyle if self.joinstyle else style.get('joinstyle', 'round')
-        id_ = self.id_ if self.id_ else style.get('id_', 'default_id')
-        class_ = self.class_ if self.class_ else style.get('class_', 'na')
-        value_ = self.value_ if self.value_ else style.get('value_', 'na')
+        id_ = self._userparams.get('id_', 'na')
+        class_ = self._userparams.get('class_', 'na')
+
         if fill:  # Check if path is closed
             tlist = list(map(tuple, path))  # Need path as tuples for set()
             dofill = len(tlist) != len(set(tlist))  # Path has duplicates, can fill it
@@ -222,7 +217,7 @@ class Segment:
         y = [p[1] for p in linepath]
         fig.plot(x, y, color=color, fill=fill,
                  ls=ls, lw=lw, capstyle=capstyle, joinstyle=joinstyle,
-                 clip=self.clip, zorder=zorder, id_=id_, value_=value_, class_=class_)
+                 clip=self.clip, zorder=zorder, id_=id_, class_=class_)
 
         if self.arrow:
             if '<' in self.arrow:
@@ -290,7 +285,7 @@ class SegmentText:
                  clip: Optional[BBox] = None,
                  zorder: Optional[int] = None,
                  visible: bool = True,
-                 class_: Optional[str] = None):
+                 userparams=None):
         self.xy = pos
         self.text = label
         self.align = align
@@ -304,7 +299,7 @@ class SegmentText:
         self.clip = clip
         self.zorder = zorder
         self.visible = visible
-        self.class_ = class_
+        self._userparams = userparams if userparams else {}
 
     def doreverse(self, centerx: float) -> None:
         ''' Reverse the path (flip horizontal about the centerx point) '''
@@ -340,7 +335,9 @@ class SegmentText:
             'rotation_global': self.rotation_global,
             'clip': self.clip,
             'zorder': self.zorder if self.zorder is not None else style.get('zorder', None),
-            'visible': self.visible}
+            'visible': self.visible,
+            'userparams': self._userparams
+        }
 
         style = {k: v for k, v in style.items() if params.get(k) is None and k in params.keys()}
         params.update(style)
@@ -409,7 +406,7 @@ class SegmentText:
         rotation = self.rotation if self.rotation else style.get('rotation', 0)
         rotmode = self.rotation_mode if self.rotation_mode else style.get('rotation_mode', 'anchor')
         zorder = self.zorder if self.zorder is not None else style.get('zorder', 3)
-        class_ = self.class_ if self.class_ is not None else "na"
+        class_ = self._userparams.get('class_', 'na')
 
         if not self.rotation_global:
             if rotation is None:
@@ -937,8 +934,7 @@ class SegmentPath:
                  clip: Optional[BBox] = None,
                  zorder: Optional[int] = None,
                  visible: bool = True,
-                 id_:Optional[str] = None,
-                 value_:Optional[str]= None):
+                 userparams=None):
         self.path: Sequence[XY | str] = path  # Control points and strings 'M', 'L', 'C', etc.
         #drawing on SVG backend simply builds d into a <path>
         #drawing on MPL backend uses matplotlib.patches.PathPatch
@@ -952,8 +948,8 @@ class SegmentPath:
         self.capstyle = capstyle
         self.joinstyle = joinstyle
         self.visible = visible
-        self.id_=id_
-        self.value_=value_
+        self.id_ = userparams.get('id_', None)
+        self.class_ = userparams.get('class_', 'na')
 
     def xform(self, transform, **style) -> 'SegmentPath':
         params: dict[str, Any] = {
@@ -1020,11 +1016,11 @@ class SegmentPath:
         lw = self.lw if self.lw else style.get('lw', 2)
         capstyle = self.capstyle if self.capstyle else style.get('capstyle', 'round')
         joinstyle = self.joinstyle if self.joinstyle else style.get('joinstyle', 'round')
-        id_=self.id_
-        value_=self.value_
+        id_=self.id_ if self.id_ else 'default_id'
+        class_ = self.class_ if self.class_ else 'na'
         fig.path(xpath, color=color, fill=fill,
                  ls=ls, lw=lw, capstyle=capstyle, joinstyle=joinstyle,
-                 clip=self.clip, zorder=zorder,id_=id_,value_=value_)
+                 clip=self.clip, zorder=zorder, id_=id_, class_=class_)
 
 
 class SegmentImage:
