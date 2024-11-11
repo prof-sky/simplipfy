@@ -2,28 +2,12 @@ import schemdraw
 import schemdraw.elements as elm
 schemdraw.use(backend='svg')
 
-for i in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
-    d = schemdraw.Drawing()
-    R = elm.Resistor(value_="Test", d="down").label("R1")
-    d.add(R)
-    d.add(elm.CurrentLabelInline(direction='in', class_="arrow").at(R).label("I" + "1", class_="arrow"))
-    d.add(elm.CurrentLabel(top=True, class_="arrow", ofst=i).at(R).label("V" + "1", loc='bottom', class_="arrow").reverse())
-    d.save(str(i)+".svg")
 
-exit(0)
-with schemdraw.Drawing() as d:
-    I1 = elm.SourceI().label('5∠0° A').dot()
-    d.push()
-    elm.Capacitor(id_='C1',value_='-j3Ω').right().label('-j3Ω').dot()
-    elm.Inductor(id_='L2',value_='j2Ω').down().label('j2Ω').dot().hold()
-    elm.Resistor(id_='R1',value_='5Ω').right().label('5Ω').dot()
-    V1 = elm.SourceV().down().reverse().label('5∠-90° V', loc='bot')
-    elm.Line().tox(I1.start)
-    d.pop()
-    elm.Line().up(d.unit*.8)
-    L1 = elm.Inductor(id_='L1',value_='j3Ω').tox(V1.start).label('j3Ω')
-    elm.Line().down(d.unit*.8)
-    elm.CurrentLabel(top=False, ofst=.3).at(L1).label('$i_g$')
-    d.save('test_schematic.svg')
+d = schemdraw.Drawing()
+R = elm.Resistor(id_="R1", class_="123 OhmFarrads", d="down").label("R1", class_='na')
+d.add(R)
+d.add(elm.CurrentLabelInline(direction='in', class_="testArrow").at(R).label("I" + "1", class_="testLabel"))
+d.add(elm.CurrentLabel(top=True, class_="testArrow", ofst=0.3).at(R).label("V" + "1", loc='bottom', class_="testLabel").reverse())
+d.draw()
 
 print("Schemdraw example created successfully.")

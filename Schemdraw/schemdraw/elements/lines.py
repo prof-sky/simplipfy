@@ -868,7 +868,7 @@ class CurrentLabel(Element):
         a, b = (-length/2, ofst), (length/2, ofst)
         headwidth = self.params['headwidth']
         headlength = self.params['headlength']
-        self.segments.append(Segment((a, b), arrow='->', arrowwidth=headwidth, arrowlength=headlength))
+        self.segments.append(Segment((a, b), arrow='->', arrowwidth=headwidth, arrowlength=headlength, userparams=self._userparams))
         return super()._place(dwgxy, dwgtheta, **dwgparams)
 
 
@@ -911,10 +911,11 @@ class CurrentLabelInline(Element):
             x = -x
             dx = -dx
 
+        class_ = self._userparams.get("class_", None)
         self.segments.append(Segment(((x, 0), (x+dx, 0)),
                                      arrow='->',
                                      arrowwidth=self.params['headwidth'],
-                                     arrowlength=self.params['headlength']))
+                                     arrowlength=self.params['headlength'], userparams=self._userparams))
 
     def at(self, xy: XY | Element) -> 'Element':  # type: ignore[override]
         ''' Specify CurrentLabelInline position.

@@ -438,8 +438,8 @@ class Figure:
             joinstyle: Joinstyle = 'round', 
             zorder: int = 1,
             clip: Optional[BBox] = None,
-            id_: Optional[str] = None, class_: Optional[str] = None,
-            value_: Optional[str] = None) -> None:
+            id_: Optional[str] = None,
+            class_: Optional[str] = None) -> None:
         dstrs = []
         for point in path:
             if isinstance(point, str):
@@ -449,12 +449,13 @@ class Figure:
                 dstrs.append(f'{x}')
                 dstrs.append(f'{y}')
         et = ET.Element('path')
-        id_=id_ or self.id_
-        value_=value_ or self.value_
-        val=f'\\\\(${value_}\\\\)'
+        id_ = id_ or self.id_
+        class_ = class_ or self.class_
+        # val=f'\\\\(${value_}\\\\)'
+
         et.set('d', ' '.join(dstrs))
         et.set('id', id_)
-        et.set('class', val)
+        et.set('class', class_)
         et.set('style', getstyle(color=color, ls=ls, lw=lw, capstyle=capstyle,
                                  joinstyle=joinstyle, fill=fill))
         self.addclip(et, clip)
