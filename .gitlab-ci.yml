@@ -45,7 +45,7 @@ deploy-release:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/prof-sky/inskale.git .
-    - git checkout release
+    - git checkout main
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
     - echo "Configuration is:"
