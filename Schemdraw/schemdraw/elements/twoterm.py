@@ -1,5 +1,4 @@
 ''' Two-terminal element definitions '''
-
 from __future__ import annotations
 from typing import Optional
 import math
@@ -8,7 +7,6 @@ from typing import Sequence
 from .elements import Element, Element2Term, gap
 from ..util import Point, linspace
 from ..segments import Segment, SegmentArc, SegmentText, SegmentCircle, SegmentPoly
-
 
 resheight = 0.25      # Resistor height
 reswidth = 1.0 / 6   # Full (inner) length of resistor is 1.0 data unit
@@ -21,17 +19,18 @@ class ResistorIEEE(Element2Term):
         self.segments.append(Segment(
             [(0, 0), (0.5*reswidth, resheight), (1.5*reswidth, -resheight),
              (2.5*reswidth, resheight), (3.5*reswidth, -resheight),
-             (4.5*reswidth, resheight), (5.5*reswidth, -resheight), (6*reswidth, 0)]))
+             (4.5*reswidth, resheight), (5.5*reswidth, -resheight), (6*reswidth, 0)], userparams=self._userparams))
 
 
 class ResistorIEC(Element2Term):
     ''' Resistor as box (IEC/European style) '''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        id_ = self._userparams.get('id_', None)
         self.segments.append(Segment(
             [(0, 0), (0, resheight), (reswidth*6, resheight),
              (reswidth*6, -resheight), (0, -resheight), (0, 0),
-             gap, (reswidth*6, 0)]))
+             gap, (reswidth*6, 0)], userparams=self._userparams))
 
 
 class ResistorVarIEEE(ResistorIEEE):
@@ -39,7 +38,7 @@ class ResistorVarIEEE(ResistorIEEE):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.segments.append(Segment([(1.5*reswidth, -resheight*2), (4.5*reswidth, reswidth*3.5)],
-                                     arrow='->', arrowwidth=.16, arrowlength=.2))
+                                     arrow='->', arrowwidth=.16, arrowlength=.2, userparams=self._userparams))
 
 
 class ResistorVarIEC(ResistorIEC):
@@ -47,14 +46,14 @@ class ResistorVarIEC(ResistorIEC):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.segments.append(Segment([(1*reswidth, -resheight*2), (5*reswidth, reswidth*3.5)],
-                                     arrow='->', arrowwidth=.16, arrowlength=.2))
+                                     arrow='->', arrowwidth=.16, arrowlength=.2, userparams=self._userparams))
 
 
 class Thermistor(ResistorIEC):
     ''' Thermistor '''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.segments.append(Segment([(0, -resheight-.2), (.2, -resheight-.2), (1, resheight+.2)]))
+        self.segments.append(Segment([(0, -resheight-.2), (.2, -resheight-.2), (1, resheight+.2)], userparams=self._userparams))
 
 
 class PhotoresistorIEEE(ResistorIEEE):
@@ -62,9 +61,9 @@ class PhotoresistorIEEE(ResistorIEEE):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.segments.append(Segment([(.7, .75), (.4, .4)], arrow='->',
-                                     arrowwidth=.16, arrowlength=.2))
+                                     arrowwidth=.16, arrowlength=.2, userparams=self._userparams))
         self.segments.append(Segment([(1, .75), (.7, .4)], arrow='->',
-                                     arrowwidth=.16, arrowlength=.2))
+                                     arrowwidth=.16, arrowlength=.2, userparams=self._userparams))
 
 
 class PhotoresistorIEC(ResistorIEC):
@@ -72,9 +71,9 @@ class PhotoresistorIEC(ResistorIEC):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.segments.append(Segment([(.7, .75), (.4, .4)], arrow='->',
-                                     arrowwidth=.16, arrowlength=.2))
+                                     arrowwidth=.16, arrowlength=.2, userparams=self._userparams))
         self.segments.append(Segment([(1, .75), (.7, .4)], arrow='->',
-                                     arrowwidth=.16, arrowlength=.2))
+                                     arrowwidth=.16, arrowlength=.2, userparams=self._userparams))
 
 
 class Rshunt(ResistorIEC):
@@ -83,10 +82,10 @@ class Rshunt(ResistorIEC):
         super().__init__(**kwargs)
         self.segments.append(Segment([(0, 0),
                                       (-resheight*1.5, -resheight),
-                                      (-resheight*1.5, -resheight*2)]))
+                                      (-resheight*1.5, -resheight*2)], userparams=self._userparams))
         self.segments.append(Segment([(reswidth*6, 0),
                                       (reswidth*6+resheight*1.5, -resheight),
-                                      (reswidth*6+resheight*1.5, -resheight*2)]))
+                                      (reswidth*6+resheight*1.5, -resheight*2)], userparams=self._userparams))
         self.anchors['v1'] = (-resheight*1.5, -resheight*2)
         self.anchors['v2'] = (reswidth*6+resheight*1.5, -resheight*2)
 
@@ -105,9 +104,9 @@ class Capacitor(Element2Term):
         capgap = 0.18
         self.segments.append(Segment([(0, 0), gap, (0, resheight), (0, -resheight), gap,
                                      (capgap, resheight), (capgap, -resheight), gap,
-                                     (capgap, 0)]))
+                                     (capgap, 0)], userparams=self._userparams))
         if self.params['polar']:
-            self.segments.append(SegmentText((-capgap*1.2, capgap), '+'))
+            self.segments.append(SegmentText((-capgap*1.2, capgap), '+', userparams=self._userparams))
 
 
 class Capacitor2(Element2Term):
@@ -123,12 +122,12 @@ class Capacitor2(Element2Term):
         super().__init__(**kwargs)
         capgap = 0.18
         self.segments.append(Segment([(0, 0), gap, (0, resheight),
-                                     (0, -resheight), gap, (capgap, 0)]))
+                                     (0, -resheight), gap, (capgap, 0)], userparams=self._userparams))
         self.segments.append(SegmentArc((capgap*1.5, 0), width=capgap*1.5,
                                         height=resheight*2.5, theta1=105, theta2=-105))
 
         if self.params['polar']:
-            self.segments.append(SegmentText((-capgap*1.2, capgap), '+'))
+            self.segments.append(SegmentText((-capgap*1.2, capgap), '+', userparams=self._userparams))
 
 
 class CapacitorVar(Capacitor):
@@ -136,7 +135,7 @@ class CapacitorVar(Capacitor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.segments.append(Segment([(-2*reswidth, -resheight), (3*reswidth, reswidth*2)],
-                                     arrow='->', arrowwidth=.2, arrowlength=.2))
+                                     arrow='->', arrowwidth=.2, arrowlength=.2, userparams=self._userparams))
 
 
 class CapacitorTrim(Capacitor):
@@ -150,7 +149,7 @@ class CapacitorTrim(Capacitor):
         dx = p2.x - p1.x
         dy = p2.y - p1.y
 
-        self.segments.append(Segment([p1, p2]))
+        self.segments.append(Segment([p1, p2], userparams=self._userparams))
 
         tlen = .14
         theta = math.atan2(dy, dx) + math.radians(90)
@@ -170,7 +169,7 @@ class Crystal(Element2Term):
             [(0, 0), gap, (0, resheight), (0, -resheight), gap,
              (xgap/2, resheight), (xgap/2, -resheight), (xgap*1.5, -resheight),
              (xgap*1.5, resheight), (xgap/2, resheight), gap,
-             (xgap*2, resheight), (xgap*2, -resheight), gap, (xgap*2, 0)]))
+             (xgap*2, resheight), (xgap*2, -resheight), gap, (xgap*2, 0)], userparams=self._userparams))
 
 
 class Diode(Element2Term):
@@ -178,7 +177,7 @@ class Diode(Element2Term):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.segments.append(Segment([(0, 0), gap, (resheight*1.4, resheight),
-                                      (resheight*1.4, -resheight), gap, (resheight*1.4, 0)]))
+                                      (resheight*1.4, -resheight), gap, (resheight*1.4, 0)], userparams=self._userparams))
         self.segments.append(SegmentPoly([(0, resheight), (resheight*1.4, 0), (0, -resheight)]))
 
 
@@ -190,11 +189,11 @@ class Schottky(Diode):
         self.segments.append(Segment(
             [(resheight*1.4, resheight),
              (resheight*1.4-schottky_width, resheight),
-             (resheight*1.4-schottky_width, resheight-schottky_width)]))
+             (resheight*1.4-schottky_width, resheight-schottky_width)], userparams=self._userparams))
         self.segments.append(Segment(
             [(resheight*1.4, -resheight),
              (resheight*1.4+schottky_width, -resheight),
-             (resheight*1.4+schottky_width, -resheight+schottky_width)]))
+             (resheight*1.4+schottky_width, -resheight+schottky_width)], userparams=self._userparams))
 
 
 class DiodeTunnel(Diode):
@@ -203,9 +202,9 @@ class DiodeTunnel(Diode):
         super().__init__(**kwargs)
         tunnel_width = 0.1
         self.segments.append(Segment([(resheight*1.4, resheight),
-                                      (resheight*1.4-tunnel_width, resheight)]))
+                                      (resheight*1.4-tunnel_width, resheight)], userparams=self._userparams))
         self.segments.append(Segment([(resheight*1.4, -resheight),
-                                      (resheight*1.4-tunnel_width, -resheight)]))
+                                      (resheight*1.4-tunnel_width, -resheight)], userparams=self._userparams))
 
 
 class DiodeShockley(Element2Term):
@@ -213,8 +212,8 @@ class DiodeShockley(Element2Term):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.segments.append(Segment([(0, 0), (resheight*1.4, 0), (resheight*1.4, resheight),
-                                      (resheight*1.4, -resheight), gap, (resheight*1.4, 0)]))
-        self.segments.append(Segment([(0, -resheight), (0, resheight), (resheight*1.4, 0)]))
+                                      (resheight*1.4, -resheight), gap, (resheight*1.4, 0)], userparams=self._userparams))
+        self.segments.append(Segment([(0, -resheight), (0, resheight), (resheight*1.4, 0)], userparams=self._userparams))
 
 
 class Zener(Diode):
@@ -223,9 +222,9 @@ class Zener(Diode):
         super().__init__(**kwargs)
         zener_width = 0.1
         self.segments.append(Segment([(resheight*1.4, resheight),
-                                      (resheight*1.4+zener_width, resheight+zener_width)]))
+                                      (resheight*1.4+zener_width, resheight+zener_width)], userparams=self._userparams))
         self.segments.append(Segment([(resheight*1.4, -resheight),
-                                      (resheight*1.4-zener_width, -resheight-zener_width)]))
+                                      (resheight*1.4-zener_width, -resheight-zener_width)], userparams=self._userparams))
 
 
 class Varactor(Element2Term):
@@ -238,7 +237,7 @@ class Varactor(Element2Term):
                                      gap,
                                      (resheight*1.4+capgap, resheight), (resheight*1.4+capgap, -resheight),
                                      gap,
-                                     (resheight*1.4+capgap, 0)]))
+                                     (resheight*1.4+capgap, 0)], userparams=self._userparams))
         self.segments.append(SegmentPoly([(0, resheight), (resheight*1.4, 0), (0, -resheight)]))
 
 
@@ -247,9 +246,9 @@ class LED(Diode):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.segments.append(Segment([(resheight, resheight*1.5), (resheight*2, resheight*3.25)],
-                                     arrow='->', arrowwidth=.16, arrowlength=.2))
+                                     arrow='->', arrowwidth=.16, arrowlength=.2, userparams=self._userparams))
         self.segments.append(Segment([(resheight*.1, resheight*1.5), (resheight*1.1, resheight*3.25)],
-                                     arrow='->', arrowwidth=.16, arrowlength=.2))
+                                     arrow='->', arrowwidth=.16, arrowlength=.2, userparams=self._userparams))
         self.params['lblloc'] = 'bot'
 
 
@@ -268,10 +267,10 @@ class LED2(Diode):
         pa = Point((x[0], y[0]+.1)).rotate(theta)
         pa2 = Point((x[0]-.2, y[0]+.1)).rotate(theta)
 
-        self.segments.append(Segment(p))
-        self.segments.append(Segment(p2))
-        self.segments.append(Segment((p[1], pa), arrow='->', arrowwidth=.15, arrowlength=.2))
-        self.segments.append(Segment((p2[1], pa2), arrow='->', arrowwidth=.15, arrowlength=.2))
+        self.segments.append(Segment(p, userparams=self._userparams))
+        self.segments.append(Segment(p2, userparams=self._userparams))
+        self.segments.append(Segment((p[1], pa), arrow='->', arrowwidth=.15, arrowlength=.2, userparams=self._userparams))
+        self.segments.append(Segment((p2[1], pa2), arrow='->', arrowwidth=.15, arrowlength=.2, userparams=self._userparams))
         self.params['lblloc'] = 'bot'
 
 
@@ -288,10 +287,10 @@ class Photodiode(Diode):
 
         pa = Point((x[-1], y[-1]-.1)).rotate(theta)
         pa2 = Point((x[-1]-.2, y[-1]-.1)).rotate(theta)
-        self.segments.append(Segment(p))
-        self.segments.append(Segment(p2))
-        self.segments.append(Segment((p[-2], pa), arrow='->', arrowwidth=.15, arrowlength=.2))
-        self.segments.append(Segment((p2[-2], pa2), arrow='->', arrowwidth=.15, arrowlength=.2))
+        self.segments.append(Segment(p, userparams=self._userparams))
+        self.segments.append(Segment(p2, userparams=self._userparams))
+        self.segments.append(Segment((p[-2], pa), arrow='->', arrowwidth=.15, arrowlength=.2, userparams=self._userparams))
+        self.segments.append(Segment((p2[-2], pa2), arrow='->', arrowwidth=.15, arrowlength=.2, userparams=self._userparams))
         self.params['lblloc'] = 'bot'
 
 
@@ -308,7 +307,7 @@ class PotentiometerIEEE(ResistorIEEE):
         self.anchors['tap'] = (reswidth*3, potheight)
         self.params['lblloc'] = 'bot'
         self.segments.append(Segment([(reswidth*3, potheight), (reswidth*3, reswidth*1.5)],
-                                     arrow='->', arrowwidth=.15, arrowlength=.25))
+                                     arrow='->', arrowwidth=.15, arrowlength=.25, userparams=self._userparams))
 
 
 class PotentiometerIEC(ResistorIEC):
@@ -323,7 +322,7 @@ class PotentiometerIEC(ResistorIEC):
         self.anchors['tap'] = (reswidth*3, potheight)
         self.elmparams['lblloc'] = 'bot'
         self.segments.append(Segment([(reswidth*3, potheight), (reswidth*3, reswidth*2)],
-                                     arrow='->', arrowwidth=.15, arrowlength=.22))
+                                     arrow='->', arrowwidth=.15, arrowlength=.22, userparams=self._userparams))
 
 
 class Diac(Element2Term):
@@ -333,7 +332,7 @@ class Diac(Element2Term):
         self.segments.append(Segment(
             [(0, 0), gap, (resheight*1.4, resheight*1.8),
              (resheight*1.4, -resheight*1.8), gap,
-             (0, resheight*1.8), (0, -resheight*1.8), gap, (resheight*1.4, 0)]))
+             (0, resheight*1.8), (0, -resheight*1.8), gap, (resheight*1.4, 0)], userparams=self._userparams))
         self.segments.append(SegmentPoly([(0, -resheight-.25), (resheight*1.4, -.25),
                                           (0, -resheight+.25)]))
         self.segments.append(SegmentPoly([(resheight*1.4, resheight+.25), (0, .25),
@@ -348,7 +347,7 @@ class Triac(Diac):
     '''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.segments.append(Segment([(resheight*1.4, .25), (resheight*1.4+.5, .5)]))
+        self.segments.append(Segment([(resheight*1.4, .25), (resheight*1.4+.5, .5)], userparams=self._userparams))
         self.anchors['gate'] = (resheight*1.4+.5, .5)
 
 
@@ -361,7 +360,7 @@ class SCR(Diode):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.segments.append(Segment(
-            [(resheight*1.4, 0), (resheight*1.4+.3, -.3), (resheight*1.4+.3, -.5)]))
+            [(resheight*1.4, 0), (resheight*1.4+.3, -.3), (resheight*1.4+.3, -.5)], userparams=self._userparams))
         self.anchors['gate'] = (resheight*1.4+.3, -.5)
 
 
@@ -373,10 +372,10 @@ class Memristor(Element2Term):
         self.segments.append(Segment(
             [(0, 0), (mr, 0), (mr, -mr*.75), (mr*2, -mr*.75), (mr*2, mr*.75),
              (mr*3, mr*.75), (mr*3, -mr*.75), (mr*4, -mr*.75), (mr*4, 0),
-             (mr*5, 0)]))
+             (mr*5, 0)], userparams=self._userparams))
         self.segments.append(Segment(
             [(0, mr*1.25), (mr*5, mr*1.25), (mr*5, mr*-1.25), (0, mr*-1.25),
-             (0, mr*1.25)]))
+             (0, mr*1.25)], userparams=self._userparams))
         self.segments.append(SegmentPoly(
             [(0, mr*1.25), (0, -mr*1.25), (mr/2, -mr*1.25), (mr/2, mr*1.25)],
             fill='black'))
@@ -392,7 +391,7 @@ class Memristor2(Element2Term):
             [(0, 0), (0, mrv), (mr, mrv), (mr, -mrv), (mr*2, -mrv), (mr*2, mrv),
              (mr*3, mrv), (mr*3, -mrv), (mr*4, -mrv), (mr*4, mrv),
              (mr*5, mrv), (mr*5, -mrv), (mr*6, -mrv), (mr*6, 0),
-             (mr*7, 0)]))
+             (mr*7, 0)], userparams=self._userparams))
 
 
 class Josephson(Element2Term):
@@ -402,7 +401,7 @@ class Josephson(Element2Term):
         self.segments.append(Segment(
             [(0, 0), gap, (-resheight, resheight), (resheight, -resheight),
              gap, (resheight, resheight), (-resheight, -resheight),
-             gap, (0, 0)]))
+             gap, (0, 0)], userparams=self._userparams))
 
 
 class FuseUS(Element2Term):
@@ -419,8 +418,8 @@ class FuseUS(Element2Term):
         fuser = .12
         fusex = linspace(fuser*2, 1+fuser)
         fusey = [math.sin(x) * resheight for x in linspace(0, 2*math.pi)]
-        self.segments.append(Segment(list(zip(fusex, fusey))))
-        self.segments.append(Segment([(0, 0), gap, (1+fuser*3, 0)]))
+        self.segments.append(Segment(list(zip(fusex, fusey)), userparams=self._userparams))
+        self.segments.append(Segment([(0, 0), gap, (1+fuser*3, 0)], userparams=self._userparams))
         if self.params['dots']:
             self.fill(kwargs.get('fill', 'bg'))
 
@@ -439,7 +438,7 @@ class FuseIEEE(ResistorIEC):
     ''' Fuse (IEEE Style) '''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.segments.append(Segment([(0, 0), (reswidth*6, 0)]))
+        self.segments.append(Segment([(0, 0), (reswidth*6, 0)], userparams=self._userparams))
 
 
 class FuseIEC(ResistorIEC):
@@ -447,9 +446,9 @@ class FuseIEC(ResistorIEC):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         dx = resheight*.66
-        self.segments.append(Segment([(dx, resheight), (dx, -resheight)]))
+        self.segments.append(Segment([(dx, resheight), (dx, -resheight)], userparams=self._userparams))
         self.segments.append(Segment([(6*reswidth-dx, resheight),
-                                      (6*reswidth-dx, -resheight)]))
+                                      (6*reswidth-dx, -resheight)], userparams=self._userparams))
 
 
 class Breaker(Element2Term):
@@ -466,7 +465,7 @@ class Breaker(Element2Term):
         theta1 = 25 if dots else 10
         theta2 = 155 if dots else 170
         self.segments.append(Segment(
-            [(0, 0), gap, (1, 0)]))
+            [(0, 0), gap, (1, 0)], userparams=self._userparams))
         self.segments.append(SegmentArc(
             (.5, 0), 1, .65, theta1=theta1, theta2=theta2))
         if self.params['dots']:
@@ -521,7 +520,7 @@ class Inductor(Element2Term):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         ind_w = .25
-        self.segments.append(Segment([(0, 0), gap, (1, 0)]))
+        self.segments.append(Segment([(0, 0), gap, (1, 0)], userparams=self._userparams))
         for i in range(4):
             self.segments.append(SegmentArc(
                 [(i*2+1)*ind_w/2, 0], theta1=0, theta2=180,
@@ -539,7 +538,7 @@ class Inductor2(Element2Term):
     }
     def __init__(self, *, loops: Optional[int] = None, **kwargs):
         super().__init__(**kwargs)
-        self.segments.append(Segment(cycloid(loops=self.params['loops'])))
+        self.segments.append(Segment(cycloid(loops=self.params['loops']), userparams=self._userparams))
 
 
 class CPE(Element2Term):
@@ -549,23 +548,23 @@ class CPE(Element2Term):
         capgap = 0.25
         offset = 0.25
         self.segments.append(Segment([(0, 0), (-offset, 0), gap, (offset, 0),
-                                      (0, -resheight), gap, (capgap, 0)]))
+                                      (0, -resheight), gap, (capgap, 0)], userparams=self._userparams))
         self.segments.append(Segment([(0, 0), (-offset, 0), gap, (offset, 0),
-                                      (0, resheight), gap, (capgap, 0)]))
+                                      (0, resheight), gap, (capgap, 0)], userparams=self._userparams))
         self.segments.append(Segment([(0, 0), (-offset, resheight), gap,
-                                      (0, -resheight), gap, (capgap, 0)]))
+                                      (0, -resheight), gap, (capgap, 0)], userparams=self._userparams))
         self.segments.append(Segment([(0, 0), (-offset, -resheight), gap,
-                                      (0, -resheight), gap, (capgap, 0)]))
+                                      (0, -resheight), gap, (capgap, 0)], userparams=self._userparams))
 
 
 class SparkGap(Element2Term):
     ''' Spark Gap '''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.segments.append(Segment([(0, 0), (.3, 0), gap, (.7, 0), (1, 0)]))
+        self.segments.append(Segment([(0, 0), (.3, 0), gap, (.7, 0), (1, 0)], userparams=self._userparams))
         # Arrow coords overlap a bit since default arrow is offset by linewidth
-        self.segments.append(Segment([(.3, 0), (.52, 0)], arrow='->', arrowwidth=.2))
-        self.segments.append(Segment([(.7, 0), (.48, 0)], arrow='->', arrowwidth=.2))
+        self.segments.append(Segment([(.3, 0), (.52, 0)], arrow='->', arrowwidth=.2, userparams=self._userparams))
+        self.segments.append(Segment([(.7, 0), (.48, 0)], arrow='->', arrowwidth=.2, userparams=self._userparams))
 
 
 class Nullator(Element2Term):
@@ -575,7 +574,7 @@ class Nullator(Element2Term):
     '''
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.segments.append(Segment([[0, 0], [0, 0], gap, [1, 0], [1, 0]]))
+        self.segments.append(Segment([[0, 0], [0, 0], gap, [1, 0], [1, 0]], userparams=self._userparams))
         self.segments.append(SegmentArc(center=[0.5,0], width=1, height=0.5, theta1=0, theta2=360))
         self.elmparams['theta'] = 90
 
@@ -584,7 +583,7 @@ class Norator(Element2Term):
     ''' Norator '''
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.segments.append(Segment([[0, 0], [0, 0], gap, [1, 0], [1, 0]]))
+        self.segments.append(Segment([[0, 0], [0, 0], gap, [1, 0], [1, 0]], userparams=self._userparams))
         self.segments.append(SegmentCircle([0.25, 0], 0.25,))
         self.segments.append(SegmentCircle([1-0.25, 0], 0.25,))
         self.elmparams['theta'] = 90
@@ -598,7 +597,7 @@ class CurrentMirror(Element2Term):
     '''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.segments.append(Segment([(0, 0), (0, 0), gap, (1, 0), (1, 0)]))
+        self.segments.append(Segment([(0, 0), (0, 0), gap, (1, 0), (1, 0)], userparams=self._userparams))
         # in order to prevent graphical glitches due to overlapping outlines when filling, draw fill before outline
         # fill is drawn here. The outline is disabled to prevent anti-aliasing glitches
         # ideally, the outline would be disabled with ls='None', but this does not work in testing, so lw=1e-9 is here
@@ -622,7 +621,7 @@ class VoltageMirror(Element2Term):
     '''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.segments.append(Segment([[0, 0], [0, 0], gap, [1, 0], [1, 0]]))
+        self.segments.append(Segment([[0, 0], [0, 0], gap, [1, 0], [1, 0]], userparams=self._userparams))
         self.segments.append(SegmentArc(center=[0.7, 0], width=0.6, height=0.3, theta1=0, theta2=360))
         self.segments.append(SegmentArc(center=[0.3, 0], width=0.6, height=0.3, theta1=0, theta2=360))
         self.elmparams['theta'] = 90

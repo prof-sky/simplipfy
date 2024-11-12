@@ -38,6 +38,8 @@ class Label:
     font: str | None = None
     mathfont: str | None = None
     color: str | None = None
+    class_: str | None = None
+    id_: str | None = None
 
 
 class Element:
@@ -64,7 +66,7 @@ class Element:
         element in a Drawing.
     '''
     _element_defaults: dict[str, Any] = {}     # Default parameters for subclassed elements
-    defaults: ChainMap[str, Any] = ChainMap()  # Subclasses will chainmap this with parents  
+    defaults: ChainMap[str, Any] = ChainMap()  # Subclasses will chainmap this with parents
     def __init__(self, **kwargs) -> None:
         self._userparams.update(kwargs)         # Specified by user
         self._localshift: XY = Point((0, 0))
@@ -300,7 +302,9 @@ class Element:
               fontsize: Optional[float] = None,
               font: Optional[str] = None,
               mathfont: Optional[str] = None,
-              color: Optional[str] = None):
+              color: Optional[str] = None,
+              class_: Optional[str] = None,
+              id_: Optional[str] = None):
         ''' Add a label to the Element.
 
             Args:
@@ -317,12 +321,16 @@ class Element:
                 font: Name/font-family of label text
                 mathfont: Name/font-family of math text
                 color: Color of label
+                class_: classification string to categorize svg-tag
+                id_: identification string to identify svg-tag
         '''
         if not rotate:
             rotate = 0
         elif isinstance(rotate, bool):
             rotate = True
-        self._userlabels.append(Label(label, loc, ofst, halign, valign, rotate, fontsize, font, mathfont, color))
+
+        self._userlabels.append(Label(label, loc, ofst, halign, valign, rotate, fontsize, font, mathfont, color,
+                                      class_, id_))
         return self
 
     def set_id(self, id_value: str) -> 'Element':
@@ -369,12 +377,12 @@ class Element:
 
     def _place(self, dwgxy: XY, dwgtheta: float, **dwgparams) -> tuple[Point, float]:
         ''' Calculate element position within the drawing
-        
+
             Args:
                 dwgxy: Current XY position within drawing
                 dwgtheta: Current theta in the drawing
                 dwgparams: Default parameters of the drawing
-            
+
             Returns:
                 xy: New XY position after placing the element
                 theta: New theta after placing the element
@@ -483,7 +491,7 @@ class Element:
 
     def _position_label(self, label: Label, theta: float = 0) -> Label:
         ''' Calculate position of label
-        
+
             Args:
                 label: The label to position
                 theta: Element drawing direction
@@ -544,7 +552,7 @@ class Element:
             newhalign: Halign = 'center'
             newvalign: Valign = 'center'
 
-        elif label.loc and label.loc in self.anchors: 
+        elif label.loc and label.loc in self.anchors:
             # Anchor is on an edge
             x1, y1, x2, y2 = self.get_bbox(includetext=False)
             newhalign = newvalign = 'center'
@@ -628,7 +636,7 @@ class Element:
         # Make a copy of the label to modify with auto-placement values
         label = Label(label.label, label.loc, label.ofst, label.halign,
                       label.valign, label.rotate, label.fontsize,
-                      label.font, label.mathfont, label.color)
+                      label.font, label.mathfont, label.color, label.class_, label.id_)
 
         if label.halign is None:
             label.halign = self.params.get('lblalign', (None, None))[0]
@@ -637,7 +645,7 @@ class Element:
 
         if label.ofst is None:
             label.ofst = self.params.get('lblofst', .1)
-        
+
         label = self._position_label(label, theta)
         halign, valign, ofst = self._align_label(label, theta)
         label.halign = label.halign if label.halign is not None else halign
@@ -660,32 +668,36 @@ class Element:
         if not math.isfinite(xmax+xmin+ymax+ymin):
             xmax = xmin = ymax = ymin = .1
 
+        userparams = {}
+        userparams['class_'] = label.class_ if label.class_ else self._userparams.get('class_', 'na')
+        userparams['id_'] = label.id_ if label.id_ else self._userparams.get('id_', 'na')
+
         if isinstance(label.label, (list, tuple)):
             if label.loc == 'top':
                 xdiv = (xmax-xmin)/(len(label.label)+1)
                 for i, lbltxt in enumerate(label.label):
                     xy = Point((xmin+xdiv*(i+1), ymax))
-                    self.segments.append(SegmentText(xy+label.ofst, lbltxt, **segment_params))
+                    self.segments.append(SegmentText(xy+label.ofst, lbltxt, **segment_params, userparams=userparams))
             elif label.loc == 'bottom':
                 xdiv = (xmax-xmin)/(len(label.label)+1)
                 for i, lbltxt in enumerate(label.label):
                     xy = Point((xmin+xdiv*(i+1), ymin))
-                    self.segments.append(SegmentText(xy+label.ofst, lbltxt, **segment_params))
+                    self.segments.append(SegmentText(xy+label.ofst, lbltxt, **segment_params, userparams=userparams))
             elif label.loc == 'left':
                 ydiv = (ymax-ymin)/(len(label.label)+1)
                 for i, lbltxt in enumerate(label.label):
                     xy = Point((xmin, ymin+ydiv*(i+1)))
-                    self.segments.append(SegmentText(xy+label.ofst, lbltxt, **segment_params))
+                    self.segments.append(SegmentText(xy+label.ofst, lbltxt, **segment_params, userparams=userparams))
             elif label.loc == 'right':
                 ydiv = (ymax-ymin)/(len(label.label)+1)
                 for i, lbltxt in enumerate(label.label):
                     xy = Point((xmax, ymin+ydiv*(i+1)))
-                    self.segments.append(SegmentText(xy+label.ofst, lbltxt, **segment_params))
+                    self.segments.append(SegmentText(xy+label.ofst, lbltxt, **segment_params, userparams=userparams))
             elif label.loc == 'center':
                 xdiv = (xmax-xmin)/(len(label.label)+1)
                 for i, lbltxt in enumerate(label.label):
                     xy = Point((xmin+xdiv*(i+1), 0))
-                    self.segments.append(SegmentText(xy+label.ofst, lbltxt, **segment_params))
+                    self.segments.append(SegmentText(xy+label.ofst, lbltxt, **segment_params, userparams=userparams))
 
         elif isinstance(label.label, str):  # keep the elif instead of else for type hinting
             if label.loc and label.loc in self.anchors:
@@ -702,7 +714,7 @@ class Element:
                 xy = Point(((xmax+xmin)/2, (ymax+ymin)/2))
             else:
                 raise ValueError(f'Undefined location {label.loc}')
-            self.segments.append(SegmentText(xy+label.ofst, label.label, **segment_params))
+            self.segments.append(SegmentText(xy+label.ofst, label.label, **segment_params, userparams=userparams))
 
     def _draw_on_figure(self):
         ''' Draw the element on a new figure. Useful for _repr_ functions. '''
@@ -740,7 +752,7 @@ class Element:
             bbox = self.get_bbox()
             Segment(((bbox.xmin, bbox.ymin), (bbox.xmax, bbox.ymin),
                      (bbox.xmax, bbox.ymax), (bbox.xmin, bbox.ymax), (bbox.xmin, bbox.ymin)),
-                     color='blue', lw=.5).draw(fig, self.transform)
+                     color='blue', lw=.5, userparams=self._userparams).draw(fig, self.transform)
 
 
 class ElementDrawing(Element):
