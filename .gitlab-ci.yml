@@ -18,7 +18,7 @@ deploy-develop:
     - mkdir temp
     - cd temp/
     - git clone https://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@github.com/TheHowland/InskaLE.git .
-    - git checkout main
+    - git checkout $(git log --branches -1 --pretty=format:"%H")
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
     - echo "Configuration is:"
@@ -26,10 +26,7 @@ deploy-develop:
     - ls -a
     - git add .
     - git commit -m "auto update dev release"
-    - git push https://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@github.com/TheHowland/InskaLE.git
-
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - git push https://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@github.com/TheHowland/InskaLE.git HEAD:main
 
 deploy-release:
   stage: deploy
