@@ -36,9 +36,6 @@ deploy-develop:
     - git commit -m "auto update dev release"
     - git push https://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@github.com/TheHowland/InskaLE.git HEAD:main
 
-  rules:
-    - if: $CI_COMMIT_BRANCH == "kjsadhfjkdshf"
-
 deploy-release:
   stage: deploy
 
