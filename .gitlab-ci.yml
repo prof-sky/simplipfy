@@ -69,7 +69,7 @@ deploy-release:
     - git commit -m "auto update release"
     - git push https://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@github.com/prof-sky/inskale.git
 
-  rules:
-    - if: $CI_COMMIT_BRANCH == "release"
+  #rules:
+  #  - if: $CI_COMMIT_BRANCH == "release"
 
 
