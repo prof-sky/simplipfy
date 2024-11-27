@@ -57,7 +57,7 @@ deploy-release:
     - ls -a
     # copy and upload maintanance index.html
     - cp ../Pyodide/Scripts/UpdateInProgress.html index.html
-    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -S .tmp ftp://w0182f79.kasserver.com/simplipfy / ./index.html
+    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -S .tmp ftp://w0182f79.kasserver.com /simplipfy ./index.html
     - rm index.html
     - echo clear FTP server
     - ../Pyodide/Scripts/clearFTPServer.sh
