@@ -3,6 +3,13 @@ image: inskale
 stages:
   - deploy
 
+variables:
+  FTP_SERVER: "w0182f79.kasserver.com"
+  FTP_USER: "f017019e"
+  FTP_PASS: "EuVumvJ4TyqztDz7Qgwq"
+  FTP_FOLDER: /simplipfy
+  FTP_SERVER_FULL_PATH: "ftp://w0182f79.kasserver.com/simplipfy"
+
 deploy-develop:
   stage: deploy
 
@@ -53,17 +60,19 @@ deploy-release:
     - ls -a
     # copy and upload maintanance index.html
     - cp ../Pyodide/Scripts/UpdateInProgress.html index.html
-    - cat index.html
-    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -S .tmp w0182f79.kasserver.com/simplipfy / ./index.html
+    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
     - rm index.html
     - echo clear FTP server
     - ../Pyodide/Scripts/clearFTPServer.sh
     # upload all files to ftp server
-    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -R w0182f79.kasserver.com/simplipfy / ./
+    - ncftpput -u $FTP_USER -p $FTP_PASS -R $FTP_SERVER $FTP_FOLDER ./
     # upload simpliPFy index.html (override maintenance index.html)
     - cp ../Pyodide/index.html .
     - sed -i "/setSiteId/s/'2'/'1'/" index.html
-    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -S .tmp w0182f79.kasserver.com/simplipfy / ./index.html
+    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
+    # remove .git folder
+    # this should delete .git and .gitignore but .git is not removable from this skript command works from wsl cl
+    - ncftp -u $FTP_USER -p $FTP_PASS $FTP_SERVER_FULL_PATH <<< "rm -r .git;rm -r .gitignore;bye"
     # upload to github of prof-sky
     - sed -i "/setSiteId/s/'2'/'3'/" index.html
     - git add .
