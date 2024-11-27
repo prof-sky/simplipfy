@@ -73,11 +73,7 @@ deploy-release:
     - sed -i "/setSiteId/s/'2'/'1'/" index.html
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
     # remove .git folder
-    - ncftp -u $FTP_USER -p $FTP_PASS $FTP_SERVER <<EOF
-        rm -r .git
-        ls
-        bye
-      EOF
+    - ncftp -u $FTP_USER -p $FTP_PASS $FTP_SERVER $FTP_FOLDER <<< "rm -r .git;ls;bye"
     # upload to github of prof-sky
     - sed -i "/setSiteId/s/'2'/'3'/" index.html
     - git add .
