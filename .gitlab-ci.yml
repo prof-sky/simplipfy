@@ -83,7 +83,7 @@ deploy-release:
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
 
 
-  #rules:
-  #  - if: $CI_COMMIT_BRANCH == "release"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "release"
 
 
