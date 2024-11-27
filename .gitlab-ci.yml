@@ -35,8 +35,6 @@ deploy-develop:
     - git commit -m "auto update dev release"
     - git push https://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@github.com/TheHowland/InskaLE.git HEAD:main
 
-  rules:
-    - if: $CI_COMMIT_BRANCH == "redfasdfdlease"
 
 deploy-release:
   stage: deploy
@@ -82,7 +80,7 @@ deploy-release:
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
 
 
-  #rules:
-  #  - if: $CI_COMMIT_BRANCH == "release"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "release"
 
 
