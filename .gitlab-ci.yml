@@ -24,6 +24,7 @@ deploy-develop:
     - echo "Configuration is:"
     - echo "$(<src/conf/conf.json )"
     - ls -a
+    - cp ../Pyodide/index.html .
     - git add .
     - git commit -m "auto update dev release"
     - git push https://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@github.com/TheHowland/InskaLE.git HEAD:main
@@ -35,8 +36,10 @@ deploy-release:
   - git config --global user.email "yannick.wieland@hs-pforzheim.de"
   - git config --global user.name "Automated Release Deployment"
   - chmod +x ./Pyodide/Scripts/copyFiles.sh
+  - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
   - apk add rsync
   - apk add zip
+  - apk add ncftp
 
   script:
     - mkdir temp
@@ -48,6 +51,19 @@ deploy-release:
     - echo "Configuration is:"
     - echo "$(<src/conf/conf.json )"
     - ls -a
+    # copy and upload maintanance index.html
+    - cp ../Pyodide/Scripts/UpdateInProgress.html index.html
+    - cat index.html
+    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -S .tmp w0182f79.kasserver.com / ./index.html
+    - rm index.html
+    - echo clear FTP server
+    - ../Pyodide/Scripts/clearFTPServer.sh
+    # upload all files to ftp server
+    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -R w0182f79.kasserver.com / ./
+    # upload simpliPFy index.html (override maintenance index.html)
+    - cp ../Pyodide/index.html .
+    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -S .tmp w0182f79.kasserver.com / ./index.html
+    # upload to github of prof-sky
     - git add .
     - git commit -m "auto update release"
     - git push https://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@github.com/prof-sky/inskale.git
