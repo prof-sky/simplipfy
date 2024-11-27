@@ -29,6 +29,9 @@ deploy-develop:
     - git commit -m "auto update dev release"
     - git push https://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@github.com/TheHowland/InskaLE.git HEAD:main
 
+  rules:
+    - if: $CI_COMMIT_BRANCH == "asjdhkjhdsf"
+
 deploy-release:
   stage: deploy
 
@@ -53,16 +56,16 @@ deploy-release:
     - ls -a
     # copy and upload maintanance index.html
     - cp ../Pyodide/Scripts/UpdateInProgress.html index.html
-    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -S .tmp ftp://w0182f79.kasserver.com/simplipfy / ./index.html
+    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -S .tmp ftp://w0182f79.kasserver.com /simplipfy ./index.html
     - rm index.html
     - echo clear FTP server
     - ../Pyodide/Scripts/clearFTPServer.sh
     # upload all files to ftp server
-    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -R ftp://w0182f79.kasserver.com/simplipfy / ./
+    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -R ftp://w0182f79.kasserver.com /simplipfy ./
     # upload simpliPFy index.html (override maintenance index.html)
     - cp ../Pyodide/index.html .
     - sed -i "/setSiteId/s/'2'/'1'/" index.html
-    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -S .tmp ftp://w0182f79.kasserver.com/simplipfy / ./index.html
+    - ncftpput -u f017019e -p EuVumvJ4TyqztDz7Qgwq -S .tmp ftp://w0182f79.kasserver.com /simplipfy ./index.html
     # upload to github of prof-sky
     - sed -i "/setSiteId/s/'2'/'3'/" index.html
     - git add .
