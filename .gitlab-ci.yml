@@ -8,6 +8,7 @@ variables:
   FTP_USER: "f017019e"
   FTP_PASS: "EuVumvJ4TyqztDz7Qgwq"
   FTP_FOLDER: /simplipfy
+  FTP_SERVER_FULL_PATH: "ftp://w0182f79.kasserver.com/simplipfy"
 
 deploy-develop:
   stage: deploy
@@ -82,7 +83,7 @@ deploy-release:
     - git commit -m "auto update release"
     - git push https://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@github.com/prof-sky/inskale.git
 
-  #rules:
-  #  - if: $CI_COMMIT_BRANCH == "release"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "release"
 
 
