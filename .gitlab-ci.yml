@@ -31,7 +31,6 @@ deploy-develop:
     - echo "Configuration is:"
     - echo "$(<src/conf/conf.json )"
     - ls -a
-    - cp ../Pyodide/index.html .
     - git add .
     - git commit -m "auto update dev release"
     - git push https://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@github.com/TheHowland/InskaLE.git HEAD:main
@@ -62,26 +61,27 @@ deploy-release:
     - echo "Configuration is:"
     - echo "$(<src/conf/conf.json )"
     - ls -a
+    # upload to github of prof-sky
+    - sed -i "/setSiteId/s/'2'/'3'/" index.html
+    - git add .
+    - git commit -m "auto update release"
+    - git push https://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@github.com/prof-sky/inskale.git
     # copy and upload maintanance index.html
     - cp ../Pyodide/Scripts/UpdateInProgress.html index.html
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
     - rm index.html
     - echo clear FTP server
     - ../Pyodide/Scripts/clearFTPServer.sh
+    # remove files that should not be on simplipfy.org
+    - rm -rf .git/
+    - rm -rf .gitignore
     # upload all files to ftp server
     - sed -i "/setSiteId/s/'2'/'1'/" ./src/scripts/utils/matomoHelper.js
     - ncftpput -u $FTP_USER -p $FTP_PASS -R $FTP_SERVER $FTP_FOLDER ./
     # upload simpliPFy index.html (override maintenance index.html)
     - cp ../Pyodide/index.html .
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
-    # remove .git folder
-    # this should delete .git and .gitignore but .git is not removable from this skript command works from wsl cl
-    - ncftp -u $FTP_USER -p $FTP_PASS $FTP_SERVER_FULL_PATH <<< "rm -r .git;rm -r .gitignore;bye"
-    # upload to github of prof-sky
-    - sed -i "/setSiteId/s/'2'/'3'/" index.html
-    - git add .
-    - git commit -m "auto update release"
-    - git push https://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@github.com/prof-sky/inskale.git
+
 
   rules:
     - if: $CI_COMMIT_BRANCH == "release"
