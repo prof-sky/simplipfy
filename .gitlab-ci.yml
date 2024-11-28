@@ -62,7 +62,7 @@ deploy-release:
     - echo "$(<src/conf/conf.json )"
     - ls -a
     # upload to github of prof-sky
-    - sed -i "/setSiteId/s/'2'/'3'/" matomoHelper.js
+    - sed -i "/setSiteId/s/'2'/'3'/" ./src/scripts/utils/matomoHelper.js
     - git add .
     - git commit -m "auto update release"
     - git push https://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@github.com/prof-sky/inskale.git
