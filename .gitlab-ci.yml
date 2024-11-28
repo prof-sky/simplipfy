@@ -55,6 +55,11 @@ deploy-release:
   - apk add rsync
   - apk add zip
   - apk add ncftp
+  - apk add python3 py3-pip
+  - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
+  - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
+  - pip3 install Pyodide/Packages/$lcapyPkgName
+  - pip3 install Pyodide/Packages/$schemdrawPkgName
 
   script:
     - mkdir temp
