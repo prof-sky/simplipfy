@@ -66,6 +66,9 @@ deploy-release:
     - echo "Configuration is:"
     - echo "$(<src/conf/conf.json )"
     - ls -a
+    # generate svg files for circuit selector
+    - python3 ../Pyodide/Scripts/generateSVGFiles.py
+    - zip -r Circuits Circuits && rm -r Circuits/
     # upload to github of prof-sky
     - sed -i "/setSiteId/s/'2'/'3'/" ./src/scripts/utils/matomoHelper.js
     - git add .
