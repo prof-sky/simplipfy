@@ -17,8 +17,14 @@ deploy-develop:
     - git config --global user.email "yannick.wieland@hs-pforzheim.de"
     - git config --global user.name "Automated Release Development"
     - chmod +x ./Pyodide/Scripts/copyFiles.sh
+    - chmod +x ./Pyodide/Scripts/generateSVGFiles.py
     - apk add rsync
     - apk add zip
+    - apk add python3 py3-pip
+    - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
+    - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
+    - pip3 install Pyodide/Packages/$lcapyPkgName
+    - pip3 install Pyodide/Packages/$schemdrawPkgName
 
 
   script:
@@ -31,6 +37,8 @@ deploy-develop:
     - echo "Configuration is:"
     - echo "$(<src/conf/conf.json )"
     - ls -a
+    - python3 ../Pyodide/Scripts/generateSVGFiles.py
+    - zip -r Circuits Circuits && rm -r Circuits/
     - git add .
     - git commit -m "auto update dev release"
     - git push https://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@github.com/TheHowland/InskaLE.git HEAD:main
