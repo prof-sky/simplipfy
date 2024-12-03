@@ -92,8 +92,9 @@ deploy-release:
     - rm -rf .git/
     - rm -rf .gitignore
     # upload all files to ftp server
-    - sed -i "/setSiteId/s/'2'/'1'/" ./src/scripts/utils/matomoHelper.js
-    - ncftpput -u $FTP_USER -p $FTP_PASS -R $FTP_SERVER $FTP_FOLDER ./src/scripts/utils/matomoHelper.js
+    - sed -i "/setSiteId/s/'3'/'1'/" ./src/scripts/utils/matomoHelper.js
+    - cat ./src/scripts/utils/matomoHelper.js
+    - ncftpput -u $FTP_USER -p $FTP_PASS -R $FTP_SERVER $FTP_FOLDER ./
     # upload simpliPFy index.html (override maintenance index.html)
     - cp ../Pyodide/index.html .
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
