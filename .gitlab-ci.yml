@@ -41,8 +41,8 @@ deploy-develop:
     - git commit -m "auto update dev release"
     - git push https://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@github.com/TheHowland/InskaLE.git HEAD:main
 
-  rules:
-    - if: '$CI_COMMIT_BRANCH != "release"'
+  #rules:
+  #  - if: '$CI_COMMIT_BRANCH != "release"'
 
 
 deploy-release:
@@ -106,5 +106,34 @@ release:
     - git fetch --tags  # Fetch tags to ensure they are available
     - git checkout $CI_COMMIT_TAG  # Checkout the tag
     - ls -la  # List files from the tag's commit
+    - cd Pyodide/
+    - mkdir temp/
+    - cd temp/
+    - echo "CopyFiles:"
+    - ../Pyodide/Scripts/copyFiles.sh
+    - echo "Configuration is:"
+    - echo "$(<src/conf/conf.json )"
+    - ls -a
+    # generate svg files for circuit selector
+    - python3 ../Pyodide/Scripts/generateSVGFiles.py
+    - rm -rf __pycache__
+    - zip -r Circuits Circuits && rm -r Circuits/
+    # copy and upload maintanance index.html
+    - cp ../Pyodide/Scripts/UpdateInProgress.html index.html
+    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
+    - rm index.html
+    - echo clear FTP server
+    - ../Pyodide/Scripts/clearFTPServer.sh
+    - ncftpls -u $FTP_USER -p $FTP_PASS $FTP_SERVER $FTP_FOLDER
+    # remove files that should not be on simplipfy.org
+    - rm -rf .git/
+    - rm -rf .gitignore
+    # upload all files to ftp server
+    - sed -i /setSiteId/s/'3'/'1'/ ./src/scripts/utils/matomoHelper.js
+    - cat ./src/scripts/utils/matomoHelper.js
+    - ncftpput -u $FTP_USER -p $FTP_PASS -R $FTP_SERVER $FTP_FOLDER ./
+    # upload simpliPFy index.html (override maintenance index.html)
+    - cp ../Pyodide/index.html .
+    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
   rules:
     - if: "$CI_COMMIT_TAG"
