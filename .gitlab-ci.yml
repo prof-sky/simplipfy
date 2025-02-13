@@ -23,9 +23,8 @@ deploy-develop:
 
 
   script:
-    - mkdir temp
+    - git clone --depth=1 --branch=main $TheHowlandGHInskaleAccess temp
     - cd temp/
-    - git clone --depth=1 --branch=main $TheHowlandGHInskaleAccess .
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
     - ls -a
@@ -50,9 +49,8 @@ deploy-release:
   - pip3 install Pyodide/Packages/$schemdrawPkgName
 
   script:
-    - mkdir temp
+    - git clone $ProfSkyGHInskaleAccess temp
     - cd temp/
-    - git clone $ProfSkyGHInskaleAccess .
     - git checkout main
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
