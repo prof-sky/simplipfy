@@ -2,12 +2,9 @@ image: inskale
 
 stages:
   - deploy
-  - release
 
 variables:
   FTP_SERVER: "w0182f79.kasserver.com"
-  FTP_USER: "f017019e"
-  FTP_PASS: "EuVumvJ4TyqztDz7Qgwq"
   FTP_FOLDER: /simplipfy
   FTP_SERVER_FULL_PATH: "ftp://w0182f79.kasserver.com/simplipfy"
 
@@ -28,21 +25,15 @@ deploy-develop:
   script:
     - mkdir temp
     - cd temp/
-    - git clone https://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@github.com/TheHowland/InskaLE.git .
-    - git checkout $(git log --branches -1 --pretty=format:"%H")
+    - git clone --depth=1 --branch=main $TheHowlandGHInskaleAccess .
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
-    - echo "Configuration is:"
-    - echo "$(<src/conf/conf.json )"
     - ls -a
-    - python3 ../Pyodide/Scripts/generateSVGFiles.py
+    - python3 ../Pyodide/Scripts/generateSVGFiles.py && rm -rf __pycache__
     - zip -r Circuits Circuits && rm -r Circuits/
     - git add .
     - git commit -m "auto update dev release"
-    - git push https://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@github.com/TheHowland/InskaLE.git HEAD:main
-
-  #rules:
-  #  - if: '$CI_COMMIT_BRANCH != "release"'
+    - git push $TheHowlandGHInskaleAccess HEAD:main
 
 
 deploy-release:
@@ -61,12 +52,10 @@ deploy-release:
   script:
     - mkdir temp
     - cd temp/
-    - git clone https://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@github.com/prof-sky/inskale.git .
+    - git clone $ProfSkyGHInskaleAccess .
     - git checkout main
     - echo "CopyFiles:"
     - ../Pyodide/Scripts/copyFiles.sh
-    - echo "Configuration is:"
-    - echo "$(<src/conf/conf.json )"
     - ls -a
     # generate svg files for circuit selector
     - python3 ../Pyodide/Scripts/generateSVGFiles.py
@@ -76,13 +65,13 @@ deploy-release:
     - sed -i /setSiteId/s/'2'/'3'/ ./src/scripts/utils/matomoHelper.js
     - git add .
     - git commit -m "auto update release"
-    - git push https://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@github.com/prof-sky/inskale.git
+    - git push $ProfSkyGHInskaleAccess
     # copy and upload maintanance index.html
     - cp ../Pyodide/Scripts/UpdateInProgress.html index.html
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
     - rm index.html
     - echo clear FTP server
-    - ../Pyodide/Scripts/clearFTPServer.sh
+    - ../Pyodide/Scripts/clearFTPServer.sh -u $FTP_USER -p $FTP_PASS
     # remove files that should not be on simplipfy.org
     - rm -rf .git/
     - rm -rf .gitignore
@@ -96,15 +85,27 @@ deploy-release:
 
 
   rules:
-    - if: $CI_COMMIT_BRANCH == "release"
+    - if: '$CI_COMMIT_BRANCH == "release"'
 
 
-release:
-  stage: release
-  tag_name: '$CI_COMMIT_TAG'
-  description: '$CI_COMMIT_TAG'
+deploy-release2:
+  stage: deploy
   rules:
     - if: "$CI_COMMIT_TAG"
+
+  before_script:
+    - git config --global user.email "yannick.wieland@hs-pforzheim.de"
+    - git config --global user.name "Automated Release Deployment"
+    - chmod +x ./Pyodide/Scripts/copyFiles.sh
+    - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
+    - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
+    - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
+    - pip3 install Pyodide/Packages/$lcapyPkgName
+    - pip3 install Pyodide/Packages/$schemdrawPkgName
+    - apk add --no-cache curl
+    - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/api/v4/projects/gitlab-org%2Frelease-cli/packages/generic/release-cli/latest/release-cli-linux-amd64"
+    - chmod +x /usr/local/bin/release-cli
+    - release-cli -v
 
   script:
     - echo "Checking out tag $CI_COMMIT_TAG..."
@@ -112,34 +113,43 @@ release:
     - git checkout $CI_COMMIT_TAG  # Checkout the tag
     - ls -la  # List files from the tag's commit
     - cd Pyodide/
-    - mkdir temp/
-    - cd temp/
-    - echo "CopyFiles:"
-    - ../Pyodide/Scripts/copyFiles.sh
-    - echo "Configuration is:"
-    - echo "$(<src/conf/conf.json )"
     - ls -a
     # generate svg files for circuit selector
-    - python3 ../Pyodide/Scripts/generateSVGFiles.py
+    - python3 Scripts/generateSVGFiles.py
     - rm -rf __pycache__
     - zip -r Circuits Circuits && rm -r Circuits/
     # copy and upload maintanance index.html
-    - cp ../Pyodide/Scripts/UpdateInProgress.html index.html
+    - mv index.html ../index.html
+    - cp Scripts/UpdateInProgress.html index.html
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
     - rm index.html
     - echo clear FTP server
-    - ../Pyodide/Scripts/clearFTPServer.sh
-    - echo "Files on FTP Server"
-    - ncftpls -u $FTP_USER -p $FTP_PASS $FTP_SERVER $FTP_FOLDER
+    - Scripts/clearFTPServer.sh -u $FTP_USER -p $FTP_PASS
+    - echo "Files on FTP Server - shall be empty"
+    - ncftpls -u $FTP_USER -p $FTP_PASS "ftp://w0182f79.kasserver.com/simplipfy"
     # remove files that should not be on simplipfy.org
-    - rm -rf .git/
+    - rm -rf .idea/
     - rm -rf .gitignore
+    - rm -rf Scripts/
+    - rm -rf GzipSimplePythonHttpServer.py
     # upload all files to ftp server
-    - sed -i /setSiteId/s/'3'/'1'/ ./src/scripts/utils/matomoHelper.js
-    - cat ./src/scripts/utils/matomoHelper.js
+    - sed -i /setSiteId/s/'2'/'1'/ ./src/scripts/utils/matomoHelper.js
     - ncftpput -u $FTP_USER -p $FTP_PASS -R $FTP_SERVER $FTP_FOLDER ./
     # upload simpliPFy index.html (override maintenance index.html)
-    - cp ../Pyodide/index.html .
+    - mv ../index.html index.html
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
-    - echo "Files on FTP Server"
-    - ncftpls -u $FTP_USER -p $FTP_PASS $FTP_SERVER $FTP_FOLDER
+    - cat index.html
+    - echo "Files on FTP Server - shall not be empty"
+    - ncftpls -u $FTP_USER -p $FTP_PASS "ftp://w0182f79.kasserver.com/simplipfy"
+
+  artifacts:
+    paths:
+      - Pyodide/
+
+  release: # See https://docs.gitlab.com/ee/ci/yaml/#release for available properties
+    tag_name: '$CI_COMMIT_TAG'
+    description: '$CI_COMMIT_TAG'
+    assets:
+      links:
+        - name: "Server Files"
+          url: "https://gitlab.hs-pforzheim.de/stefan.kray/inskale/-/jobs/${CI_JOB_ID}/artifacts/download?artifact_path=Pyodide%2F"
