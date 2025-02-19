@@ -10,3 +10,4 @@ Lcapy-Stripped/lcapy-1.22+inskale.0.6dev/doc
 Schemdraw/test_schematic.svg
 *.pid
 Pyodide/__pycache__
+Pyodide/Circuits/*/*.svg
