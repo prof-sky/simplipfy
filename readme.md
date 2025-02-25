@@ -15,7 +15,7 @@
    6. [Finding the start and end nodes](#finding-the-start-and-end-nodes)
 # Setup local git copy
 ```
-git clone --recursive https://gitlab.hs-pforzheim.de/stefan.kray/simplipfy.git
+git clone --recursive https://github.com/prof-sky/simplipfy.git
 ```
 the `--recursive` keyword is important, to clone the submodule lcapy-inskale
 # Structure
