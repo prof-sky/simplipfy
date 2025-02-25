@@ -502,5 +502,5 @@ That's all there is to it!
 
 -------------------------------------------------------------------------------
 
-Exception: The content of the 'Circuits' directory is not licensed under the LGPL license
-and can be used freely without any restrictions.
+Exception: The content of the 'Pyodide/Circuits' directory and the corresponding Circuits.zip is not
+licensed under the LGPL license and can be used freely without any restrictions.
