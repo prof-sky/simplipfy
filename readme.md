@@ -1,11 +1,11 @@
-# Tabel of Content
-1. [Setup lokal git copy](#setup-lokal-git-copy)
+# Table of Content
+1. [Setup local git copy](#setup-local-git-copy)
 2. [Structure](#structure)
 3. [Set up local Python interpreter](#set-up-local-python-interpreter)
    1. [install modified lcapy and schemdraw](#install-modified-lcapy-and-schemdraw)
    2. [Required Packages](#required-packages)
 4. [Build Packages](#build-packages)
-5. [Host inskale locally](#host-inskale-locally)
+5. [Host simplipfy locally](#host-simplipfy-locally)
 6. [Write netlits](#Write netlits)
    1. [Draw hints](#draw-hints)
    2. [Supported components](#supported-components)
@@ -13,13 +13,13 @@
    4. [Components R, L, C, Z](#componets-r-l-c-z)
    5. [Sources](#sources)
    6. [Finding the start and end nodes](#finding-the-start-and-end-nodes)
-# Setup lokal git copy
+# Setup local git copy
 ```
-git clone --recursive https://gitlab.hs-pforzheim.de/stefan.kray/inskale.git
+git clone --recursive https://gitlab.hs-pforzheim.de/stefan.kray/simplipfy.git
 ```
 the `--recursive` keyword is important, to clone the submodule lcapy-inskale
 # Structure
-There are four folders inside the InskaLE Project.
+There are four folders inside the simplipfy Project.
 - lcapy-inskale: is a submodule that includes a fork of the lcapy GitHub repository to merge changes and updates easily.
 The submodule has to branches, the master which is the same as the fork from original repository and the lcapy-inskale
 branch which hold the modifications for this project. 
@@ -27,12 +27,12 @@ branch which hold the modifications for this project.
 circuits
 - Schemdraw: a slightly modified version of the Schemdraw package
 - GitHubPageRelease: Submodule which is linked to a GitHub repo that deploys a GitHub Page. A new release on the GitHub
-Page can be created with ```[path to Inskale]\Pyodide\Scripts\makeGitHubPageRelease.ps1"```
+Page can be created with ```[path to simplipfy]\Pyodide\Scripts\makeGitHubPageRelease.ps1"```
 
 # Set up local Python interpreter
 ## install modified lcapy and schemdraw
 ```
-cd .\path\to\inskale-git-repo\Inskale
+cd .\path\to\simplipfy-git-repo\simplipfy
 pip install -e .\lcapy-inskale
 pip uninstall schemdraw
 pip install -e .\schemdraw
@@ -79,17 +79,17 @@ of the lcapy-inskale package it also tests it before it gets build. The new buil
 to Pyodide/Packages and the Pyodide/solve.py is updated automatically and annotated with the current
 Package version
 
-# Host inskale locally
-To host inskale locally you only have to go to the Pyodide Folder and execute `StartServer.ps1`
+# Host simplipfy locally
+To host simplipfy locally you only have to go to the Pyodide Folder and execute `StartServer.ps1`
 this executes a simple http server integrated with Python. It executes it from a script called
-`GzipSimplePythonHttpServer.py` to support Gzip compression for .whl-Files. Inskale is then hosted on 
+`GzipSimplePythonHttpServer.py` to support Gzip compression for .whl-Files. simplipfy is then hosted on 
 `http:\\localhost:8000`. It is important to go to `http:\\` and not `https:\\` because the simple http server does
 not support the https protocol. For an integration into an IDE it the `StartServerProcess.ps1` and 
 `StopServerProcess.ps1` may be helpful. `StartServerProcess.ps1` starts a process and retrieves the process id and saves
 it into `server.pid`, which `StopServerProcess.ps1` uses to stop the process if the process is still running. 
 `StartServerProcess.ps1` calls `StopServerProcess.ps1` when `server.pid` is in the directory. Some IDEs can be
 configured to execute a skript before executing code so the Server can be started before the IDE accesses
-`http:\\localhost:8000` to debug and test inskale.
+`http:\\localhost:8000` to debug and test simplipfy.
 
 # Write netlists
 
