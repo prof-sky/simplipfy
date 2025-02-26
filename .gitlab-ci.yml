@@ -80,7 +80,7 @@ deploy-release2:
     - if: "$CI_COMMIT_TAG"
 
   before_script:
-    - export FTP_SERVER_FULL_PATH="${FTP_SERVER}${FTP_FOLDER}"
+    - export FTP_SERVER_FULL_PATH="ftp://${FTP_SERVER}${FTP_FOLDER}"
     - git config --global user.email "yannick.wieland@hs-pforzheim.de"
     - git config --global user.name "Automated Release Deployment"
     - chmod +x ./Pyodide/Scripts/copyFiles.sh
