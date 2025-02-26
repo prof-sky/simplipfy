@@ -28,10 +28,14 @@ deploy-develop:
     - git add .
     - git commit -m "auto update dev release"
     - git push https://${PAT_TH}@github.com/TheHowland/InskaLE.git HEAD:main
-    
+
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - when: always
 
 
-deploy-release:
+deploy-profSky:
   stage: deploy
 
   before_script:
@@ -74,7 +78,7 @@ deploy-release:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
 
-deploy-release2:
+deploy-release:
   stage: deploy
   rules:
     - if: "$CI_COMMIT_TAG"
