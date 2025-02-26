@@ -5,15 +5,20 @@
    1. [install modified lcapy and schemdraw](#install-modified-lcapy-and-schemdraw)
    2. [Required Packages](#required-packages)
 4. [Build Packages](#build-packages)
-5. [Host simplipfy locally](#host-simplipfy-locally)
-6. [Write netlists](#write-netlists)
+5. [Host SimpliPFy generally](#host-simplipfy-generally)
+5. [Host SimpliPFy locally](#host-simplipfy-python)
+6. [Host SimpliPFy GitHub Page](#host-simplipfy-github-page)
+   1. [Most recent version](#most-recent-version-nightly)
+   2. [More stable version](#more-stable-version-stable)
+7. [Host own circuit files](#host-own-circuit-files)
+7. [Write netlists](#write-netlists)
    1. [Draw hints](#draw-hints)
    2. [Supported components](#supported-components)
    3. [Component W](#component-w)
-   4. [Components R, L, C, Z](#componets-r-l-c-z)
+   4. [Components R, L, C, Z](#components-r-l-c-z)
    5. [Sources](#sources)
-   6. [Finding the start and end nodes](#finding-the-start-and-end-nodes)
-7. [Used libraries](#used-libraries)
+   6. [Convert a circuit to a netlist](#convert-a-circuit-to-netlist)
+8. [Used libraries](#used-libraries)
 
 # Current release
 [simpliPFy.org](https://simplipfy.org)
@@ -83,18 +88,96 @@ of the lcapy-inskale package it also tests it before it gets build. The new buil
 to Pyodide/Packages and the Pyodide/solve.py is updated automatically and annotated with the current
 Package version
 
-# Host simplipfy locally
-To host simplipfy locally you only have to go to the Pyodide Folder and execute `StartServer.ps1`
-this executes a simple http server integrated with Python. It executes it from a script called
-`GzipSimplePythonHttpServer.py` to support Gzip compression for .whl-Files. simplipfy is then hosted on 
-`http:\\localhost:8000`. It is important to go to `http:\\` and not `https:\\` because the simple http server does
-not support the https protocol (However if you host it from a https server the https protocol is supported). For an integration into an IDE the `StartServerProcess.ps1` and 
-`StopServerProcess.ps1` may be helpful. `StartServerProcess.ps1` starts a process and retrieves the process id and saves
-it into `server.pid`, which `StopServerProcess.ps1` uses to stop the process if the process is still running. 
-`StartServerProcess.ps1` calls `StopServerProcess.ps1` when `server.pid` is in the directory. Some IDEs can be
-configured to execute a skript before executing code so the Server can be started before the IDE accesses
-`http:\\localhost:8000` to debug and test simplipfy.
+# Host SimpliPfy generally
+To host SimpliPFy you need a webserver that serves the files that are found in [simplipfy/Pyodide](https://github.com/prof-sky/simplipfy/tree/main/Pyodide).
+If you start a webserver in this folder, SimpliPFy would work for everyone accessing the server address from a browser.
 
+
+# Host SimpliPFy python
+To host simplipfy locally with python you only have to go to the Pyodide Folder and execute `StartServer.ps1`
+found at [simplipfy/Pyodide/Scripts](https://github.com/prof-sky/simplipfy/tree/main/Pyodide/Scripts) this executes a simple http server
+integrated with Python. It executes it from a script called `GzipSimplePythonHttpServer.py` to support Gzip compression
+for .whl-Files. simplipfy is then hosted on `http:\\localhost:8000`. It is important to go to `http:\\` and not `https:\\` 
+because the simple http server does not support the https protocol 
+(However if you host it from a https server the https protocol is supported). For an integration into an IDE the
+`StartServerProcess.ps1` and `StopServerProcess.ps1` may be helpful. `StartServerProcess.ps1` starts a process and
+retrieves the process id and saves it into `server.pid`, which `StopServerProcess.ps1` uses to stop the process if the
+process is still running. `StartServerProcess.ps1` calls `StopServerProcess.ps1` when `server.pid` is in the directory.
+Some IDEs can be configured to execute a skript before executing code so the Server can be started before the IDE 
+accesses `http:\\localhost:8000` to debug and test simplipfy.
+
+# Host SimpliPFy GitHub Page
+## Most recent version (nightly)
+To host via GitHub Pages go to [simplipfy nightly](https://github.com/prof-sky/simplipfy/tree/main) for the most recent 
+version and fork it to your own account under a name that fits for you. Note that the most recent version is more likely
+to contain unknown bugs but might fix bugs you encountered in earlier versions. Clone the repository onto your PC and
+configure the GitHub Page with the commands:
+```
+git clone https://<yourGHUserName>/<repositoryName>.git
+git subtree push --prefix Pyodide origin gh-pages
+```
+After GitHub finished the Page build process your self-hosted version of SimpliPFy is available under `<yourUserName>/github.io/<repositoryName>`
+or simply use the link on the main page of your repository under `deployments`. 
+
+## More stable version (stable)
+More stable releases are found here [simplipfy stable](https://github.com/prof-sky/simplipfy/releases).
+Choose the most recent tag and download the source code. Place the folder where you want it and extract it. Navigate
+into the folder within your file system. Navigate into the subfolder Pyodide (\<pathToSourceCode\>/\<extractedSourceCodeFolder\>/Pyodide).
+Then push the contents of the Pyodide folder into a new repository on your GitHub account. This can be achieved by following those git commands:
+```
+<be in Pyodide folder from downloaded source code>
+<open git bash and type following comands>
+git init -b main
+git add .
+git commit . -m "self host simplipfy"
+git remote add origin <repo addres e.g. https://github.com/<yourGHUserName>/<yourProjectOnGH>.git>
+git push origin main
+```
+Go to your repository on GitHub and navitgate to `Settings (Repository Settings)`. There choose the submenu `Pages`. 
+Under `Build and deployment` set `Source` to `Deploy from branch` and configure `Branch` to `main/root` and save.
+After GitHub finished the Page build process your self-hosted version of SimpliPFy is available under `<yourUserName>/github.io/<repositoryName>`
+or simply use the link on the main page of your repository under `deployments`.
+
+# Host own circuit files
+See [write netlist](#write-netlists) to learn how circuit files should look.
+Create circuit files that end with .txt and sort them into Circuits/:
+- capacitor (circuits with only capacitors)
+- inductor (circuits with only inductors)
+- mixed (circuits with a mix of capacitors, inductors, resistors)
+- quickstart (circuits that shall be shown at the top as a preview selection)
+- resistor (circuits with only resistors)
+- symbolic (circuits that have variables (R1, C1, L1, V1) as values (resistance, capacitance, voltage etc.))
+this only makes sense for small circuits and is likely to crash for capacitors and inductors
+
+Open a PowerShell. Create a python virtual venv with `python -m venv ./circuitsGenVenv` (this creates the venv in the directory
+you are currently in). The venv has to be at least Python 3.8. Activate the venv with `.\circuitsGenVenv\Scripts\Activate.ps1`.
+From [simplipfy packages](https://github.com/prof-sky/simplipfy/tree/main/Pyodide/Packages) download:
+- lcapy
+- schemdraw
+
+If you are on a stable version take the packages from your download `<SourceCodeFolder>/Pyodide/Packages`
+and save them where you created the venv. Alternatively you can replace `.\` with `path\to\packages\` and save
+them wherever you want. Then run in Powershell:
+```
+pip install .\lcapy-<version>-none-any.whl
+pip install .\schemdraw-<version>-none-any.whl
+```
+It is important to first install lcapy then install schemdraw.  
+Navigate into to <sourceCode>/Pyodide or simply Pyodide (you should see e.g. the folders Circuits, Packages, Scripts).
+With the active venv execute 
+```
+.\Scripts\generateSVGFiles.ps1
+```
+This might take some time and should produce output that looks like this:
+```
+generating: Circuits\capacitor\00_capacitor_row3.svg
+generating: Circuits\capacitor\01_capacitor_parallel3.svg
+generating: Circuits\capacitor\07_capacitors_mixed_simple.svg
+...
+```
+Now you have to zip the new circuits folder, commit and push your changes to GitHub. Don't forget to update your 
+gh-pages branch with `git subtree push --prefix Pyodide origin gh-pages` if you forked the repository, otherwise the changed circuits will not be on your GitHub Page. If you
+downloaded the source code, pushing to the main branch of your repository will trigger the GitHub Page build.
 # Write netlists
 
 ## Draw hints
