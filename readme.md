@@ -6,30 +6,34 @@
    2. [Required Packages](#required-packages)
 4. [Build Packages](#build-packages)
 5. [Host simplipfy locally](#host-simplipfy-locally)
-6. [Write netlits](#Write netlits)
+6. [Write netlists](#write-netlists)
    1. [Draw hints](#draw-hints)
    2. [Supported components](#supported-components)
    3. [Component W](#component-w)
    4. [Components R, L, C, Z](#componets-r-l-c-z)
    5. [Sources](#sources)
    6. [Finding the start and end nodes](#finding-the-start-and-end-nodes)
+7. [Used libraries](#used-libraries)
+
+# Current release
+[simpliPFy.org](https://simplipfy.org)
+
 # Setup local git copy
 ```
 git clone --recursive https://github.com/prof-sky/simplipfy.git
 ```
 the `--recursive` keyword is important, to clone the submodule lcapy-inskale
 # Structure
-There are four folders inside the simplipfy Project.
+There are three folders inside the simplipfy Project.
 - lcapy-inskale: is a submodule that includes a fork of the lcapy GitHub repository to merge changes and updates easily.
 The submodule has to branches, the master which is the same as the fork from original repository and the lcapy-inskale
 branch which hold the modifications for this project. 
 - Pyodide: includes all files that are needed to host pyodide and execute the lcapy package in a browser to simplify
 circuits
 - Schemdraw: a slightly modified version of the Schemdraw package
-- GitHubPageRelease: Submodule which is linked to a GitHub repo that deploys a GitHub Page. A new release on the GitHub
-Page can be created with ```[path to simplipfy]\Pyodide\Scripts\makeGitHubPageRelease.ps1"```
 
 # Set up local Python interpreter
+This is only neccessary to develop or test the lcapy or schemdraw package. If you only want to host simplipfy locally jump to [Host simplipfy locally](#host-simplipfy-locally).
 ## install modified lcapy and schemdraw
 ```
 cd .\path\to\simplipfy-git-repo\simplipfy
@@ -84,7 +88,7 @@ To host simplipfy locally you only have to go to the Pyodide Folder and execute 
 this executes a simple http server integrated with Python. It executes it from a script called
 `GzipSimplePythonHttpServer.py` to support Gzip compression for .whl-Files. simplipfy is then hosted on 
 `http:\\localhost:8000`. It is important to go to `http:\\` and not `https:\\` because the simple http server does
-not support the https protocol. For an integration into an IDE it the `StartServerProcess.ps1` and 
+not support the https protocol (However if you host it from a https server the https protocol is supported). For an integration into an IDE the `StartServerProcess.ps1` and 
 `StopServerProcess.ps1` may be helpful. `StartServerProcess.ps1` starts a process and retrieves the process id and saves
 it into `server.pid`, which `StopServerProcess.ps1` uses to stop the process if the process is still running. 
 `StartServerProcess.ps1` calls `StopServerProcess.ps1` when `server.pid` is in the directory. Some IDEs can be
@@ -109,8 +113,8 @@ the identifier is optional so it could  be:
 W1 1 2; left
 W 1 2; left
 ```
-All components have the length 1 you need as many wires as components to span the same length this is due to 
-implementation
+The length of a wire is always one unit and therefore the same as a Resistor or any other element. If you want to close the circuit
+the number of wires has to be adjusted to fit the length of elements.
 
 ## Components R, L, C, Z
 A netlist line with `R, L, C or Z` always contains:
@@ -169,4 +173,13 @@ W 8 9; up
 the values of the components are chosen randomly.
 Best draw from plus to minus of the voltage source otherwise current and voltage arrows may be wrong
 due to schemdraw limitations. The direction of the source should be the opposite of the direction of the components
-(e.g. V -> up; R -> down | V -> right; R -> left)
+(e.g. V -> up; R -> down | V -> right; R -> left).  
+The netlist structure is adapted from lcapy and has great documentaion. There are two limitations introduced by our implementation.
+- no auto naming of components
+- component values have to be enclosed in {}
+Examples can be found in Pyodide/Circuits
+
+# Used libraries
+Lcapy (adapted) [LGPL-2.1 license]
+SchemDraw (adapted) [MIT license]
+Pyodide [MPL-2.0 license]
