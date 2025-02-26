@@ -19,6 +19,7 @@
    5. [Sources](#sources)
    6. [Convert a circuit to a netlist](#convert-a-circuit-to-netlist)
 8. [Used libraries](#used-libraries)
+9. [Common Issues & Fixes](#common-issues--fixes)
 
 # Current release
 [simpliPFy.org](https://simplipfy.org)
@@ -114,6 +115,8 @@ to contain unknown bugs but might fix bugs you encountered in earlier versions. 
 configure the GitHub Page with the commands:
 ```
 git clone https://<yourGHUserName>/<repositoryName>.git
+git submodule init
+git submodule update --recursive --remote
 git subtree push --prefix Pyodide origin gh-pages
 ```
 After GitHub finished the Page build process your self-hosted version of SimpliPFy is available under `<yourUserName>/github.io/<repositoryName>`
@@ -266,3 +269,20 @@ Examples can be found in Pyodide/Circuits
 - Lcapy (adapted) [LGPL-2.1 license]
 - SchemDraw (adapted) [MIT license]
 - Pyodide [MPL-2.0 license]
+
+# Common Issues & Fixes
+If you encounter an error copy it into the search bar (strg+f). Error messages are fully written in this section this
+should make them searchable.
+to find them.
+## error: 'lcapy-inskale' does not have a commit checked out
+The git error when trying to push into the remote repository
+```
+error: 'lcapy-inskale' does not have a commit checked out
+fatal: updating files failed
+```
+is caused by the uninitialized submodule lcapy-inskale
+run the following git commands to solve this issue
+```
+git submodule init
+git submodule update --recursive --remote
+```
