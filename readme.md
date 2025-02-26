@@ -179,8 +179,10 @@ generating: Circuits\capacitor\07_capacitors_mixed_simple.svg
 ...
 ```
 Now you have to zip the new circuits folder, commit and push your changes to GitHub. Don't forget to update your 
-gh-pages branch with `git subtree push --prefix Pyodide origin gh-pages` if you forked the repository, otherwise the changed circuits will not be on your GitHub Page. If you
-downloaded the source code, pushing to the main branch of your repository will trigger the GitHub Page build.
+gh-pages branch with `git subtree push --prefix Pyodide origin gh-pages` if you forked the repository, otherwise the
+changed circuits will not be on your GitHub Page. If you downloaded the source code, pushing to the main branch of
+your repository will trigger the GitHub Page build. If you serve them via a http(s) server, simply overwriting the 
+Circuits.zip file will yield the new files on the webserver.
 # Write netlists
 
 ## Draw hints
