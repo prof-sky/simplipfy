@@ -1,0 +1,142 @@
+image: inskale
+
+stages:
+  - deploy
+
+deploy-develop:
+  stage: deploy
+
+  before_script:
+    - git config --global user.email "yannick.wieland@hs-pforzheim.de"
+    - git config --global user.name "Automated Release Development"
+    - chmod +x ./Pyodide/Scripts/copyFiles.sh
+    - chmod +x ./Pyodide/Scripts/generateSVGFiles.py
+    - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
+    - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
+    - pip3 install Pyodide/Packages/$lcapyPkgName
+    - pip3 install Pyodide/Packages/$schemdrawPkgName
+
+
+  script:
+    - git clone --depth=1 --branch=main https://github.com/TheHowland/InskaLE.git temp
+    - cd temp/
+    - echo "CopyFiles:"
+    - ../Pyodide/Scripts/copyFiles.sh
+    - ls -a
+    - python3 ../Pyodide/Scripts/generateSVGFiles.py && rm -rf __pycache__
+    - zip -r Circuits Circuits && rm -r Circuits/
+    - git add .
+    - git commit -m "auto update dev release"
+    - git push https://${PAT_TH}@github.com/TheHowland/InskaLE.git HEAD:main
+    
+
+
+deploy-release:
+  stage: deploy
+
+  before_script:
+  - git config --global user.email "yannick.wieland@hs-pforzheim.de"
+  - git config --global user.name "Automated Release Deployment"
+  - chmod +x ./Pyodide/Scripts/copyFiles.sh
+  - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
+  - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
+  - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
+  - pip3 install Pyodide/Packages/$lcapyPkgName
+  - pip3 install Pyodide/Packages/$schemdrawPkgName
+
+  script:
+    - echo $CI_COMMIT_SHA
+    - git rev-parse HEAD
+    # generate svg files for circuit selector
+    - cd Pyodide
+    - python3 ./Scripts/generateSVGFiles.py
+    - rm -rf __pycache__
+    - zip -r Circuits Circuits
+    - cd ..
+    # upload to github of prof-sky asdf
+    - sed -i /setSiteId/s/'2'/'3'/ ./Pyodide/src/scripts/utils/matomoHelper.js
+    - git submodule update --init --recursive
+    - cd lcapy-inskale
+    - git checkout $(git rev-list --tags --max-count=1)
+    - cd ..
+    - git commit . -m "automated release"
+    - git branch
+    - git branch -D temp
+    - git fetch https://github.com/prof-sky/simplipfy.git main:temp
+    - git checkout temp
+    - git rev-parse HEAD
+    - git merge $CI_COMMIT_SHA --squash --allow-unrelated-histories -X theirs
+    - git commit -m "new release"
+    - git push https://${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
+
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+
+deploy-release2:
+  stage: deploy
+  rules:
+    - if: "$CI_COMMIT_TAG"
+
+  before_script:
+    - export FTP_SERVER_FULL_PATH="${FTP_SERVER}${FTP_FOLDER}"
+    - git config --global user.email "yannick.wieland@hs-pforzheim.de"
+    - git config --global user.name "Automated Release Deployment"
+    - chmod +x ./Pyodide/Scripts/copyFiles.sh
+    - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
+    - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
+    - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
+    - pip3 install Pyodide/Packages/$lcapyPkgName
+    - pip3 install Pyodide/Packages/$schemdrawPkgName
+    - apk add --no-cache curl
+    - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/api/v4/projects/gitlab-org%2Frelease-cli/packages/generic/release-cli/latest/release-cli-linux-amd64"
+    - chmod +x /usr/local/bin/release-cli
+    - release-cli -v
+
+  script:
+    - echo "Checking out tag $CI_COMMIT_TAG..."
+    - git fetch --tags  # Fetch tags to ensure they are available
+    - git checkout $CI_COMMIT_TAG  # Checkout the tag
+    - ls -la  # List files from the tag's commit
+    - cd Pyodide/
+    - ls -a
+    # generate svg files for circuit selector
+    - python3 Scripts/generateSVGFiles.py
+    - rm -rf __pycache__
+    - zip -r Circuits Circuits && rm -r Circuits/
+    # copy and upload maintanance index.html
+    - mv index.html ../index.html
+    - cp Scripts/UpdateInProgress.html index.html
+    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
+    - rm index.html
+    - echo clear FTP server
+    - Scripts/clearFTPServer.sh
+    - echo "Files on FTP Server - shall be empty"
+    - ncftpls -u $FTP_USER -p $FTP_PASS $FTP_SERVER_FULL_PATH
+    # remove files that should not be on simplipfy.org
+    - rm -rf .idea/
+    - rm -rf .gitignore
+    - rm -rf Scripts/
+    - rm -rf GzipSimplePythonHttpServer.py
+    # upload all files to ftp server
+    - sed -i /setSiteId/s/'2'/'1'/ ./src/scripts/utils/matomoHelper.js
+    - ncftpput -u $FTP_USER -p $FTP_PASS -R $FTP_SERVER $FTP_FOLDER ./
+    # upload simpliPFy index.html (override maintenance index.html)
+    - mv ../index.html index.html
+    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
+    - cat index.html
+    - echo "Files on FTP Server - shall not be empty"
+    - ncftpls -u $FTP_USER -p $FTP_PASS $FTP_SERVER_FULL_PATH
+
+  artifacts:
+    paths:
+      - Pyodide/
+
+  release: # See https://docs.gitlab.com/ee/ci/yaml/#release for available properties
+    tag_name: '$CI_COMMIT_TAG'
+    description: '$CI_COMMIT_TAG'
+    assets:
+      links:
+        - name: "Server Files"
+          url: "https://gitlab.hs-pforzheim.de/stefan.kray/inskale/-/jobs/${CI_JOB_ID}/artifacts/download?artifact_path=Pyodide%2F"
