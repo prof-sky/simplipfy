@@ -180,6 +180,6 @@ The netlist structure is adapted from lcapy and has great documentaion. There ar
 Examples can be found in Pyodide/Circuits
 
 # Used libraries
-Lcapy (adapted) [LGPL-2.1 license]
-SchemDraw (adapted) [MIT license]
-Pyodide [MPL-2.0 license]
+- Lcapy (adapted) [LGPL-2.1 license]
+- SchemDraw (adapted) [MIT license]
+- Pyodide [MPL-2.0 license]
