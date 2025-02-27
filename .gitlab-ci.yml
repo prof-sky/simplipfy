@@ -50,6 +50,8 @@ deploy-profSky:
 
   script:
     - echo $CI_COMMIT_SHA
+    - commitMsg=$(git log -1 --pretty=%B)
+    - echo $commitMsg
     - git rev-parse HEAD
     # generate svg files for circuit selector
     - cd Pyodide
@@ -70,7 +72,7 @@ deploy-profSky:
     - git checkout temp
     - git rev-parse HEAD
     - git merge $CI_COMMIT_SHA --squash --allow-unrelated-histories -X theirs
-    - git commit -m "new release"
+    - git commit -m $commitMsg
     - git push https://${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
 
 
