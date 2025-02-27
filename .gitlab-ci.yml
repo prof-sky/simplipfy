@@ -72,7 +72,7 @@ deploy-profSky:
     - git checkout temp
     - git rev-parse HEAD
     - git merge $CI_COMMIT_SHA --squash --allow-unrelated-histories -X theirs
-    - git commit . -m "${$commitMsg}"
+    - git commit . -m "${commitMsg}"
     - git push https://${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
 
 
