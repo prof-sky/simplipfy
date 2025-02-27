@@ -18,7 +18,7 @@ deploy-develop:
 
 
   script:
-    - commitMsg="$(CI_COMMIT_BRANCH) - $(git log -1 --pretty=%B)"
+    - commitMsg="${CI_COMMIT_BRANCH} - $(git log -1 --pretty=%B)"
     - git clone --depth=1 --branch=main https://github.com/TheHowland/InskaLE.git temp
     - cd temp/
     - echo "CopyFiles:"
