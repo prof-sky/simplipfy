@@ -18,6 +18,7 @@ deploy-develop:
 
 
   script:
+    - commitMsg="$(CI_COMMIT_BRANCH) - $(git log -1 --pretty=%B)"
     - git clone --depth=1 --branch=main https://github.com/TheHowland/InskaLE.git temp
     - cd temp/
     - echo "CopyFiles:"
@@ -26,7 +27,7 @@ deploy-develop:
     - python3 ../Pyodide/Scripts/generateSVGFiles.py && rm -rf __pycache__
     - zip -r Circuits Circuits && rm -r Circuits/
     - git add .
-    - git commit -m "auto update dev release"
+    - git commit . -m "${commitMsg}"
     - git push https://${PAT_TH}@github.com/TheHowland/InskaLE.git HEAD:main
 
   rules:
