@@ -1,6 +1,6 @@
 
 class PackageManager {
-
+    catchedError = false;
     constructor() {
         if (PackageManager.instance) {
             return PackageManager.instance;
@@ -21,9 +21,16 @@ class PackageManager {
     }
 
     async doLoadsAndImports() {
-        await this.loadCircuits();
-        await this.importPyodidePackages();
-        await this.importSolverModule();
+        try{
+            await this.loadCircuits();
+            await this.importPyodidePackages();
+            await this.importSolverModule();
+            this.hideProgressBar()
+        }
+        catch (error){
+            this.onError();
+            console.log("Failed to load: ", error)
+        }
     }
 
     async loadCircuits() {
@@ -67,12 +74,6 @@ class PackageManager {
         }
 
         console.log("Imported: " + packages);
-
-        progressBarContainer.style.display = "none";
-        document.title = "Circuit Selection";
-        pushPageViewMatomo("Ready");
-        state.pyodideReady = true;
-        state.pyodideLoading = false;
     }
 
     async load_packages(optAddNames) {
@@ -130,6 +131,7 @@ class PackageManager {
             return fileNames;
         } catch (error) {
             console.error('Error fetching directory listing:', error);
+            this.onError();
             return [];
         }
     }
@@ -137,7 +139,7 @@ class PackageManager {
     async #fetchGitHubDirectoryContents(path, extension) {
 
         let url = `https://api.github.com/repos/${conf.gitHubUser}${conf.gitHubProject}contents/${path}`;
-        if (!(await fetch(url+"/.htaccess")).ok) {
+        if (!(await fetch(url+".htaccess")).ok) {
             url = `https://api.github.com/repos/${conf.gitHubUser}${conf.gitHubProject}contents/Pyodide/${path}`;
         }
 
@@ -154,7 +156,27 @@ class PackageManager {
             return data.filter(file => file.name.endsWith(extension)).map(file => file.name);
         } catch (error) {
             console.error('Error fetching GitHub directory contents:', error);
+            this.onError();
             return [];
         }
+    }
+
+    hideProgressBar(){
+        let progressBarContainer = document.getElementById("pgr-bar-container");
+        progressBarContainer.style.display = "none";
+        document.title = "Circuit Selection";
+        pushPageViewMatomo("Ready");
+        state.pyodideReady = true;
+        state.pyodideLoading = false;
+    }
+
+    onError() {
+        let progressBar = document.getElementById('pgr-bar')
+        progressBar.classList.remove('bg-warning');
+        progressBar.classList.remove('progress-bar-striped');
+        progressBar.classList.add('bg-danger');
+        languageManager.currentLang.messages = ['An error occurred, please try to reload the page'];
+        document.getElementById('progress-bar-note').innerText = languageManager.currentLang.messages[0];
+        this.catchedError = true
     }
 }
