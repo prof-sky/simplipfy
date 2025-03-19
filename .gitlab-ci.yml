@@ -79,7 +79,7 @@ deploy-profSky:
     - cd lcapy-inskale
     - git checkout $(git rev-list --tags --max-count=1)
     - cd ..
-    - git commit . -m "${commitMsg}"
+    - git commit --amend -m "${commitMsg}"
     - git push https://${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
 
 
