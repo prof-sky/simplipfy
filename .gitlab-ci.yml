@@ -33,7 +33,7 @@ deploy-develop:
   rules:
     - if: '$CI_COMMIT_TAG'
       when: never
-    - when: always
+    #- when: always
 
 
 deploy-profSky:
@@ -66,19 +66,24 @@ deploy-profSky:
     - cd lcapy-inskale
     - git checkout $(git rev-list --tags --max-count=1)
     - cd ..
-    - git commit . -m "automated release"
+    - git commit . -m "created files for release"
     - git branch
     - git branch -D temp
     - git fetch https://github.com/prof-sky/simplipfy.git main:temp
     - git checkout temp
+    - git rm -rf lcapy-inskale/
+    - git commit -m "remove submodule"
     - git rev-parse HEAD
     - git merge $CI_COMMIT_SHA --squash --allow-unrelated-histories -X theirs
+    - cd lcapy-inskale
+    - git checkout $(git rev-list --tags --max-count=1)
+    - cd ..
     - git commit . -m "${commitMsg}"
     - git push https://${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
 
 
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+  #rules:
+  #  - if: '$CI_COMMIT_BRANCH == "main"'
 
 
 deploy-release:

@@ -1,4 +1,4 @@
-# for lcapy version: 1.24+inskale.0.36
+# for lcapy version: 1.24+inskale.0.37
 import os
 import shutil
 import sys

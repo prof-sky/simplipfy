@@ -11,7 +11,7 @@ from .oneterm import Ground, GroundSignal, GroundChassis, Antenna, AntennaLoop, 
 from .opamp import Opamp
 from .sources import (Source, SourceV, SourceI, SourceSin, SourcePulse, SourceSquare, SourceTriangle, SourceRamp,
                       SourceControlled, SourceControlledV, SourceControlledI, BatteryCell, Battery, MeterV, MeterI,
-                      MeterA, MeterOhm, Lamp, Lamp2, Solar, Neon)
+                      MeterA, MeterOhm, Lamp, Lamp2, Solar, Neon, StabilizedSource)
 from .switches import (Switch, SwitchSpdt, SwitchSpdt2, SwitchDpst, SwitchDpdt, Button, SwitchReed,
                        SwitchRotary, SwitchDIP)
 from .transistors import (NFet, PFet, AnalogNFet, AnalogPFet, AnalogBiasedFet,

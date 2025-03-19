@@ -17,6 +17,19 @@ class Source(Element2Term):
         self.segments.append(SegmentCircle((0.5, 0), 0.5,))
         self.elmparams['theta'] = 90
 
+class StabilizedSource(Source):
+    ''' Generic source element '''
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.segments.append(Segment([(0, 0), (1, 0)]))
+        plus_len = .2
+        self.segments.append(Segment([(-.25, -plus_len/2 + .25),
+                                      (-.25, plus_len/2 + .25)]))    # '-' sign
+        self.segments.append(Segment([(1.25-plus_len/2, .25),
+                                      (1.25+plus_len/2, .25)]))  # '+' sign
+        self.segments.append(Segment([(1.25, -plus_len/2 + .25),
+                                      (1.25, plus_len/2 + .25)]))     # '+' sign
+
 
 class SourceV(Source):
     ''' Voltage source '''
