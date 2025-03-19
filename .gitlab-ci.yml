@@ -75,6 +75,7 @@ deploy-profSky:
     - git commit -m "remove submodule"
     - git rev-parse HEAD
     - git merge $CI_COMMIT_SHA --squash --allow-unrelated-histories -X theirs
+    - git submodule update --init --recursive
     - cd lcapy-inskale
     - git checkout $(git rev-list --tags --max-count=1)
     - cd ..
