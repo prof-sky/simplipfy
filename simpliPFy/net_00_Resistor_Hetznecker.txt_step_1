@@ -1,0 +1,7 @@
+V1 1 0 dc 4; up
+Z1 1 2 2; right
+Z3 2 4 4; down
+W 5 4; left
+W 4 0; left
+W 3 5; down
+Zs1 2 3 4; right

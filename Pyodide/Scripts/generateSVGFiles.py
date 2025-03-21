@@ -1,4 +1,4 @@
-# for lcapy version: 1.24+inskale.0.37
+# for simplipfy version: 0.1
 import os
 import shutil
 import sys

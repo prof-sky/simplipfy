@@ -13,8 +13,10 @@ deploy-develop:
     - chmod +x ./Pyodide/Scripts/generateSVGFiles.py
     - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
     - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
+    - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy' | head -n 1)
     - pip3 install Pyodide/Packages/$lcapyPkgName
     - pip3 install Pyodide/Packages/$schemdrawPkgName
+    - pip3 install Pyodide/Packages/$simplipfyPkgName
 
 
   script:
@@ -46,8 +48,10 @@ deploy-profSky:
   - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
   - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
   - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
+  - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy' | head -n 1)
   - pip3 install Pyodide/Packages/$lcapyPkgName
   - pip3 install Pyodide/Packages/$schemdrawPkgName
+  - pip3 install Pyodide/Packages/$simplipfyPkgName
 
   script:
     - echo $CI_COMMIT_SHA
@@ -83,8 +87,8 @@ deploy-profSky:
     - git push https://${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
 
 
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+  #rules:
+  #  - if: '$CI_COMMIT_BRANCH == "main"'
 
 
 deploy-release:
@@ -100,6 +104,8 @@ deploy-release:
     - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
     - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
     - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
+    - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy' | head -n 1)
+    - pip3 install Pyodide/Packages/simplipfyPkgName
     - pip3 install Pyodide/Packages/$lcapyPkgName
     - pip3 install Pyodide/Packages/$schemdrawPkgName
     - apk add --no-cache curl

@@ -11,3 +11,14 @@ Schemdraw/test_schematic.svg
 *.pid
 Pyodide/__pycache__
 Pyodide/Circuits/*/*.svg
+/simpliPFy/simplipfy.egg-info/
+/simpliPFy/dist/
+simpliPFy/__pycache__
+simpliPFy/simplipfy/__pycache__
+simpliPFy/simplipfy/KirchhoffSolver/__pycache__
+simpliPFy/Solutions
+simpliPFy/simplipfy/Export/__pycache__
+simpliPFy/simplipfy/SimplipyStepWise/__pycache__
+simpliPFy/simplipfy/SimplifyInUserOrder/__pycache__
+simpliPFy/build
+simpliPFy/simplipfy/SimplifyStepWise/__pycache__
