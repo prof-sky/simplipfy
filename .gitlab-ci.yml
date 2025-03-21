@@ -87,8 +87,8 @@ deploy-profSky:
     - git push https://${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
 
 
-  #rules:
-  #  - if: '$CI_COMMIT_BRANCH == "main"'
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
 
 deploy-release:
