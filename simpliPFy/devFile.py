@@ -1,22 +1,32 @@
+import cProfile
 import os
-
-import solve
 import time
 from datetime import datetime
-from simplipfy.validateCircuitFile import ValidateCircuitFile
+
+import solve
 from simplipfy.Export.dictExportBase import ExportDict
-import cProfile
+from simplipfy.validateCircuitFile import ValidateCircuitFile
+
+
+def save_netlist(netlist, filename, index, save: bool=True):
+    if save:
+        f = open(f"Netlists/net_{filename}_step_{index}", "w")
+        f.write(netlist)
+        f.close()
 
 def work():
     a.createInitialStep().toFiles()
     for line in open(f"StepsToSolve/{folder}/{filename}").readlines():
         cpts = line.replace(" ", "").replace("\n", "").split(",")
         a.simplifyNCpts(cpts).toFiles()
-        netlist = a.steps[-1].circuit.netlist()
-        index = a.steps.index(a.steps[-1])
-        f = open(f"net_{filename}_step_{index}", "w")
-        f.write(netlist)
-        f.close()
+        save_netlist(
+            a.steps[-1].circuit.netlist(),
+            filename,
+            a.steps.index(a.steps[-1]),
+            saveNetlist
+        )
+
+
 
 
 #  clear Solutions directory
@@ -25,7 +35,8 @@ files = os.listdir(clearPath)
 for file in files:
     os.remove(os.path.join(clearPath, file))
 
-fixFile = True
+fixFile = False
+saveNetlist = False
 if fixFile:
     folder = "resistor"
     filePath = f"Circuits/{folder}"

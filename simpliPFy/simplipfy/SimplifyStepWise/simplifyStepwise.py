@@ -1,8 +1,10 @@
 import os
-from lcapy import Circuit
-from simplipfy.langSymbols import LangSymbols
+
+from lcapyInskale import Circuit
 from simplipfy.impedanceConverter import FileToImpedance
-from lcapy.solution import Solution
+from simplipfy.langSymbols import LangSymbols
+from simplipfy.solution import Solution
+
 
 def solve(filename: str, filePath="Circuits/", savePath="Solutions/", langSymbols: dict = {}):
     langSym = LangSymbols(langSymbols)

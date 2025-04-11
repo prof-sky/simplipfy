@@ -1,9 +1,10 @@
+from typing import Union
+
 import sympy.core
 from sympy import Mul
-
-import lcapy.state
 from sympy.physics.units.prefixes import PREFIXES, Prefix
-from typing import Union
+
+import lcapyInskale.state
 
 
 class SIUnitPrefixer:
@@ -30,7 +31,7 @@ class SIUnitPrefixer:
         return exponent
 
     @staticmethod
-    def _findExponentMul(value: lcapy.Expr, forImag=True) -> int:
+    def _findExponentMul(value: lcapyInskale.Expr, forImag=True) -> int:
         """
         this function assumes all symbols to be 1, to determine the prefix based on the numerical value in the
         expression if it receives a type it can not handle it returns 0. If it receives an expression that is an
@@ -62,29 +63,29 @@ class SIUnitPrefixer:
     def _findSIPrefix(self, exponent) -> Prefix:
         return self.prefixes[min(self.prefixes.keys(), key=lambda x: abs(x-exponent))]
 
-    def getSIPrefix(self, value: Union[float, int, Mul, lcapy.Expr]) -> Prefix:
-        if isinstance(value, lcapy.Expr):
+    def getSIPrefix(self, value: Union[float, int, Mul, lcapyInskale.Expr]) -> Prefix:
+        if isinstance(value, lcapyInskale.Expr):
             return self._findSIPrefix(self._findExponentMul(value))
         else:
             return self._findSIPrefix(self._findExponentFloatInt(value))
 
-    def _getSIgetSIPrefixedValue(self, value: Union[float, int, Mul, lcapy.Expr], minExponent=3) \
-            -> tuple[lcapy.Expr, Prefix, int]:
-        if isinstance(value, lcapy.Expr):
+    def _getSIgetSIPrefixedValue(self, value: Union[float, int, Mul, lcapyInskale.Expr], minExponent=3) \
+            -> tuple[lcapyInskale.Expr, Prefix, int]:
+        if isinstance(value, lcapyInskale.Expr):
             value = value
         if isinstance(value, sympy.Mul):
             units = value.as_coeff_Mul()[1]
-            value = lcapy.expr(value/units, units=units)
+            value = lcapyInskale.expr(value/units, units=units)
         else:
-            value = lcapy.expr(value)
+            value = lcapyInskale.expr(value)
 
         expr = value.expr_with_units
         prefix = self.getSIPrefix(value)
         exp = prefix._exponent
 
-        return lcapy.expr(expr), prefix, exp
+        return lcapyInskale.expr(expr), prefix, exp
 
-    def getSIPrefixedExpr(self, value: Union[float, int, Mul, lcapy.Expr], minExponent=3) -> lcapy.Expr:
+    def getSIPrefixedExpr(self, value: Union[float, int, Mul, lcapyInskale.Expr], minExponent=3) -> lcapyInskale.Expr:
         """
         add the nearest unit prefix to float, int, lcapy.ConstantFrequencyResponseDomainExpression or sympy.Mul
         prefixes are sympy.physics.units.prefixes.PREFIXES
@@ -94,11 +95,11 @@ class SIUnitPrefixer:
 
         # if this function would return value, the evalf() would remove the unit while converting to float
         if abs(exp) >= minExponent:
-            return lcapy.expr(expr * 10**(-exp)) * prefix
+            return lcapyInskale.expr(expr * 10**(-exp)) * prefix
         else:
-            return lcapy.expr(expr)
+            return lcapyInskale.expr(expr)
 
-    def getSIPrefixedMul(self, value: Union[float, int, Mul, lcapy.Expr], minExponent=3) -> Mul:
+    def getSIPrefixedMul(self, value: Union[float, int, Mul, lcapyInskale.Expr], minExponent=3) -> Mul:
         """
         add the nearest unit prefix to float, int, lcapy.ConstantFrequencyResponseDomainExpression or sympy.Mul
         prefixes are sympy.physics.units.prefixes.PREFIXES

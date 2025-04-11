@@ -1,16 +1,17 @@
-import schemdraw
-import schemdraw.elements as elm
 import os
-from warnings import warn
-from lcapy import Circuit
-from simplipfy.netlistLine import NetlistLine
 from typing import List
-from simplipfy.impedanceConverter import ImpedanceToComponent
-from simplipfy.impedanceConverter import getSourcesFromCircuit, getOmegaFromCircuit
-from simplipfy.unitWorkAround import UnitWorkAround as uwa
-from simplipfy.unitPrefixer import SIUnitPrefixer
+from warnings import warn
+
+import schemdrawInskale
+import schemdrawInskale.elements as elm
+from lcapyInskale import Circuit
 from simplipfy.Export.dictExportBase import DictExportBase
+from simplipfy.impedanceConverter import ImpedanceToComponent
+from simplipfy.impedanceConverter import getOmegaFromCircuit, getSourcesFromCircuit
 from simplipfy.langSymbols import LangSymbols
+from simplipfy.netlistLine import NetlistLine
+from simplipfy.unitPrefixer import SIUnitPrefixer
+from simplipfy.unitWorkAround import UnitWorkAround as uwa
 
 
 class DrawWithSchemdraw:
@@ -27,7 +28,7 @@ class DrawWithSchemdraw:
         """
         self.circuit = circuit
         self.nodePos = {}
-        self.cirDraw = schemdraw.Drawing()
+        self.cirDraw = schemdrawInskale.Drawing()
         self.ls = langSymbols
 
         self.source = circuit.elements[getSourcesFromCircuit(circuit)[0]]
@@ -46,7 +47,7 @@ class DrawWithSchemdraw:
         # elm.style(elm.STYLE_IEC)
         # TODO would be nice to dont need this
         # print("Enforce svg backend")
-        schemdraw.use(backend='svg')
+        schemdrawInskale.use(backend='svg')
 
         for line in self.netlist.splitlines():
             self.netLines.append(NetlistLine(line))
@@ -66,7 +67,7 @@ class DrawWithSchemdraw:
         if endNode not in self.nodePos.keys():
             self.nodePos[endNode] = self.cirDraw.elements[-1].end
 
-    def addElement(self, element: schemdraw.elements, netLine: NetlistLine):
+    def addElement(self, element: schemdrawInskale.elements, netLine: NetlistLine):
 
         # if no node position is known this is the first element it is used as the start points
         if netLine.startNode not in self.nodePos.keys() and netLine.endNode not in self.nodePos.keys():
@@ -167,7 +168,8 @@ class DrawWithSchemdraw:
         if line.type == "W":
             label = ""
         elif line.type == 'V' or line.type == 'I':
-            value = line.value
+            value = self.latexStr(line)
+            id_ = line.label
         else:
             line = NetlistLine(ImpedanceToComponent(netlistLine=line, omega_0=self.omega_0))
             value = self.latexStr(line)
@@ -176,9 +178,9 @@ class DrawWithSchemdraw:
         if line.type == "R" or line.type == "Z":
             sdElement = elm.Resistor(id_=id_, class_=value, d=line.drawParam, fill="transparent")
         elif line.type == "L":
-            sdElement = elm.Resistor(id_=id_, class_=value, d=line.drawParam, fill=True)
+            sdElement = elm.InductorIEC(d=line.drawParam)
         elif line.type == "C":
-            sdElement = elm.Capacitor(id_=id_, class_=value, d=line.drawParam, fill="transparent")
+            sdElement = elm.Capacitor(d=line.drawParam)
         elif line.type == "W":
             sdElement = elm.Line(d=line.drawParam)
         elif line.type == "V":
@@ -198,17 +200,26 @@ class DrawWithSchemdraw:
             raise RuntimeError(f"unknown element type {line.type}")
 
         if line.drawParam == "left" or line.drawParam == "right":
-            self.addElement(sdElement.label(label, ofst=0.2, class_='element-label ' + id_), line)
+            if line.type in ['L', 'C']:
+                self.addElement(sdElement, line)
+                self.cirDraw.add(elm.Resistor(id_=id_, class_=value, d=line.drawParam, color="transparent", fill="transparent").at(self.nodePos[line.startNode]).label(label, color='black', ofst=0.2, class_='element-label ' + id_))
+            else:
+                self.addElement(sdElement.label(label, ofst=0.2, class_='element-label ' + id_), line)
         else:
-            self.addElement(sdElement.label(label, ofst=(-0.4, -0.1), class_='element-label ' + id_), line)
-
-        curLabel = elm.CurrentLabelInline(direction='in', class_="current-label arrow I" + line.typeSuffix).at(sdElement)
-        volLabel = elm.CurrentLabel(top=self.labelPos[line.drawParam], length=1.5, class_="voltage-label arrow " + self.ls.volt + line.typeSuffix, ofst=0.15).at(sdElement)
+            if line.type in ['L', 'C']:
+                self.addElement(sdElement, line)
+                self.cirDraw.add(elm.Resistor(id_=id_, class_=value, d=line.drawParam, color="transparent", fill="transparent").at(self.nodePos[line.startNode]).label(label, color='black', ofst=(-0.4, -0.1), class_='element-label ' + id_))
+            else:
+                self.addElement(sdElement.label(label, ofst=(-0.4, -0.1), class_='element-label ' + id_), line)
 
         if line.type == "V" or line.type == "I":
+            curLabel = elm.CurrentLabelInline(direction='in', class_="current-label arrow I" + self.ls.total).at(sdElement)
+            volLabel = elm.CurrentLabel(top=self.labelPos[line.drawParam], length=1.5, class_="voltage-label arrow " + self.ls.volt + self.ls.total, ofst=0.15).at(sdElement)
             self.cirDraw.add(curLabel.label('###.### ##', class_='current-label arrow ' + "I"+self.ls.total, ofst=(0.1, 0)))
             self.cirDraw.add(volLabel.reverse().label('###.### ##', class_='voltage-label arrow ' + self.ls.volt+self.ls.total, ofst=(-0.2, 0.1)))
         elif not line.type == "W":
+            curLabel = elm.CurrentLabelInline(direction='in', class_="current-label arrow I" + line.typeSuffix).at(sdElement)
+            volLabel = elm.CurrentLabel(top=self.labelPos[line.drawParam], length=1.5, class_="voltage-label arrow " + self.ls.volt + line.typeSuffix, ofst=0.15).at(sdElement)
             self.cirDraw.add(curLabel.label('###.### ##', class_='current-label arrow ' + "I" + id_[1:], ofst=(-0.1, 0)))
             self.cirDraw.add(volLabel.label('###.### ##', loc='bottom', class_='voltage-label arrow ' + self.ls.volt + id_[1:], ofst=(0.2, -0.1)))
 

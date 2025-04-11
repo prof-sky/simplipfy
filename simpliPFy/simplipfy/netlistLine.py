@@ -1,8 +1,9 @@
-from warnings import warn
-from lcapy.parser import Parser
-from lcapy import grammar
-from lcapy import mnacpts
 from typing import Union
+from warnings import warn
+
+from lcapyInskale import grammar
+from lcapyInskale import mnacpts
+from lcapyInskale.parser import Parser
 
 
 class NetlistLine:

@@ -1,17 +1,18 @@
+from typing import Union
+
 import sympy
 from sympy.physics.units import deg
 
-import lcapy
+import lcapyInskale
+from lcapyInskale import current, resistance, voltage
+from simplipfy.Export.dictExportBase import DictExportBase
 from simplipfy.impedanceConverter import ValueToComponent
 from simplipfy.unitWorkAround import UnitWorkAround as uwa
-from lcapy import resistance, voltage, current, phasor, Expr
-from simplipfy.Export.dictExportBase import DictExportBase
-from typing import Union
 
 
 class DictExportElement(DictExportBase):
-    def __init__(self, solStep: 'lcapy.solutionStep', circuit: 'lcapy.Circuit',
-                 omega_0, compName: str, langSymbols: 'lcapy.langSymbols.LangSymbols',
+    def __init__(self, solStep: 'lcapyInskale.solutionStep', circuit: 'lcapyInskale.Circuit',
+                 omega_0, compName: str, langSymbols: 'lcapyInskale.langSymbols.LangSymbols',
                  inHomCir=False, prefAndUnit=True, precision=3):
         super().__init__(precision=precision, langSymbol=langSymbols, isSymbolic=(not prefAndUnit))
         self.circuit = circuit
@@ -57,7 +58,7 @@ class DictExportElement(DictExportBase):
         self._magnitude = resistance(sympy.sqrt( self.imZ ** 2 + self.reZ ** 2))
 
     @staticmethod
-    def _removeSinCos(value: 'lcapy.expr'):
+    def _removeSinCos(value: 'lcapyInskale.expr'):
         for arg in value.sympy.args:
             if isinstance(arg, (sympy.sin, sympy.cos)):
                 value = value / arg

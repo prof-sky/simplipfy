@@ -1,5 +1,6 @@
-from simpliPFy import solve
 import os
+
+from simpliPFy import solve
 
 
 class TestSimplifyNElements:

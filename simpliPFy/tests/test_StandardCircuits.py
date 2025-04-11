@@ -1,9 +1,11 @@
-from simpliPFy.solve import solve_circuit, SolveInUserOrder
 import os
-from simplipfy.Export.dictExport import ExportDict
-import pytest
 from random import choices
 from string import ascii_uppercase, digits
+
+import pytest
+
+from simpliPFy.solve import SolveInUserOrder, solveStepwise
+from simplipfy.Export.dictExport import ExportDict
 
 # string is filename, integer is number of steps that shall be created
 # the initial step has to be included
@@ -67,7 +69,7 @@ def test_solve_circuits(absFilePath):
 
     filePath = os.path.dirname(absFilePath)
     filename = os.path.basename(absFilePath)
-    solve_circuit(filename, filePath=filePath, savePath=dirName)
+    solveStepwise(filename, filePath=filePath, savePath=dirName)
     steps = len(SolveInUserOrder(filename=filename, filePath=filePath).createInitialStep()["allComponents"])
 
     check_for_solutions(filename=filename, solSteps=steps, path=dirName)

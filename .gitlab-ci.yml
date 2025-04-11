@@ -11,9 +11,9 @@ deploy-develop:
     - git config --global user.name "Automated Release Development"
     - chmod +x ./Pyodide/Scripts/copyFiles.sh
     - chmod +x ./Pyodide/Scripts/generateSVGFiles.py
-    - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
-    - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
-    - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy' | head -n 1)
+    - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy*' | head -n 1)
+    - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw*' | head -n 1)
+    - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy*' | head -n 1)
     - pip3 install Pyodide/Packages/$lcapyPkgName
     - pip3 install Pyodide/Packages/$schemdrawPkgName
     - pip3 install Pyodide/Packages/$simplipfyPkgName
@@ -33,8 +33,8 @@ deploy-develop:
     - git push https://${PAT_TH}@github.com/TheHowland/InskaLE.git HEAD:main
 
   rules:
-    - if: '$CI_COMMIT_TAG'
-      when: never
+    #- if: '$CI_COMMIT_TAG'
+    #-  when: never
     - when: always
 
 
@@ -46,9 +46,9 @@ deploy-profSky:
   - git config --global user.name "Automated Release Deployment"
   - chmod +x ./Pyodide/Scripts/copyFiles.sh
   - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
-  - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
-  - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
-  - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy' | head -n 1)
+  - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy*' | head -n 1)
+  - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw*' | head -n 1)
+  - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy*' | head -n 1)
   - pip3 install Pyodide/Packages/$lcapyPkgName
   - pip3 install Pyodide/Packages/$schemdrawPkgName
   - pip3 install Pyodide/Packages/$simplipfyPkgName
@@ -98,55 +98,55 @@ deploy-release:
 
   before_script:
     - export FTP_SERVER_FULL_PATH="ftp://${FTP_SERVER}${FTP_FOLDER}"
+    - export versionPath=$FTP_SERVER$FTP_FOLDER/$CI_COMMIT_TAG
     - git config --global user.email "yannick.wieland@hs-pforzheim.de"
     - git config --global user.name "Automated Release Deployment"
-    - chmod +x ./Pyodide/Scripts/copyFiles.sh
-    - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
-    - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy' | head -n 1)
-    - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw' | head -n 1)
-    - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy' | head -n 1)
-    - pip3 install Pyodide/Packages/simplipfyPkgName
+    - chmod +x ./Pyodide/Scripts/createRedirectIndex.sh
+    - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy*' | head -n 1)
+    - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw*' | head -n 1)
+    - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy*' | head -n 1)
     - pip3 install Pyodide/Packages/$lcapyPkgName
     - pip3 install Pyodide/Packages/$schemdrawPkgName
+    - pip3 install Pyodide/Packages/$simplipfyPkgName
+    - apk add uglify-js
     - apk add --no-cache curl
     - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/api/v4/projects/gitlab-org%2Frelease-cli/packages/generic/release-cli/latest/release-cli-linux-amd64"
     - chmod +x /usr/local/bin/release-cli
     - release-cli -v
 
   script:
+    - versionPath=$FTP_SERVER$FTP_FOLDER/$CI_COMMIT_TAG
     - echo "Checking out tag $CI_COMMIT_TAG..."
     - git fetch --tags  # Fetch tags to ensure they are available
     - git checkout $CI_COMMIT_TAG  # Checkout the tag
     - ls -la  # List files from the tag's commit
+    - ./Pyodide/Scripts/createRedirectIndex.sh
     - cd Pyodide/
     - ls -a
     # generate svg files for circuit selector
     - python3 Scripts/generateSVGFiles.py
     - rm -rf __pycache__
     - zip -r Circuits Circuits && rm -r Circuits/
-    # copy and upload maintanance index.html
-    - mv index.html ../index.html
-    - cp Scripts/UpdateInProgress.html index.html
-    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
-    - rm index.html
-    - echo clear FTP server
-    - Scripts/clearFTPServer.sh
-    - echo "Files on FTP Server - shall be empty"
-    - ncftpls -u $FTP_USER -p $FTP_PASS $FTP_SERVER_FULL_PATH
     # remove files that should not be on simplipfy.org
     - rm -rf .idea/
     - rm -rf .gitignore
-    - rm -rf Scripts/
     - rm -rf GzipSimplePythonHttpServer.py
+    - rm -rf Scripts/
+    - |
+      # Rekursiv durch alle .js-Dateien im src/ Verzeichnis iterieren
+      find src/ -type f -name "*.js" | while read file; do
+      # Zieldatei mit .min.js Endung
+      min_file="${file%.js}.min.js"
+      # Minifizieren und die Datei mit der .min.js-Endung speichern
+      uglifyjs "$file" -o "$file" -c -m
+      done
     # upload all files to ftp server
     - sed -i /setSiteId/s/'2'/'1'/ ./src/scripts/utils/matomoHelper.js
-    - ncftpput -u $FTP_USER -p $FTP_PASS -R $FTP_SERVER $FTP_FOLDER ./
+    - ncftpput -u $FTP_USER -p $FTP_PASS -m -R $FTP_SERVER $FTP_FOLDER/$CI_COMMIT_TAG/ ./
     # upload simpliPFy index.html (override maintenance index.html)
-    - mv ../index.html index.html
+    - cd ..
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
-    - cat index.html
-    - echo "Files on FTP Server - shall not be empty"
-    - ncftpls -u $FTP_USER -p $FTP_PASS $FTP_SERVER_FULL_PATH
+
 
   artifacts:
     paths:

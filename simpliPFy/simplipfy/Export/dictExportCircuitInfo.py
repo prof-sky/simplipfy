@@ -1,8 +1,10 @@
+from sympy import Mul, parse_expr, pi
 from sympy.physics.units import Hz
-from sympy import parse_expr, pi, Mul
-from lcapy import omega0
-from simplipfy.Export.dictExport import ExportDict, DictExportBase, DictExportElement
+
+from lcapyInskale import omega0
+from simplipfy.Export.dictExport import DictExportBase, DictExportElement, ExportDict
 from simplipfy.langSymbols import LangSymbols
+
 
 class DictExportCircuitInfo(DictExportBase):
     def __init__(self, langSymbols: LangSymbols(), cirType="RLC", isSymbolic=False, precision=3):
@@ -10,7 +12,7 @@ class DictExportCircuitInfo(DictExportBase):
         self.omega_0 = 0
         self.cirType = cirType
 
-    def getDictForStep(self, step, solution: 'lcapy.Solution') -> ExportDict:
+    def getDictForStep(self, step, solution: 'lcapyInskale.Solution') -> ExportDict:
         sources = solution[step].circuit.sources
         if not len(sources) == 1:
             raise AssertionError(f"Number of sources has to be one, sources: {sources}")

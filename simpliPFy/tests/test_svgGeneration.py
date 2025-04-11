@@ -1,6 +1,5 @@
 import os
 from warnings import warn
-import pytest
 
 generateSVGFilesPath = "generateSVGFiles.py"
 circuitsFolderPath = "Circuits"

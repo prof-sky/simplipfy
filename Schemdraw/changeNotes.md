@@ -1,3 +1,6 @@
+## 0.19+inskale.0.9
+- symbols conform to standard DIN EN  60617
+
 ## 0.19+inskale.0.5
 - fix class equals na instead of value from component
 - labl gets the class_ and id_ of paranet except it gets own class_ and id_ arguments

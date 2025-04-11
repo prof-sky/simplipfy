@@ -32,7 +32,7 @@ catch{
 }
 
 Set-Location $PSScriptRoot
-$filePath = Join-Path $PSScriptRoot "\schemdraw\__init__.py"
+$filePath = Join-Path $PSScriptRoot "\schemdrawInskale\__init__.py"
 Write-Host $filePath
 $fileContent = Get-Content -Path $filePath
 $versionPattern = "__version__\s*=\s*'[^']*'"

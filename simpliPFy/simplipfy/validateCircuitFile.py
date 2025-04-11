@@ -1,7 +1,8 @@
-from os.path import join
-from simplipfy.netlistLine import NetlistLine
-from typing import Self
 from enum import Enum
+from os.path import join
+from typing import Self
+
+from simplipfy.netlistLine import NetlistLine
 
 
 class ValueType(Enum):

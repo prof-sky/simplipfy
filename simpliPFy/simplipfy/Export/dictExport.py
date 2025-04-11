@@ -1,10 +1,9 @@
-import lcapy
-from lcapy.componentRelation import ComponentRelation
-from lcapy.solutionStep import SolutionStep
-from simplipfy.impedanceConverter import getSourcesFromCircuit, getOmegaFromCircuit
+from lcapyInskale.componentRelation import ComponentRelation
+from lcapyInskale.solutionStep import SolutionStep
 from simplipfy.Export.dictExportBase import DictExportBase
-from simplipfy.Export.dictExportElement import DictExportElement
 from simplipfy.Export.dictExportBase import ExportDict
+from simplipfy.Export.dictExportElement import DictExportElement
+from simplipfy.impedanceConverter import getOmegaFromCircuit, getSourcesFromCircuit
 from simplipfy.langSymbols import LangSymbols
 
 
@@ -23,8 +22,8 @@ class DictExport(DictExportBase):
         super().__init__(precision, langSymbol, circuitType, isSymbolic)
         # this class automatically prefixes every field that includes val or Val in the name and transforms it to
         # a latex string before exporting the dictionary
-        self.circuit: 'lcapy.Circuit' = None
-        self.simpCircuit: 'lcapy.Circuit' = None
+        self.circuit: 'simplipfy.Circuit' = None
+        self.simpCircuit: 'simplipfy.Circuit' = None
         self.omega_0 = 0
         self.imageData = None
 
@@ -33,7 +32,7 @@ class DictExport(DictExportBase):
         self.relation: ComponentRelation = ComponentRelation.none
         self.valueFieldKeys = self._getValueFieldKeys("val")
 
-    def getDictForStep(self, step: str, solution: 'lcapy.Solution') -> ExportDict:
+    def getDictForStep(self, step: str, solution: 'simplipfy.Solution') -> ExportDict:
         self._updateObjectValues(step, solution)
 
         if self.vcElements:
@@ -59,14 +58,14 @@ class DictExport(DictExportBase):
         else:
             return self.emptyExportDict
 
-    def _updateObjectValues(self, step: str, solution: 'lcapy.Solution'):
-        self.solStep: 'lcapy.solutionStep' = solution[step]
-        self.simpCircuit: 'lcapy.Circuit' = solution[step].circuit  # circuit with less elements (n elements)
+    def _updateObjectValues(self, step: str, solution: 'simplipfy.Solution'):
+        self.solStep: 'lcapyInskale.solutionStep' = solution[step]
+        self.simpCircuit: 'lcapyInskale.Circuit' = solution[step].circuit  # circuit with less elements (n elements)
         self.omega_0 = getOmegaFromCircuit(self.simpCircuit, getSourcesFromCircuit(self.simpCircuit))
         self.imageData = solution[step].getImageData(langSymbols=self.ls)
 
         if not self._isInitialStep():
-            self.circuit: 'lcapy.Circuit' = solution[step].lastStep.circuit  # circuit with more elements (n+m elements)
+            self.circuit: 'lcapyInskale.Circuit' = solution[step].lastStep.circuit  # circuit with more elements (n+m elements)
 
             for name in solution[step].cpts:
                 self.vcElements.append(DictExportElement(self.solStep, self.circuit, self.omega_0, name, self.ls,

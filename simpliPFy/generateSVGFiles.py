@@ -31,12 +31,15 @@ try:
 
         allFiles = os.listdir(folder)
         files = []
+        quickStartFiles = []
         for file in allFiles:
             if file[-4::] in [".txt", ".sch"]:
                 files.append(file)
+            elif file[-5::] in [".json"]:
+                quickStartFiles.append(file)
 
         # remove files that are not a circuit
-        for file in list(set(allFiles) - set(files)):
+        for file in list(set(allFiles) - set(files) - set(quickStartFiles)):
             os.remove(os.path.join(folder, file))
 
         for file in files:

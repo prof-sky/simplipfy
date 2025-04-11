@@ -1,15 +1,17 @@
-import sympy
-from sympy.printing import latex
-from sympy import Float
-from sympy import simplify
-from typing import Union
-from sympy import Mul
-from lcapy import Expr
-from simplipfy.unitPrefixer import SIUnitPrefixer
-from lcapy.componentRelation import ComponentRelation
 import os
 from json import dump as jdump
+from typing import Union
+
+import sympy
+from sympy import Float
+from sympy import Mul
+from sympy import simplify
+from sympy.printing import latex
+
+from lcapyInskale import Expr
+from lcapyInskale.componentRelation import ComponentRelation
 from simplipfy.langSymbols import LangSymbols
+from simplipfy.unitPrefixer import SIUnitPrefixer
 
 
 class ExportDict(dict):
@@ -129,7 +131,7 @@ class DictExportBase:
 
         return valueFiledKeys
 
-    def getDictForStep(self, step, solution: 'lcapy.Solution'):
+    def getDictForStep(self, step, solution: 'lcapyInskale.Solution'):
         raise NotImplementedError("Implement in Child class")
 
     @staticmethod

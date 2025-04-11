@@ -1,14 +1,15 @@
+import json
 import os
 import shutil
-
-from simpliPFy import solve
-import json
-from lcapy import Circuit
-from lcapy.solution import Solution
-from simplipfy.langSymbols import LangSymbols
-from simplipfy.impedanceConverter import FileToImpedance
 from random import choices
 from string import ascii_uppercase, digits
+
+from lcapyInskale import Circuit
+from simpliPFy import solve
+from simplipfy.impedanceConverter import FileToImpedance
+from simplipfy.langSymbols import LangSymbols
+from simplipfy.solution import Solution
+
 
 #not multithread save
 class TestJsonExport:

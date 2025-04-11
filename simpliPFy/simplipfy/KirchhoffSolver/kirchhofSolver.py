@@ -1,68 +1,102 @@
 import os
+from typing import Union
 
-from lcapy import Circuit
+import networkx as nx
+
 import simplipfy.KirchhoffSolver.solver as khf
+from lcapyInskale import Circuit
 from simplipfy.langSymbols import LangSymbols
+from .direction import Direction
 from .kirchhoffStates import KirchhoffStates
+
 
 class KirchhoffSolver:
     def __init__(self, circuitFileName: str, path: str, langSymbols: dict = {}):
-        self.elementSetsOfEquations: list[set] = []
+        # two sets are needed so that the same set can occur for voltage and current equations
+        self.elementSetsOfVoltEqs: list[set] = []
+        self.elementSetsOfCurrEqs: list[set] = []
         self.language = LangSymbols(langSymbols)
         self.fileName = circuitFileName
         self.path = path
         self.circuit = Circuit(os.path.join(path, circuitFileName))
-        self.foundEq = 0
         elementNames = self.circuit.branch_list
         self.numUnknownElements = len([elm for elm in elementNames if elm[0] != "V"]) # voltages of sources are known
-        self._equations: list[str] = []
-        for addPlaceholder in range(self.numUnknownElements):
-            self._equations.append("-")
-        self.missingElmInVoltEq = set(elementNames)
+        self._voltEquations: list[str] = []
+        self._currEquations: list[str] = []
+        self.eqNodeMap = khf.makeNodeMap(self.circuit)
+        self.loops, self.numVoltEq = khf.loopsOfCircuit(self.circuit, self.eqNodeMap)
+
+    @property
+    def foundEq(self):
+        return len(self._voltEquations) + len(self._currEquations)
 
     def foundAllEquations(self) -> bool:
+        #assert(self.foundEq <= self.numUnknownElements)
+        #assert(self.numUnknownElements > 0)
+        #assert(self.numUnknownElements <= (len(self._voltEquations) + len(self._currEquations)))
+
         return self.numUnknownElements == self.foundEq
 
     def foundAllVoltEquations(self) -> bool:
-        return not self.missingElmInVoltEq
+        return len(self._voltEquations) == self.numVoltEq
 
     def equations(self):
-        return self._equations
+        eqs = self._voltEquations.copy()
+        eqs.extend(self._currEquations)
+        while len(eqs) < self.numUnknownElements:
+            eqs.append("-")
 
-    def setEquation(self, value, cptNames) -> int:
+        return eqs
+
+    @staticmethod
+    def setEquation(value, cptNames, eqList, foundSets) -> int:
         nameSet = set(cptNames)
-        if nameSet in self.elementSetsOfEquations:
+        if nameSet in foundSets:
             return KirchhoffStates.duplicateEquation.value
-        self._equations[self.foundEq] = value
-        self.foundEq += 1
-        self.elementSetsOfEquations.append(nameSet)
+        eqList.append(value)
+        foundSets.append(nameSet)
         return KirchhoffStates.isNewEquation.value
 
-    def checkVoltageLoopRule(self, cptNames: list[str]) -> tuple[int, str]:
-        eq = ""
-        if self.foundAllVoltEquations():
-            return KirchhoffStates.duplicateEquation.value, eq
-        state = KirchhoffStates.notAValidEquation.value
-        loop = khf.isValidVoltageLoop(self.circuit, cptNames)
+    def setVoltEq(self, eq: str, cptNames: list[str]) -> int:
+        return self.setEquation(eq, cptNames, self._voltEquations, self.elementSetsOfVoltEqs)
 
+    def setCurrEq(self, eq: str, cptNames: list[str]) -> int:
+        return self.setEquation(eq, cptNames, self._currEquations, self.elementSetsOfCurrEqs)
+
+    def checkVoltageLoopRule(self, cptNames: list[str], direction: Union[int,None] = None) -> tuple[int, str]:
+        #ToDo remove direction argument
+        if direction:
+            print("\033[91mdirection argument is deprecated and will be removed in the future\033[0m", "at KirchhoffSolver.checkVoltageLoopRule")
+
+        loop = khf.isValidVoltageLoop(self.circuit, cptNames, self.loops, self.eqNodeMap)
         if loop:
-            eq = khf.makeVoltageEquations(self.circuit, cptNames, loop, self.language)
-            state = self.setEquation(eq, cptNames)
-            self.missingElmInVoltEq -= set(cptNames)
+            eq = khf.makeVoltageEquations(self.circuit, cptNames, self.language, self.eqNodeMap)
+            if eq == "":
+                return KirchhoffStates.notAValidLoopOrder.value, eq
 
-        return  state, eq
+            if self.foundAllVoltEquations():
+                return KirchhoffStates.duplicateEquation.value, eq
 
-    def checkJunctionRule(self, cptNames: list[str]) -> tuple[int, tuple[str, str, str]]:
+            return self.setVoltEq(eq, cptNames), eq
+
+        return  KirchhoffStates.notAValidEquation.value, ""
+
+    def checkJunctionRule(self, cptNames: list[str], direction: int = 1) -> tuple[int, tuple[str, str, str]]:
+        direction = Direction(direction)
         implicitCommonNode = khf.isImplicitCurrentEquation(self.circuit, cptNames)
-        commonNode = khf.isCurrentEquation(self.circuit, cptNames)
+        commonNode = khf.isCurrentEquation(self.circuit, cptNames, self.eqNodeMap)
         if implicitCommonNode:
-            eq = khf.makeCurrentEquation(self.circuit, cptNames, implicitCommonNode, self.language)
-            state = self.setEquation(eq, cptNames)
-            return state, (eq, eq, eq)
-        elif commonNode:
-            eq = khf.makeCurrentEquation(self.circuit, cptNames, commonNode, self.language)
-            state = self.setEquation(eq, cptNames)
-            return state, (eq, eq, eq)
+            eq = khf.makeCurrentEquation(self.circuit, cptNames, implicitCommonNode,direction, self.language)
+            state = self.setCurrEq(eq[0], cptNames)
+            return state, eq
+        elif all(cptName in self.circuit.in_series(cptNames[0]) for cptName in cptNames[1:]):
+            eq = "", "", ""
+            state = KirchhoffStates.toManyJunctions.value
+            return state, eq
+        elif commonNode and len(cptNames) > 2:
+            eq = khf.makeCurrentEquation(self.circuit, cptNames, commonNode,direction, self.language)
+            state = self.setCurrEq(eq[0], cptNames)
+            return state, eq
         else:
             return KirchhoffStates.notAValidEquation.value, ("", "", "")
 

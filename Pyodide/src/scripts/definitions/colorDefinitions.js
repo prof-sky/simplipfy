@@ -3,11 +3,18 @@ class ColorDefinitions {
     keyYellow = "#FFC107";
     keyLight = "white";
     keyDark = "black";
+    kirchhoffGray = "gray";
     keyGreyedOut = "#b1b1b1";
+    voltageBlue = "#9898ff";
+    lightVoltageBlue = "#bdbdbd";//"#c0c0ff";
+    currentRed = "red";
+    lightCurrentRed = "#bdbdbd"; //"#ffafaf";
     bootstrapDark = "#212529";
     bootstrapWhite = "#f8f9fa";
     languagesDarkBg = "#33393f";
     languagesLightBg = "#efefef";
+    correctEquationColor = "green";
+    wrongEquationColor = "red";
 
 
     currentForeground = this.keyLight;

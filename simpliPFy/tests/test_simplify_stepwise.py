@@ -1,14 +1,14 @@
-import pytest
-import sympy
-
-import lcapy
-from lcapy import Circuit
-from lcapy.solution import Solution
-from simplipfy.impedanceConverter import ValueToComponent, FileToImpedance, getSourcesFromCircuit, getOmegaFromCircuit
 from os.path import join
-from lcapy.componentnamer import ComponentNamer
 from typing import Union
+
+import pytest
+
+import lcapyInskale
+from lcapyInskale import Circuit
+from lcapyInskale.componentnamer import ComponentNamer
+from simplipfy.impedanceConverter import FileToImpedance, ValueToComponent, getOmegaFromCircuit, getSourcesFromCircuit
 from simplipfy.langSymbols import LangSymbols
+from simplipfy.solution import Solution
 
 
 class TestSimplifyStepwise:
@@ -40,13 +40,13 @@ class TestSimplifyStepwise:
 
         if not oneTroughReal:
             calcResult = orgVal1 + orgVal2
-            if isinstance(calcResult, lcapy.Expr):
+            if isinstance(calcResult, lcapyInskale.Expr):
                 assert realRes == pytest.approx(calcResult.expr), "Transformed calculation is wrong"
             else:
                 assert realRes == pytest.approx(calcResult)
         else:
             calcResult = 1 / (1 / orgVal1.expr + 1 / orgVal2.expr)
-            if isinstance(calcResult, lcapy.Expr):
+            if isinstance(calcResult, lcapyInskale.Expr):
                 assert realRes == pytest.approx(calcResult.expr), "Transformed calculation is wrong"
             else:
                 assert realRes == pytest.approx(calcResult)

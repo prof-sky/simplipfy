@@ -22,3 +22,5 @@ simpliPFy/simplipfy/SimplipyStepWise/__pycache__
 simpliPFy/simplipfy/SimplifyInUserOrder/__pycache__
 simpliPFy/build
 simpliPFy/simplipfy/SimplifyStepWise/__pycache__
+simpliPFy/tests/__pycache__
+simpliPFy/Circuits/*/*.svg

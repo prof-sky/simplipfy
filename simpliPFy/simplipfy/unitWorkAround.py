@@ -1,9 +1,10 @@
-from lcapy import state
-from lcapy import resistance, inductance, capacitance, voltage, impedance, current
-from lcapy.units import ohms, farads, henrys
-from lcapy.mnacpts import R, C, L, Z
 from typing import Union
-from lcapy import ConstantFrequencyResponseDomainExpression, ConstantFrequencyResponseDomainImpedance
+
+from lcapyInskale import ConstantFrequencyResponseDomainExpression, ConstantFrequencyResponseDomainImpedance
+from lcapyInskale import capacitance, current, impedance, inductance, resistance, voltage
+from lcapyInskale import state
+from lcapyInskale.mnacpts import C, L, R, Z
+from lcapyInskale.units import farads, henrys, ohms
 
 
 class UnitWorkAround:

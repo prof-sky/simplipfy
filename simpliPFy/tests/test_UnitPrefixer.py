@@ -1,10 +1,11 @@
-import lcapy
 from sympy import latex
-from simplipfy.unitPrefixer import SIUnitPrefixer
-from lcapy import omega0
-from lcapy import resistance
 
-lcapy.state.show_units = True
+import lcapyInskale
+from lcapyInskale import omega0
+from lcapyInskale import resistance
+from simplipfy.unitPrefixer import SIUnitPrefixer
+
+lcapyInskale.state.show_units = True
 
 
 # I know this is a terrible test, but it does for now

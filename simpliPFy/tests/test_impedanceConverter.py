@@ -1,10 +1,11 @@
-from lcapy import Expr
-from lcapy import Circuit
-from lcapy.solution import Solution
-from simplipfy.impedanceConverter import ValueToComponent, FileToImpedance
 from os.path import join
-from lcapy.componentnamer import ComponentNamer
+
+from lcapyInskale import Circuit
+from lcapyInskale import Expr
+from lcapyInskale.componentnamer import ComponentNamer
+from simplipfy.impedanceConverter import FileToImpedance, ValueToComponent
 from simplipfy.langSymbols import LangSymbols
+from simplipfy.solution import Solution
 
 
 class TestImpedanceConverter:

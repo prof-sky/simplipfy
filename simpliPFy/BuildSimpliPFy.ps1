@@ -109,7 +109,6 @@ catch {
     return
 }
 Write-Output ([string]::Concat("Copied ", $newPackage, " to: ..\Pyodide\Packages\"))
-Write-Output ([string]::Concat("Copied ", $newPackage, " to: ..\Pyodide\Packages\"))
 
 
 Write-Host "Successfully updated solve.py, generateSVGFiles.py and simpliPFy package in Pyodide distribution" -ForegroundColor Green

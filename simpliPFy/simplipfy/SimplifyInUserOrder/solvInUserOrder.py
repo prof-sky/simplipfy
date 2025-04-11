@@ -1,16 +1,14 @@
 import os
+from json import dump as jdump
 
-from lcapy import Circuit
-from lcapy.solution import Solution
-from lcapy.componentRelation import ComponentRelation
-from lcapy.solutionStep import SolutionStep
-
-from simplipfy.langSymbols import LangSymbols
+from lcapyInskale import Circuit
+from lcapyInskale.componentRelation import ComponentRelation
+from lcapyInskale.solutionStep import SolutionStep
 from simplipfy.Export.dictExportBase import DictExportBase
 from simplipfy.Export.dictExportBase import ExportDict
 from simplipfy.impedanceConverter import FileToImpedance
-
-from json import dump as jdump
+from simplipfy.langSymbols import LangSymbols
+from simplipfy.solution import Solution
 
 
 class SolveInUserOrder:
