@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Clearing dev folder on FTP server..."
-ncftpls -u "$FTP_USER" -p "$FTP_PASS" -R "ftp://$FTP_SERVER$FTP_FOLDER" > recursiveListing.txt
+ncftpls -u "$FTP_USER" -p "$FTP_PASS" -R "ftp://$FTP_SERVER$FTP_FOLDER_DEV" > recursiveListing.txt
 # exclude index.html in /dev
 sed -i '\|^/dev/index\.html$|d' recursiveListing.txt
 
@@ -32,5 +32,3 @@ done > remCommands.txt
 
 # execute commands to clear ftp server
 ncftp -u $FTP_USER -p $FTP_PASS $FTP_SERVER < remCommands.txt
-
-rm remCommands.txt

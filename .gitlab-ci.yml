@@ -8,33 +8,48 @@ deploy-develop:
 
   before_script:
     - git config --global user.email "yannick.wieland@hs-pforzheim.de"
-    - git config --global user.name "Automated Release Development"
-    - chmod +x ./Pyodide/Scripts/copyFiles.sh
-    - chmod +x ./Pyodide/Scripts/generateSVGFiles.py
+    - git config --global user.name "Automated Develop Deployment"
+    - chmod +x ./Pyodide/Scripts/clearFTPServerDev.sh
+    - chmod +x ./Pyodide/Scripts/createDevRedirectIndex.sh
     - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy*' | head -n 1)
     - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw*' | head -n 1)
     - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy*' | head -n 1)
     - pip3 install Pyodide/Packages/$lcapyPkgName
     - pip3 install Pyodide/Packages/$schemdrawPkgName
     - pip3 install Pyodide/Packages/$simplipfyPkgName
-
+    - apk add --no-cache curl
+    - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/api/v4/projects/gitlab-org%2Frelease-cli/packages/generic/release-cli/latest/release-cli-linux-amd64"
+    - chmod +x /usr/local/bin/release-cli
+    - release-cli -v
 
   script:
-    - commitMsg="${CI_COMMIT_BRANCH} - $(git log -1 --pretty=%B)"
-    - git clone --depth=1 --branch=main https://github.com/TheHowland/InskaLE.git temp
-    - cd temp/
-    - echo "CopyFiles:"
-    - ../Pyodide/Scripts/copyFiles.sh
+    - commitMsg=$(git log -1 --pretty=%B)
+    - echo "On branch - $CI_COMMIT_BRANCH commit - $commitMsg"
+    - ls -la  # List files from the tag's commit
+    - ./Pyodide/Scripts/clearFTPServerDev.sh
+    - cp ./Pyodide/Scripts/UpdateInProgress.html ./index.html
+    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER_DEV ./index.html
+    - ./Pyodide/Scripts/createDevRedirectIndex.sh
+    - cd Pyodide/
     - ls -a
-    - python3 ../Pyodide/Scripts/generateSVGFiles.py && rm -rf __pycache__
+    # generate svg files for circuit selector
+    - python3 Scripts/generateSVGFiles.py
+    - rm -rf __pycache__
     - zip -r Circuits Circuits && rm -r Circuits/
-    - git add .
-    - git commit . -m "${commitMsg}"
-    - git push https://${PAT_TH}@github.com/TheHowland/InskaLE.git HEAD:main
+    # remove files that should not be on simplipfy.org
+    - rm -rf .idea/
+    - rm -rf .gitignore
+    - rm -rf GzipSimplePythonHttpServer.py
+    - rm -rf Scripts/
+    # upload all files to ftp server
+    - ncftpput -u $FTP_USER -p $FTP_PASS -m -R $FTP_SERVER $FTP_FOLDER_DEV/$CI_COMMIT_SHA/ ./
+    # upload simpliPFy index.html (override maintenance index.html)
+    - cd ..
+    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER_DEV ./index.html
 
   rules:
-    #- if: '$CI_COMMIT_TAG'
-    #-  when: never
+    - if: '$CI_COMMIT_TAG'
+      when: never
     - when: always
 
 
@@ -45,7 +60,6 @@ deploy-profSky:
   - git config --global user.email "yannick.wieland@hs-pforzheim.de"
   - git config --global user.name "Automated Release Deployment"
   - chmod +x ./Pyodide/Scripts/copyFiles.sh
-  - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
   - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy*' | head -n 1)
   - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw*' | head -n 1)
   - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy*' | head -n 1)

@@ -146,6 +146,10 @@ class PageManager {
                 showQuickstart();
                 showAccordion();
                 note.innerHTML = "";
+
+                if (state.pyodideReady) {
+                    finishStartBtns()
+                }
             }
         } catch (error){
             console.error(error)

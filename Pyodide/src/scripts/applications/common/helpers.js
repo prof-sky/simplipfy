@@ -342,6 +342,7 @@ function updateStartBtnLoadingPgr(newValue) {
 function finishStartBtns() {
     let startBtns = document.getElementsByClassName("circuitStartBtn");
     for (let btn of startBtns) {
+        btn.style.backgroundColor = colors.keyYellow;
         let fillLayer = btn.querySelector(".fill-layer");
         if (fillLayer) {
             fillLayer.remove();
@@ -350,7 +351,6 @@ function finishStartBtns() {
         if (stripeOverlay) {
             stripeOverlay.remove();
         }
-        btn.style.backgroundColor = colors.keyYellow;
     }
 }
 

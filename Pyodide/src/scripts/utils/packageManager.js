@@ -27,8 +27,8 @@ class PackageManager {
         await this.importSolverModule();
         state.loadingProgress = 100;
         updateStartBtnLoadingPgr(state.loadingProgress);
-        finishStartBtns();
         state.pyodideReady = true;
+        finishStartBtns();
         selectorBuilder.enableStartBtns();
 
         let endTime = new Date().getTime();
