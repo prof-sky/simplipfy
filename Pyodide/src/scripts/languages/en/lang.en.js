@@ -8,4 +8,5 @@ window.english = {
     ...window.dataLegalAboutEnTexts,
     ...window.extraLiveQuestionsEn,
     ...window.navigationEnTexts,
+    ...window.wheatstoneEnTexts,
 }

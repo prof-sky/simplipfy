@@ -26,35 +26,57 @@ async function main() {
     state.stepSolverAPI = new StepSolverAPI(worker);
     state.hardcodedStepSolverAPI = new HardcodedStepSolverAPI(worker);
     state.kirchhoffSolverAPI = new KirchhoffSolverAPI(worker);
+    state.wheatstoneSolverAPI = new WheatstoneSolverAPI(worker);
 
-    conf = new Configurations();
-    await conf.initialize();
-    packageManager = new PackageManager();
-    await packageManager.initialize();
-    startTime = new Date().getTime();
+    pageManager = new PageManager(document);
     circuitMapper = new CircuitMapper();
-    state.circuitsLoadedPromise = circuitMapper.mapCircuits();
-    state.circuitsLoadedPromise.then(() => {
-        packageManager.doLoadsAndImports();
-    });
 
-    modalConfig();
-    disableStartBtnAndSimplifierLink();
-    setLanguageAndScheme();
+    try {
+        modalConfig();
+        setLanguageAndScheme();
+        setupDarkModeSwitch(); // needs circuitMapper and pageManager
+        setupGameModeSwitch();
+        enableStartBtnAndSimplifierLink();
+        setBodyPaddingForFixedTopNavbar();
+        scrollBodyToTop();
+
+        conf = new Configurations();
+        await conf.initialize();
+        packageManager = new PackageManager();
+        await packageManager.initialize();
+        startTime = new Date().getTime();
+        state.circuitsLoadedPromise = circuitMapper.mapCircuits();
+        state.circuitsLoadedPromise.then(async () => {
+            selectorBuilder.buildSelectorsForAllCircuitSets();
+            hideAccordion();
+            hideQuickstart();
+            state.overviewSvgsLoadedPromise = pageManager.setupSelectPage(); // Fill carousels with svg data
+
+            state.overviewSvgsLoadedPromise.then(() => {
+                packageManager.doLoadsAndImports();
+            });
+        });
+    } catch (error) {
+        console.error("Error initializing: " + error);
+        showMessage(error, "error", false);
+        pushErrorEventMatomo(errorActions.initError, error);
+    }
 
     // Setup landing page first to make sure nothing else is shown at start
-    pageManager = new PageManager(document);
-    pageManager.setupLandingPage();
-    pageManager.showLandingPage();
-    pageManager.setupNavigation();
-    pageManager.setupCheatSheet();
-    pageManager.setupSimplifierPage();
-    pageManager.setupAboutPage();
-    // Selector page is set up when start button is clicked
+    try {
+        // Selector page is set up when start button is clicked
+        pageManager.setupLandingPage();
+        pageManager.showLandingPage();
+        pageManager.setupNavigation();
+        pageManager.setupCheatSheet();
+        pageManager.setupSimplifierPage();
+        pageManager.setupAboutPage();
+        // Selector page is set up when start button is clicked
+    } catch (error) {
+        console.error("Error setting up pages: " + error);
+        showMessage(error, "error", false);
+        pushErrorEventMatomo(errorActions.pageSetupError, error);
 
-    setupDarkModeSwitch();
-    setupGameModeSwitch();
-    enableStartBtnAndSimplifierLink();
-    setBodyPaddingForFixedTopNavbar();
-    scrollBodyToTop();
+    }
+
 }

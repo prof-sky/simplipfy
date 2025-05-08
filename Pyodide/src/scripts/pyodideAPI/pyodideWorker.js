@@ -88,13 +88,19 @@ if( 'function' === typeof importScripts) {
                 const equations = await self.kirchhoffSolver.equations().toJs();
                 self.postMessage({equations: equations, id: _id});
             }
+            // ###################### Wheatstone API ########################
+            else if (event.data.action === "checkWheatstoneInput") {
+                // TODO
+            }
 
         } catch (error) {
             if (self.pyodide === null) {
                 self.postMessage({status: "error", error: "Pyodide not loaded", id: _id});
+                pushErrorEventMatomo(errorActions.pyodideNotLoadedError, error);
                 return;
             } else {
                 self.postMessage({status: "error", error: error, id: _id});
+                pushErrorEventMatomo(errorActions.pyodideWorkerError, error);
             }
         }
     }

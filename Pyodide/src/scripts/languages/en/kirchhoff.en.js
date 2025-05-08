@@ -1,19 +1,24 @@
 window.kirchhoffEnTexts = {
     kirchVInfoGifHeading:
-        "Explanation Kirchhoff V",
+        "Explanation Voltage loops",
     kirchVInfoGifText:
-        "Voltage",
+        "Click on the labels of the voltage arrows to select a voltage loop." +
+        "When you are finished, click on check to check the loop." +
+        "If you have found all voltage loops, click on 'Junction law' to check the junction law." +
+        "(If you have found enough voltage loops, you don't need to find any junction equations)",
     kirchIInfoGifHeading:
-        "Explanation Kirchhoff I",
+        "Explanation Current junctions",
     kirchIInfoGifText:
-        "Current",
+        "Click on the labels of the current arrows to select a junction." +
+        "When you are finished, click on check to check the junction." +
+        "Then select the correct equation." +
+        "When you are finished, click on 'Finish' to check if you have found enough equations.",
     kirchhoffVoltageHeading:
         "Voltage loops",
     kirchhoffCurrentHeading:
         "Junctions",
     missingEquations:
-        "There are still equations missing, choose more elements to generate " +
-        "them with the junction rule",
+        "All found equations:",
     chooseCorrectEquation:
         "Choose the correct equation",
     gameOverHeading:
@@ -31,5 +36,5 @@ window.kirchhoffEnTexts = {
     finishBtn:
         "Finish",
     junctionBtn:
-        "🠖 Junction law"
+        "Junction law"
 }

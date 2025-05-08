@@ -16,7 +16,11 @@
     <script src="pyodide.js"></script>
     <script src="src/scripts/pyodideAPI/pyodideWorker.js"></script>
     <script src="src/scripts/pyodideAPI/pyodideWorkerAPI.js"></script>
+    <script src="src/scripts/pyodideAPI/pyodideAPI.js"></script>
+    <script src="src/scripts/pyodideAPI/stepSolverAPI.js"></script>
     <script src="src/scripts/pyodideAPI/hardcodedStepSolverAPI.js"></script>
+    <script src="src/scripts/pyodideAPI/kirchhoffSolverAPI.js"></script>
+    <script src="src/scripts/pyodideAPI/wheatstoneSolverAPI.js"></script>
 
     <!----------------------- Language Files ------------------------>
     <!------------------------- German ------------------------------>
@@ -27,6 +31,7 @@
     <script src="src/scripts/languages/de/landing.de.js"></script>
     <script src="src/scripts/languages/de/selector.de.js"></script>
     <script src="src/scripts/languages/de/simplifier.de.js"></script>
+    <script src="src/scripts/languages/de/wheatstone.de.js"></script>
     <script src="src/scripts/languages/de/extraLiveQuestions.de.js"></script>
     <script src="src/scripts/languages/de/navigation.de.js"></script>
     <script src="src/scripts/languages/de/lang.de.js"></script>
@@ -38,6 +43,7 @@
     <script src="src/scripts/languages/en/landing.en.js"></script>
     <script src="src/scripts/languages/en/selector.en.js"></script>
     <script src="src/scripts/languages/en/simplifier.en.js"></script>
+    <script src="src/scripts/languages/en/wheatstone.en.js"></script>
     <script src="src/scripts/languages/en/extraLiveQuestions.en.js"></script>
     <script src="src/scripts/languages/en/navigation.en.js"></script>
     <script src="src/scripts/languages/en/lang.en.js"></script>
@@ -68,6 +74,9 @@
     <script src="src/scripts/applications/simplifier/explanationTexts.js"></script>
     <script src="src/scripts/applications/simplifier/simplifierHelper.js"></script>
     <script src="src/scripts/applications/simplifier/simplifier.js"></script>
+    <!----------------------- Wheatstone ---------------------------------->
+    <script src="src/scripts/applications/wheatstone/wheatstone.js"></script>
+    <script src="src/scripts/applications/wheatstone/wheatstoneHelper.js"></script>
     <!----------------------- Common -------------------------------------->
     <script src="src/scripts/applications/common/helpers.js"></script>
     <script src="src/scripts/applications/common/svgManipulation.js"></script>
@@ -95,7 +104,7 @@
                 </div>
                 <div class="modal-body" id="info-gif-body">
                     <p id="info-gif-text" class="text-center"></p>
-                    <img loading="lazy" class="img-fluid rounded mx-auto d-block" src="./src/resources/simplifier/howto.gif" alt="click on two elements and then on check two simplify these two elements">
+                    <img loading="lazy" class="img-fluid rounded mx-auto d-block" src="./src/resources/simplifier/simplifier.gif" alt="click on two elements and then on check two simplify these two elements">
                 </div>
                 <div class="modal-footer justify-content-center" id="info-gif-footer">
                     <button id="info-gif-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
@@ -113,7 +122,7 @@
                 </div>
                 <div class="modal-body" id="kirchV-info-gif-body">
                     <p id="kirchV-info-gif-text" class="text-center"></p>
-                    <img loading="lazy" class="img-fluid rounded mx-auto d-block" src="./src/resources/simplifier/howto.gif" alt="click on two elements and then on check two simplify these two elements">
+                    <img loading="lazy" class="img-fluid rounded mx-auto d-block" src="./src/resources/simplifier/kirchhoff_v.gif" alt="click on two elements and then on check two simplify these two elements">
                 </div>
                 <div class="modal-footer justify-content-center" id="kirchV-info-gif-footer">
                     <button id="kirchV-info-gif-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
@@ -131,10 +140,28 @@
                 </div>
                 <div class="modal-body" id="kirchI-info-gif-body">
                     <p id="kirchI-info-gif-text" class="text-center"></p>
-                    <img loading="lazy" class="img-fluid rounded mx-auto d-block" src="./src/resources/simplifier/howto.gif" alt="click on two elements and then on check two simplify these two elements">
+                    <img loading="lazy" class="img-fluid rounded mx-auto d-block" src="./src/resources/simplifier/kirchhoff_i.gif" alt="click on two elements and then on check two simplify these two elements">
                 </div>
                 <div class="modal-footer justify-content-center" id="kirchI-info-gif-footer">
                     <button id="kirchI-info-gif-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Gif Modal for Wheatstone, needs to be on top level (child of body) for display purposes -->
+    <div class="modal modal-sm fade" id="wheatstoneInfoModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header justify-content-center" id="wheatstone-info-gif-header">
+                    <h5 class="modal-title" id="wheatstone-info-gif-title"></h5>
+                </div>
+                <div class="modal-body" id="wheatstone-info-gif-body">
+                    <p id="wheatstone-info-gif-text" class="text-center"></p>
+                    <img loading="lazy" class="img-fluid rounded mx-auto d-block" src="./src/resources/simplifier/howto.gif" alt="click on two elements and then on check two simplify these two elements">
+                </div>
+                <div class="modal-footer justify-content-center" id="wheatstone-info-gif-footer">
+                    <button id="wheatstone-info-gif-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
                 </div>
             </div>
         </div>
@@ -197,9 +224,17 @@
 
     <!-- Navbar Navigation -->
     <nav class="navbar fixed-top navbar-dark bg-dark p-2" id="navbar">
-        <button id="nav-toggler" class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div style="display: flex; gap: 10px;">
+            <button id="nav-toggler" class="navbar-toggler" style="border: 1px solid transparent" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div id="selector-dropdown" class="dropdown" hidden>
+                <button class="btn btn-secondary dropdown-toggle" style="border: 1px solid transparent" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <!-- populated in pageManager.setupSelectPage -->
+                </div>
+            </div>
+        </div>
         <a class="navbar-brand" id="nav-logo">simpliPFy</a>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav">
@@ -222,7 +257,7 @@
                     </div>
                 </li>
                 <li>
-                    <div class="form-check form-switch" id="game-div">
+                    <div class="form-check form-switch" id="game-div" hidden> <!-- for later -->
                         <input class="form-check-input" type="checkbox" id="game-switch">
                         <label class="form-check-label" for="game-switch" id="game-label">GAMEMODE</label>
                     </div>

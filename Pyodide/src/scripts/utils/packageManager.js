@@ -20,20 +20,39 @@ class PackageManager {
     }
 
     async doLoadsAndImports() {
-        // Already in map circuits await this.loadCircuits();
-        state.loadingProgress = 30;
-        updateStartBtnLoadingPgr(state.loadingProgress);
-        await this.importPyodidePackages();
-        await this.importSolverModule();
-        state.loadingProgress = 100;
-        updateStartBtnLoadingPgr(state.loadingProgress);
-        state.pyodideReady = true;
-        finishStartBtns();
-        selectorBuilder.enableStartBtns();
+        try {
+            state.loadingProgress = 30;
+            updateStartBtnLoadingPgr(state.loadingProgress);
+            await this.importPyodidePackages();
+            await this.importSolverModule();
+            state.loadingProgress = 100;
+            updateStartBtnLoadingPgr(state.loadingProgress);
+            state.pyodideReady = true;
+            finishStartBtns();
+            this.enableDropdownOptions();
+            selectorBuilder.enableStartBtns();
 
-        let endTime = new Date().getTime();
-        let loadTime = endTime - startTime;
-        console.log("Loading time: " + loadTime + "ms");
+            let endTime = new Date().getTime();
+            let loadTime = endTime - startTime;
+            console.log("Loading time: " + loadTime + "ms");
+        } catch (error) {
+            console.error("Error loading packages: " + error);
+            setTimeout(() => {
+                showMessage(error, "error", false);
+            });
+            pushErrorEventMatomo(errorActions.packageLoadError, error);
+        }
+    }
+
+    enableDropdownOptions() {
+        // Enable dropdown options which need pyodide to be loaded
+        let dropdownMenu = document.getElementById("selector-dropdown");
+        let menu = dropdownMenu.querySelector(".dropdown-menu");
+        let items = menu.querySelectorAll(".dropdown-item");
+        items.forEach(item => {
+            item.style.cursor = "pointer";
+            item.style.color = colors.currentForeground;
+        });
     }
 
     async importPyodidePackages() {

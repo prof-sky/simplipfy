@@ -42,6 +42,13 @@ class PageManager {
             pushPageViewMatomo("Loading");
         }
         scrollBodyToTop();
+        // TODO
+        state.lives = 3;
+        state.extraLiveUsed = false;
+        let lives = document.getElementById("lives");
+        if (lives !== null) {
+            lives.innerHTML = state.lives.toString();
+        }
     }
 
     showSimplifierPage() {
@@ -97,10 +104,9 @@ class PageManager {
     // ########################## Setups ########################################
     setupLandingPage() {
         languageManager.updateLanguageLandingPage();
-
         const landingStartButton = document.getElementById("start-button");
         landingStartButton.addEventListener("click", async () => {
-            await this.landingPageStartBtnClicked()
+            await this.landingPageStartBtnClicked();
         })
         // Left - right animation for feature containers
         const observer = new IntersectionObserver((entries) => {
@@ -120,49 +126,127 @@ class PageManager {
         try {
             this.showSelectPage();
             if (!state.selectorsBuild) {
-                state.selectorsBuild = true;
                 const note = showWaitingNote();
                 setPgrBarTo(60);
 
-                // TODO make sure first svgs are loaded :)
                 await state.circuitsLoadedPromise;
-
-                selectorBuilder.buildSelectorsForAllCircuitSets();
-                pageManager.setupSelectPage(); // Fill carousels with svg data
-
-                updateSelectorPageColors();
-                hideQuickstart();
-                hideAccordion();
-                setPgrBarTo(100);
-
-                if (packageManager.catchedError) {
-                    //this has local error handling, so we need to rethrow an error to break out
-                    pageManager.onError()
-                    throw new Error("packageManager error")
-                }
+                await state.overviewSvgsLoadedPromise;
 
                 selectorBuilder.adaptSelectorFrameColor();
                 this.hideProgressBar();
-                showQuickstart();
-                showAccordion();
                 note.innerHTML = "";
 
+                showQuickstart();
+                showAccordion();
+
+                state.selectorsBuild = true;
+                updateSelectorPageColors(); // after setting selectorsBuild true
+
                 if (state.pyodideReady) {
-                    finishStartBtns()
+                    packageManager.enableDropdownOptions();
+                    finishStartBtns();
                 }
             }
         } catch (error){
             console.error(error)
-            pageManager.onError()
+            pageManager.onError();
+            setTimeout(() => {
+                showMessage(error, "error", false);
+            });
         }
     }
 
     async setupSelectPage() {
-        // Fill accordion and carousels with svg data
-        languageManager.updateLanguageSelectorPage();
-        for (const circuitSet of circuitMapper.circuitSets) {
-            await selectorBuilder.setupSelector(circuitSet, this);
+        return new Promise(async (resolve) => {
+            this.setupDropdown();
+            // Fill accordion and carousels with svg data
+            languageManager.updateLanguageSelectorPage();
+            for (const circuitSet of circuitMapper.circuitSets) {
+                await selectorBuilder.setupSelector(circuitSet, this);
+            }
+            resolve();
+        });
+    }
+
+    setupDropdown() {
+        let dropdown = document.getElementById("selector-dropdown");
+        let dropdownMenu = dropdown.querySelector(".dropdown-menu");
+        dropdownMenu.innerHTML = ""; // Clear previous items
+        dropdownMenu.style.backgroundColor = colors.currentBsBackground;
+        dropdownMenu.style.border = `1px solid ${colors.currentForeground}`;
+
+        let allGroup = document.createElement("a");
+        allGroup.classList.add("dropdown-item");
+        allGroup.style.cursor = "pointer";
+        allGroup.style.color = colors.currentForeground;
+
+        allGroup.innerText = languageManager.currentLang.overviewDropdown;
+        allGroup.addEventListener("click", () => {
+            checkIfSimplifierPageNeedsReset();
+            pageManager.showSelectPage();
+        });
+        dropdownMenu.appendChild(allGroup);
+
+        let divider = document.createElement("div");
+        divider.classList.add("dropdown-divider");
+        divider.style.borderTop = `1px solid ${colors.currentForeground}`;
+        dropdownMenu.appendChild(divider);
+
+        for (let [id, group] of Object.entries(languageManager.currentLang.selectorHeadings)) {
+            let a = document.createElement("a");
+            a.classList.add("dropdown-item");
+
+            if (id !== circuitMapper.selectorIds.quick) {
+                a.style.cursor = "wait";
+                a.style.color = colors.keyGreyedOut;
+            } else {
+                a.style.color = colors.currentForeground;
+                a.style.cursor = "pointer";
+            }
+
+            a.innerText = group;
+            a.addEventListener("click", () => {
+                if (state.pyodideReady) {
+                    this.startCircuitGroup(id);
+                }
+            });
+            dropdownMenu.appendChild(a);
         }
+    }
+
+    async startCircuitGroup(id) {
+        // Find circuit set
+        try {
+            let circuitSet = null;
+            for (let set of circuitMapper.circuitSets) {
+                if (set.identifier === id) {
+                    circuitSet = set;
+                    break;
+                }
+            }
+            if (circuitSet === null) {
+                console.error("Circuit set not found: " + id);
+                return;
+            }
+            if (circuitSet.identifier === circuitMapper.selectorIds.kirchhoff) {
+                state.currentCircuitMap = circuitSet.set[0];
+                await resetKirchhoffPage();
+                startKirchhoff();
+            } else if (circuitSet.identifier === circuitMapper.selectorIds.wheatstone) {
+                state.currentCircuitMap = circuitSet.set[0];
+                await resetWheatstonePage();
+                startWheatstone();
+            } else {
+                state.currentCircuitMap = circuitSet.set[0];
+                resetSimplifierPage();
+                startSimplifier();
+            }
+        } catch (error) {
+            console.error("Error starting circuit group: " + error);
+            showMessage(error, "error", false);
+            pushErrorEventMatomo(errorActions.startCircuitGroupError, error);
+        }
+
     }
 
     setupNavigation() {
@@ -249,6 +333,7 @@ class PageManager {
         languageManager.updateLanguageSimplifierPage();
         updateSimplifierPageColors();
         updateKirchhoffModalColors();
+        updateWheatstoneModalColors();
     }
 
     setupCheatSheet() {
@@ -310,9 +395,11 @@ class PageManager {
         progressBar.classList.remove('bg-warning');
         progressBar.classList.remove('progress-bar-striped');
         progressBar.classList.add('bg-danger');
+        progressBar.style.width = "100%";
         languageManager.currentLang.messages = ['An error occurred, please try to reload the page'];
-        document.getElementById('progress-bar-note').innerText = languageManager.currentLang.messages[0];
-        this.catchedError = true
+        let pgrBarNote = document.getElementById('progress-bar-note');
+        pgrBarNote.innerText = languageManager.currentLang.messages[0];
+        pgrBarNote.style.color = colors.currentForeground;
     }
 
     hideProgressBar(){

@@ -557,6 +557,20 @@ th, td {
 }
 
 /* Simplifier page */
+#bootstrap-overrides #dropdownMenuButton {
+    background-color: transparent;
+    border: 1px solid #FFC107;
+}
+
+#bootstrap-overrides #dropdownMenuButton::after {
+    color: #ffc107;
+}
+
+#bootstrap-overrides .dropdown-item:hover {
+    background-color: #ffc107;
+    color: #222222;
+}
+
 #bootstrap-overrides svg{
     height: 400px; /* set an absolute height, so changing images always have the same size */
 }

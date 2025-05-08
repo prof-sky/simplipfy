@@ -14,7 +14,11 @@ window.alertsEnTexts = {
     alertJunctionAlreadyExists:
         "Junction already exists in equations",
     alertErrorInit:
-        "Error while starting circuit",
+        "Error while starting circuit<br>Please try to reload the page<br>",
+    alertError:
+        "Error<br>Please try to reload the page<br>",
+    alertMappingCircuitsError:
+        "Error while mapping circuits<br>The selector overview may not include every circuit/directory in the sources<br>",
     alertTooManyJunctionNodes:
         "Selection contains more than one node",
     alertWrongAnswer:
@@ -29,4 +33,8 @@ window.alertsEnTexts = {
         "You have not found all voltage loops yet",
     alertNotAllEquationsFound:
         "Not enough equations are found to solve the circuit",
+    alertInvalidNumber:
+        "Invalid number",
+    alertNegativeNumber:
+        "The number must be greater than 0",
 }

@@ -7,31 +7,49 @@ class CircuitMapper {
     // #################################################################################################################
 
     async mapCircuits () {
-        await this.fillFilesObject();
-        state.circuitFiles = this.files;
+        return new Promise(async (resolve) => {
+            let throwError = false;
+            try {
+                await this.fillFilesObject();
+                state.circuitFiles = this.files;
 
-        for (let dir of this.circuitDirs) {
-            if (dir === allowedDirNames.quickstart) {
-                await this.addCircuitMaps(dir, this._quickstart, this.selectorIds.quick);
-            } else if (dir === allowedDirNames.resistor) {
-                await this.addCircuitMaps(dir, this._resistor, this.selectorIds.res);
-            } else if (dir === allowedDirNames.capacitor) {
-                await this.addCircuitMaps(dir, this._capacitor, this.selectorIds.cap);
-            } else if (dir === allowedDirNames.inductor) {
-                await this.addCircuitMaps(dir, this._inductor, this.selectorIds.ind);
-            } else if (dir === allowedDirNames.mixed) {
-                await this.addCircuitMaps(dir, this._mixed, this.selectorIds.mixedId);
-            } else if (dir === allowedDirNames.symbolic) {
-                await this.addCircuitMaps(dir, this._symbolic, this.selectorIds.symbolic);
-            } else if (dir === allowedDirNames.kirchhoff) {
-                await this.addCircuitMaps(dir, this._kirchhoff, this.selectorIds.kirchhoff);
-            } else {
-                console.error("Unknown directory: " + dir);
-                console.error("Allowed Names: " + Object.values(allowedDirNames));
-                console.info("See allowedDirNames.js for more information");
+                for (let dir of this.circuitDirs) {
+                    if (dir === allowedDirNames.quickstart) {
+                        await this.addCircuitMaps(dir, this._quickstart, this.selectorIds.quick);
+                    } else if (dir === allowedDirNames.resistor) {
+                        await this.addCircuitMaps(dir, this._resistor, this.selectorIds.res);
+                    } else if (dir === allowedDirNames.capacitor) {
+                        await this.addCircuitMaps(dir, this._capacitor, this.selectorIds.cap);
+                    } else if (dir === allowedDirNames.inductor) {
+                        await this.addCircuitMaps(dir, this._inductor, this.selectorIds.ind);
+                    } else if (dir === allowedDirNames.mixed) {
+                        await this.addCircuitMaps(dir, this._mixed, this.selectorIds.mixedId);
+                    } else if (dir === allowedDirNames.symbolic) {
+                        await this.addCircuitMaps(dir, this._symbolic, this.selectorIds.symbolic);
+                    } else if (dir === allowedDirNames.kirchhoff) {
+                        await this.addCircuitMaps(dir, this._kirchhoff, this.selectorIds.kirchhoff);
+                    } else if (dir === allowedDirNames.wheatstone) {
+                        await this.addCircuitMaps(dir, this._wheatstone, this.selectorIds.wheatstone);
+                    } else {
+                        console.error("Unknown directory: " + dir);
+                        console.error("Allowed Names: " + Object.values(allowedDirNames));
+                        console.info("See allowedDirNames.js for more information");
+                        throwError = true;
+                    }
+                }
+                await this.updateCircuitSets();
+                if (throwError) {
+                    throw new Error("Unknown directory name");
+                }
+                resolve();
+            } catch (error) {
+                console.error("Error mapping circuits: " + error);
+                setTimeout(() => {
+                    showMessage(languageManager.currentLang.alertMappingCircuitsError + error, "info", false);
+                });
+                pushErrorEventMatomo(errorActions.circuitMappingError, error);
             }
-        }
-        this.updateCircuitSets(); // TODO
+        });
     }
 
 
@@ -48,6 +66,7 @@ class CircuitMapper {
         mixedId: "mixed",
         symbolic: "sym",
         kirchhoff: "kirch",
+        wheatstone: "wheat",
     }
 
     _quickstart = {
@@ -78,6 +97,10 @@ class CircuitMapper {
         identifier: this.selectorIds.kirchhoff,
         set: []
     }
+    _wheatstone = {
+        identifier: this.selectorIds.wheatstone,
+        set: []
+    }
 
     circuitSets = [];
 
@@ -103,6 +126,9 @@ class CircuitMapper {
         }
         if (this._kirchhoff.set.length !== 0) {
             this.circuitSets.push(this._kirchhoff);
+        }
+        if (this._wheatstone.set.length !== 0) {
+            this.circuitSets.push(this._wheatstone);
         }
     }
 

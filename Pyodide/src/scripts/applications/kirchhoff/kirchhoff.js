@@ -2,13 +2,20 @@
 // #################################### Key function for kirchhoff circuits ###########################################
 // ####################################################################################################################
 async function startKirchhoff() {
-    await initSolverObjects(state.currentCircuitMap);
-    await solveFirstStep();  // to generate SVG and data
-    nextKirchhoffVoltStep();
+    try {
+        await initSolverObjects(state.currentCircuitMap);
+        await solveFirstStep();  // to generate SVG and data
+        nextKirchhoffVoltStep();
+    } catch (error) {
+        console.error("Error starting Kirchhoff: " + error);
+        setTimeout(() => {
+            showMessage(error, "error", false);
+        }, 0);
+        pushErrorEventMatomo(errorActions.kirchhoffStartError, error);
+    }
 }
 
 async function nextKirchhoffVoltStep() {
-    //await clearSolutionsDir();
     state.pictureCounter++;
 
     appendKirchhoffValuesToAllValuesMap();
@@ -69,18 +76,20 @@ async function checkVoltageLoop() {
         setTimeout(() => {
             showMessage(languageManager.currentLang.alertChooseAtLeastTwoElements, "warning");
         }, 0);
-        resetArrowHighlights(document.getElementById(`svgDivVolt${state.pictureCounter}`));
+        resetArrowHighlights(document.getElementById(`svgDivVolt${state.pictureCounter}`), "volt");
         const nextElementList = document.getElementById("next-elements-list");
         nextElementList.innerHTML = '';
+        state.selectedElements = [];
         return;
     }
 
     let [errorCode, eq] = await state.kirchhoffSolverAPI.checkVoltageLoopRule(state.selectedElements);
     if (errorCode) {
         handleVoltageError(errorCode, svgDiv);
-        resetArrowHighlights(document.getElementById(`svgDivVolt${state.pictureCounter}`));
+        resetArrowHighlights(document.getElementById(`svgDivVolt${state.pictureCounter}`), "volt");
         const nextElementList = document.getElementById("next-elements-list");
         nextElementList.innerHTML = '';
+        state.selectedElements = [];
         return;
     }
     state.voltEquations.push(eq);
@@ -98,13 +107,6 @@ async function checkVoltageLoop() {
 
     await nextKirchhoffVoltStep();
     scrollContainerToTop(document.getElementById(`svgDivVolt${state.pictureCounter}`));
-
-
-    /* TODO need to discuss what we want to do here
-    if (await state.kirchhoffSolverAPI.foundAllVoltEquations()) {
-        if (await state.kirchhoffSolverAPI.foundAllEquations()) {
-            finishKirchhoff(contentCol);
-    }*/
 }
 
 async function checkJunctionLaw() {
@@ -117,8 +119,12 @@ async function checkJunctionLaw() {
         setTimeout(() => {
             showMessage(languageManager.currentLang.alertChooseAtLeastTwoElements, "warning");
         }, 0);
+        resetArrowHighlights(document.getElementById(`svgDivCurr${state.pictureCounter}`), "curr");
         checkBtn.classList.remove("disabled");
         document.getElementById("check-btn").innerHTML = "check";
+        const nextElementList = document.getElementById("next-elements-list");
+        nextElementList.innerHTML = '';
+        state.selectedElements = [];
         return;
     }
     let nextElementsContainer = document.getElementById("nextElementsContainer");
@@ -127,8 +133,12 @@ async function checkJunctionLaw() {
     let [errorCode, eqs] = await state.kirchhoffSolverAPI.checkJunctionRule(state.selectedElements);
     if (errorCode) {
         handleJunctionError(errorCode, svgDiv);
+        resetArrowHighlights(document.getElementById(`svgDivCurr${state.pictureCounter}`), "curr");
         checkBtn.classList.remove("disabled");
         checkBtn.innerHTML = "check";
+        const nextElementList = document.getElementById("next-elements-list");
+        nextElementList.innerHTML = '';
+        state.selectedElements = [];
         return;
     }
 
@@ -164,8 +174,10 @@ async function finishKirchhoff(contentCol) {
     }
     // Remove text above equations
     let equationContainer = document.getElementById("equations-overview-container");
-    equationContainer.innerHTML = "";
-    equationContainer.appendChild(getEquationsTable(await state.kirchhoffSolverAPI.equations()));
+    if (equationContainer !== null) {
+        equationContainer.innerHTML = "";
+        equationContainer.appendChild(getEquationsTable(await state.kirchhoffSolverAPI.equations()));
+    }
     confetti({
         particleCount: 150,
         angle: 90,

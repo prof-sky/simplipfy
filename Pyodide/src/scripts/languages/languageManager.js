@@ -60,24 +60,14 @@ class LanguageManager {
     }
 
     updateLanguageSimplifierPage() {
-        const InfoGifCloseBtn = document.getElementById("info-gif-close-btn");
-        InfoGifCloseBtn.innerHTML = this.currentLang.closeBtn;
-        const infoGifHeading = document.getElementById("info-gif-title");
-        infoGifHeading.innerHTML = this.currentLang.infoGifHeading;
-        const infoGifText = document.getElementById("info-gif-text");
-        infoGifText.innerHTML = this.currentLang.infoGifText;
-        const kirchVInfoGifHeading = document.getElementById("kirchV-info-gif-title");
-        kirchVInfoGifHeading.innerHTML = this.currentLang.kirchVInfoGifHeading;
-        const kirchVInfoGifText = document.getElementById("kirchV-info-gif-text");
-        kirchVInfoGifText.innerHTML = this.currentLang.kirchVInfoGifText;
-        const kirchVCloseBtn = document.getElementById("kirchV-info-gif-close-btn");
-        kirchVCloseBtn.innerHTML = this.currentLang.closeBtn;
-        const kirchIInfoGifHeading = document.getElementById("kirchI-info-gif-title");
-        kirchIInfoGifHeading.innerHTML = this.currentLang.kirchIInfoGifHeading;
-        const kirchIInfoGifText = document.getElementById("kirchI-info-gif-text");
-        kirchIInfoGifText.innerHTML = this.currentLang.kirchIInfoGifText;
-        const kirchICloseBtn = document.getElementById("kirchI-info-gif-close-btn");
-        kirchICloseBtn.innerHTML = this.currentLang.closeBtn;
+        this.updateSimplifierModal();
+        this.updateKirchhoffModal();
+        this.updateGamificationModal();
+        this.updateWheatstoneModal();
+        pageManager.setupDropdown();
+    }
+
+    updateGamificationModal() {
         const gameOverHeading = document.getElementById("game-over-title");
         gameOverHeading.innerHTML = this.currentLang.gameOverHeading;
         const gameOverText = document.getElementById("game-over-text");
@@ -90,6 +80,39 @@ class LanguageManager {
         extraLiveText.innerHTML = this.currentLang.extraLiveText;
         const extraLiveCloseBtn = document.getElementById("extra-live-close-btn");
         extraLiveCloseBtn.innerHTML = this.currentLang.closeBtn;
+    }
+
+    updateKirchhoffModal() {
+        const kirchVInfoGifHeading = document.getElementById("kirchV-info-gif-title");
+        kirchVInfoGifHeading.innerHTML = this.currentLang.kirchVInfoGifHeading;
+        const kirchVInfoGifText = document.getElementById("kirchV-info-gif-text");
+        kirchVInfoGifText.innerHTML = this.currentLang.kirchVInfoGifText;
+        const kirchVCloseBtn = document.getElementById("kirchV-info-gif-close-btn");
+        kirchVCloseBtn.innerHTML = this.currentLang.closeBtn;
+        const kirchIInfoGifHeading = document.getElementById("kirchI-info-gif-title");
+        kirchIInfoGifHeading.innerHTML = this.currentLang.kirchIInfoGifHeading;
+        const kirchIInfoGifText = document.getElementById("kirchI-info-gif-text");
+        kirchIInfoGifText.innerHTML = this.currentLang.kirchIInfoGifText;
+        const kirchICloseBtn = document.getElementById("kirchI-info-gif-close-btn");
+        kirchICloseBtn.innerHTML = this.currentLang.closeBtn;
+    }
+
+    updateWheatstoneModal() {
+        const wheatstoneInfoGifHeading = document.getElementById("wheatstone-info-gif-title");
+        wheatstoneInfoGifHeading.innerHTML = this.currentLang.wheatstoneInfoGifHeading;
+        const wheatstoneInfoGifText = document.getElementById("wheatstone-info-gif-text");
+        wheatstoneInfoGifText.innerHTML = this.currentLang.wheatstoneInfoGifText;
+        const wheatstoneCloseBtn = document.getElementById("wheatstone-info-gif-close-btn");
+        wheatstoneCloseBtn.innerHTML = this.currentLang.closeBtn;
+    }
+
+    updateSimplifierModal() {
+        const InfoGifCloseBtn = document.getElementById("info-gif-close-btn");
+        InfoGifCloseBtn.innerHTML = this.currentLang.closeBtn;
+        const infoGifHeading = document.getElementById("info-gif-title");
+        infoGifHeading.innerHTML = this.currentLang.infoGifHeading;
+        const infoGifText = document.getElementById("info-gif-text");
+        infoGifText.innerHTML = this.currentLang.infoGifText;
     }
 
     updateLanguageCheatSheetPage() {

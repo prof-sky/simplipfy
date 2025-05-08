@@ -10,6 +10,7 @@ window.selectorEnTexts = {
             "mixed": "MIXED CIRCUITS",
             "sym": "SYMBOLIC CALCULATION",
             "kirch": "KIRCHHOFF",
+            //"wheat": "WHEATSTONE",
         },
     overviewModalBtn:
         "Overview",
@@ -23,4 +24,6 @@ window.selectorEnTexts = {
             "Looking for a calculator",
             "A resistor walks into a bar...",
         ],
+    overviewDropdown:
+        "OVERVIEW",
 }

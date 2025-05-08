@@ -17,7 +17,9 @@ const eventCategories = {
     Mixed: "Gemischte Schaltungen",
     Symbolic: "Symbolische Rechnung",
     Kirchhoff: "Kirchhoff",
+    Wheatstone: "Wheatstone",
     Configurations: "Konfigurationen",
+    Errors: "Fehler",
     _SymIdx: " - sym",
 }
 
@@ -34,6 +36,28 @@ const configDarkModeValues = {
 const configLanguageValues = {
     German: "Deutsch",
     English: "Englisch",
+}
+
+const errorActions = {
+    defaultError: "Fehler",
+    initError: "Fehler bei der Initialisierung",
+    packageLoadError: "Fehler beim Laden der Pakete",
+    pageSetupError: "Fehler beim Einrichten der Seite",
+    loadingCircuitError: "Fehler beim Laden der Schaltung",
+    kirchhoffStartError: "Fehler beim Starten von Kirchhoff",
+    wheatstoneStartError: "Fehler beim Starten von Wheatstone",
+    step0Error: "Fehler beim Erstellen von Schritt 0",
+    simplifyNCptsError: "Fehler beim Vereinfachen der NCpts",
+    solutionsFileError: "Fehler beim Laden der Lösungsdatei (hardcodedStepSolver)",
+    optionsFileError: "Fehler beim Laden der Optionsdatei (wheatstone)",
+    pyodideNotLoadedError: "Pyodide nicht geladen",
+    pyodideWorkerError: "Fehler im Pyodide Worker",
+    workerAPIError: "Fehler in der Worker API",
+    circuitMappingError: "Fehler beim Mappen der Schaltung",
+    circuitSelectorSetupError: "Fehler beim Einrichten des Schaltungsselectors",
+    loadingOverviewError: "Fehler beim Laden der Übersicht-SVG",
+    startCircuitGroupError: "Fehler beim Starten der Schaltung (group)",
+
 }
 
 function pushPageViewMatomo(title="") {
@@ -73,6 +97,7 @@ function mapCategory(category) {
     if (["mixed"].includes(category)) return eventCategories.Mixed;
     if (["sym"].includes(category)) return eventCategories.Symbolic;
     if (["kirch"].includes(category)) return eventCategories.Kirchhoff;
+    if (["wheat"].includes(category)) return eventCategories.Wheatstone;
     console.log("Category not possible, check: " + category);
     return null;
 }
@@ -99,9 +124,30 @@ function allowedConfigurationAction(action) {
     return true;
 }
 
+function allowedErrorAction(action) {
+    let possibleActions = Object.values(errorActions);
+    if (!(possibleActions.includes(action))) {
+        console.log("Action not in " + possibleActions);
+        console.log("Action: " + action);
+        console.log("Either change the action or adapt the possible actions");
+        return false;
+    }
+    return true;
+}
+
 function pushConfigurationEventMatomo(action, configuration, value=-1) {
     if (!allowedConfigurationAction(action)) return;
     pushEventToMatomo(eventCategories.Configurations, action, configuration, value);
+}
+
+function pushErrorEventMatomo(action, error) {
+    if (!allowedErrorAction(action)) return;
+    try {
+        pushEventToMatomo(eventCategories.Errors, action, error.stack);
+    } catch (e) {
+        // If stack is not supported
+        pushEventToMatomo(eventCategories.Errors, action, error);
+    }
 }
 
 function pushEventToMatomo(category, action, name, value=-1) {

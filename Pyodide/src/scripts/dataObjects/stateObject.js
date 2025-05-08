@@ -4,6 +4,7 @@
 class StateObject {
     loadingProgress = 0;
     circuitsLoadedPromise = null;
+    overviewSvgsLoadedPromise = null;
 
     //Tracks the current step in the circuit simplification process.
     currentStep = 0;
@@ -26,12 +27,17 @@ class StateObject {
     simplifierAPI = null;
     stepSolverAPI = null;
     hardcodedStepSolverAPI = null;
+    wheatstoneSolverAPI = null;
 
     doneVoltages = [];
     doneCurrents = [];
     voltEquations = [];
     gamification = false;
     extraLiveUsed = false;
+    lives = 3;
+
+    options = []; // List of possible wheatstone circuits
+    currentOption = 0; // Current option
 
     //Boolean to track if the Pyodide environment is ready.
     pyodide = null;

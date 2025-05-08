@@ -27,7 +27,9 @@ class HardcodedStepSolverAPI {
             this.solutions = JSON.parse(content);
         } catch (error) {
             console.error("Error fetching solutions file: " + error);
+            showMessage(error, "error", false);
             this.solutions = null;
+            pushErrorEventMatomo(errorActions.solutionsFileError, error);
         }
     }
 
@@ -39,15 +41,33 @@ class HardcodedStepSolverAPI {
         // Returns a Step0Object, see stepObject.js
         // StepSolverAPI returns a Promise, but if the function is called with await, and we only return
         // an object instead of promise it will be automatically wrapped in a promise, so nothing to do
-        return this.solutions["step0"];
+        try {
+            if (this.solutions === null) {
+                throw new Error("Solutions file not available");
+            }
+            return this.solutions["step0"];
+        } catch (error) {
+            console.error("Error creating Step0: " + error);
+            showMessage(error, "error", false);
+            pushErrorEventMatomo(errorActions.step0Error, "(hardcoded) " + error);
+        }
     }
 
     simplifyNCpts(selectedElements) {
         // Returns a StepObject, see stepObject.js
         // StepSolverAPI returns a Promise, but if the function is called with await, and we only return
         // an object instead of promise it will be automatically wrapped in a promise, so nothing to do
-        let key = selectedElements.join(".");
-        let mappedKey = this.solutions.map[key];
-        return this.solutions[mappedKey];
+        try {
+            if (this.solutions === null) {
+                throw new Error("Solutions file not available");
+            }
+            let key = selectedElements.join(".");
+            let mappedKey = this.solutions.map[key];
+            return this.solutions[mappedKey];
+        } catch (error) {
+            console.error("Error simplifying NCpts: " + error);
+            showMessage(error, "error", false);
+            pushErrorEventMatomo(errorActions.simplifyNCptsError, "(hardcoded) " + error);
+        }
     }
 }

@@ -10,6 +10,7 @@ window.selectorDeTexts = {
             "mixed": "GEMISCHTE SCHALTUNGEN",
             "sym": "SYMBOLISCHE RECHNUNG",
             "kirch": "KIRCHHOFF",
+            //"wheat": "WHEATSTONE",
         },
     overviewModalBtn:
         "Übersicht",
@@ -24,4 +25,6 @@ window.selectorDeTexts = {
             "Geht ein Widerstand in eine Bar...",
             "Widerstand ist zwecklos...",
         ],
+    overviewDropdown:
+        "ÜBERSICHT",
 }

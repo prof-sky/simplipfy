@@ -18,6 +18,11 @@ function setupGameModeSwitch() {
     gameModeSwitch.addEventListener("change", () => {
         state.gamification = !!gameModeSwitch.checked;
         closeNavbar();
+        if (state.gamification) {
+            addLivesField();
+        } else {
+            removeLivesAndShowLogo();
+        }
     });
 }
 
@@ -27,8 +32,10 @@ function changeToDarkMode() {
     updateAvailableBsClassesTo(colors.bsColorSchemeDark);
     updateNavigationColorsTo(colors.bootstrapDark, colors.languagesDarkBg);
     updateCheatSheetPageColorsTo(colors.bsColorSchemeDark);
+    pageManager.setupDropdown();
     updateSimplifierPageColors();
     updateKirchhoffModalColors();
+    updateWheatstoneModalColors();
     updateSelectorPageColors();
     updateAboutPageColors();
     if (circuitMapper !== null) {
@@ -41,8 +48,10 @@ function changeToLightMode() {
     updateAvailableBsClassesTo(colors.bsColorSchemeLight);
     updateNavigationColorsTo(colors.bootstrapWhite, colors.languagesLightBg);
     updateCheatSheetPageColorsTo(colors.bsColorSchemeLight);
+    pageManager.setupDropdown();
     updateSimplifierPageColors();
     updateKirchhoffModalColors();
+    updateWheatstoneModalColors();
     updateSelectorPageColors();
     updateAboutPageColors();
     if (circuitMapper !== null) {
@@ -53,36 +62,38 @@ function changeToLightMode() {
 function updateSelectorPageColors() {
     updateSelectorPageNote();
 
-    if (circuitMapper !== null) {
-        for (let circuitSet of circuitMapper.circuitSets) {
-            if (circuitSet.identifier === circuitMapper.selectorIds.quick) {
-                const quickHeading = document.getElementById(`${circuitMapper.selectorIds.quick}-heading`);
-                quickHeading.style.color = colors.currentHeadingsForeground
-                continue;
+    if (state.selectorsBuild) {
+        if (circuitMapper !== null) {
+            for (let circuitSet of circuitMapper.circuitSets) {
+                if (circuitSet.identifier === circuitMapper.selectorIds.quick) {
+                    const quickHeading = document.getElementById(`${circuitMapper.selectorIds.quick}-heading`);
+                    quickHeading.style.color = colors.currentHeadingsForeground
+                    continue;
+                }
+                const titleBtn = document.getElementById(`${circuitSet.identifier}-acc-btn`);
+                titleBtn.style.color = colors.currentHeadingsForeground
             }
-            const titleBtn = document.getElementById(`${circuitSet.identifier}-acc-btn`);
-            titleBtn.style.color = colors.currentHeadingsForeground
         }
-    }
-    const accordionButtons = document.getElementsByClassName("accordion-button");
-    for (const accordionButton of accordionButtons) {
-        accordionButton.style.backgroundColor = colors.currentBsBackground;
-    }
-    const accordionBodies = document.getElementsByClassName("accordion-body");
-    for (const accordionBody of accordionBodies) {
-        accordionBody.style.backgroundColor = colors.currentBsBackground;
-    }
-    const checkBoxes = document.getElementsByClassName("vcCheckBox");
-    for (const checkBox of checkBoxes) {
-        checkBox.style.color = colors.currentForeground;
-    }
-    const overviewModalBtns = document.getElementsByClassName("modalOverviewBtn");
-    for (const overviewModalBtn of overviewModalBtns) {
-        overviewModalBtn.style.color = colors.currentHeadingsForeground;
-        overviewModalBtn.style.borderColor = colors.currentHeadingsForeground;
-    }
+        const accordionButtons = document.getElementsByClassName("accordion-button");
+        for (const accordionButton of accordionButtons) {
+            accordionButton.style.backgroundColor = colors.currentBsBackground;
+        }
+        const accordionBodies = document.getElementsByClassName("accordion-body");
+        for (const accordionBody of accordionBodies) {
+            accordionBody.style.backgroundColor = colors.currentBsBackground;
+        }
+        const checkBoxes = document.getElementsByClassName("vcCheckBox");
+        for (const checkBox of checkBoxes) {
+            checkBox.style.color = colors.currentForeground;
+        }
+        const overviewModalBtns = document.getElementsByClassName("modalOverviewBtn");
+        for (const overviewModalBtn of overviewModalBtns) {
+            overviewModalBtn.style.color = colors.currentHeadingsForeground;
+            overviewModalBtn.style.borderColor = colors.currentHeadingsForeground;
+        }
 
-    updateOverviewModals();
+        updateOverviewModals();
+    }
 }
 
 function updateOverviewModals() {
@@ -114,6 +125,13 @@ function updateKirchhoffModalColors() {
         content.style.color = colors.currentForeground;
         content.style.backgroundColor = colors.currentBsBackground;
     }
+}
+
+function updateWheatstoneModalColors() {
+    const infoGif = document.getElementById("wheatstoneInfoModal");
+    let content = infoGif.querySelector(".modal-content");
+    content.style.color = colors.currentForeground;
+    content.style.backgroundColor = colors.currentBsBackground;
 }
 
 function updateSimplifierPageColors() {
@@ -195,24 +213,26 @@ function updateCheatSheetPageColorsTo(bsColorScheme) {
 }
 
 function updateSelectorPageSvgStrokeColor(fromSvgColor, toSvgColor) {
-    // Change border color of selectors
-    const svgSelectors = document.getElementsByClassName("svg-selector");
-    for (const svgSelector of svgSelectors) {
-        svgSelector.style.borderColor = colors.currentForeground;
-    }
-    // Change svg color
-    for (const circuitSet of circuitMapper.circuitSets) {
-        for (const circuit of circuitSet.set) {
-            // Carousels
-            let svgData = document.getElementById(circuit.circuitDivID).innerHTML;
-            svgData = svgData.replaceAll(fromSvgColor, toSvgColor);
-            document.getElementById(circuit.circuitDivID).innerHTML = svgData;
-            // Overview modal, can be null for quickstart for example
-            let modal = document.getElementById(`${circuit.circuitDivID}-overviewModal`);
-            if (modal !== null) {
-                let svgDataModal = modal.innerHTML;
-                svgDataModal = svgDataModal.replaceAll(fromSvgColor, toSvgColor);
-                document.getElementById(`${circuit.circuitDivID}-overviewModal`).innerHTML = svgDataModal; // overview
+    if (state.selectorsBuild) {
+        // Change border color of selectors
+        const svgSelectors = document.getElementsByClassName("svg-selector");
+        for (const svgSelector of svgSelectors) {
+            svgSelector.style.borderColor = colors.currentForeground;
+        }
+        // Change svg color
+        for (const circuitSet of circuitMapper.circuitSets) {
+            for (const circuit of circuitSet.set) {
+                // Carousels
+                let svgData = document.getElementById(circuit.circuitDivID).innerHTML;
+                svgData = svgData.replaceAll(fromSvgColor, toSvgColor);
+                document.getElementById(circuit.circuitDivID).innerHTML = svgData;
+                // Overview modal, can be null for quickstart for example
+                let modal = document.getElementById(`${circuit.circuitDivID}-overviewModal`);
+                if (modal !== null) {
+                    let svgDataModal = modal.innerHTML;
+                    svgDataModal = svgDataModal.replaceAll(fromSvgColor, toSvgColor);
+                    document.getElementById(`${circuit.circuitDivID}-overviewModal`).innerHTML = svgDataModal; // overview
+                }
             }
         }
     }

@@ -132,11 +132,15 @@ function getFinishMsg() {
     if ([circuitMapper.selectorIds.cap, circuitMapper.selectorIds.ind, circuitMapper.selectorIds.mixedId].includes(state.currentCircuitMap.selectorGroup)) {
         sfx += "," + languageManager.currentLang.effectiveSuffix;
     }
-    if (sourceIsAC()) {
-        sourceInfo = `$$ ${languageManager.currentLang.voltageSymbol}_{${sfx}}=${getSourceVoltageVal()} $$
-                      $$ f = ${getSourceFrequency()}$$`;
+    if (currentCircuitIsSymbolic()) {
+        sourceInfo = `$$ ${languageManager.currentLang.voltageSymbol}_{${sfx}}=${renameVSrc(getSourceVoltageVal())} $$`;
     } else {
-        sourceInfo = `$$ ${languageManager.currentLang.voltageSymbol}_{${sfx}}=${getSourceVoltageVal()} $$`;
+        if (sourceIsAC()) {
+            sourceInfo = `$$ ${languageManager.currentLang.voltageSymbol}_{${sfx}}=${getSourceVoltageVal()} $$
+                          $$ f = ${getSourceFrequency()}$$`;
+        } else {
+            sourceInfo = `$$ ${languageManager.currentLang.voltageSymbol}_{${sfx}}=${getSourceVoltageVal()} $$`;
+        }
     }
 
     // Give a note what voltage is used and that voltage/current is available
@@ -162,7 +166,7 @@ function setupNextElementsContainer(filteredPaths) {
         <h3>${languageManager.currentLang.nextElementsHeading}</h3>
         <ul class="px-0" id="next-elements-list"></ul>
         <button class="btn btn-secondary mx-1 ${state.pictureCounter === 1 ? "disabled" : ""}" id="reset-btn">reset</button>
-        <button class="btn btn-primary mx-1" id="check-btn">check</button>
+        <button class="btn btn-primary mx-1 ${state.lives === 0 ? "disabled" : ""}"" id="check-btn">check</button>
     `;
     }
     return nextElementsContainer;
@@ -350,7 +354,9 @@ function toggleText(text, svgDiv) {
 function toggleNameValue(svgDiv, nameValueToggleBtn) {
     let containsZ = divContainsZLabels(svgDiv);
     if (containsZ) {
-        showMessage(languageManager.currentLang.alertNotToggleable, "info");
+        setTimeout(() => {
+            showMessage(languageManager.currentLang.alertNotToggleable, "info");
+        },0);
         return;
     }
 
@@ -488,6 +494,7 @@ function checkAndSimplify(stepObject, contentCol, div) {
             , 0);
         pushCircuitEventMatomo(circuitActions.ErrCanNotSimpl);
         document.getElementById("check-btn").innerHTML = "check";
+        subtract1Live();
     }
 }
 
@@ -823,8 +830,8 @@ function createStandardTable(vMap, helperValueRegex, tableData, color, uMap, iMa
         let uKey = languageManager.currentLang.voltageSymbol + key.slice(1);
         tableData += `<tr>
             <td style="color: ${color}">$$${key} = ${value}$$</td>
-            <td style="color: ${color}">$$${uKey} = ${uMap.get(uKey)}$$</td>
-            <td style="color: ${color}">$$${iKey} = ${iMap.get(iKey)}$$</td>
+            <td style="color: ${color}">$$${uKey} = ${renameVSrc(uMap.get(uKey))}$$</td>
+            <td style="color: ${color}">$$${iKey} = ${renameVSrc(iMap.get(iKey))}$$</td>
             </tr>`;
     }
     return tableData;

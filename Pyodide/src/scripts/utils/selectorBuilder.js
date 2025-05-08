@@ -25,7 +25,7 @@ class SelectorBuilder {
         accordionItem.classList.add("accordion-item");
         accordionItem.innerHTML = `
             <h2 class="accordion-header" id="flush-heading-${identifier}">
-                <button id="${identifier}-acc-btn" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse-${identifier}" aria-expanded="false" aria-controls="flush-collapse-${identifier}">
+                <button id="${identifier}-acc-btn" style="color: ${colors.keyYellow}; background-color: ${colors.currentBsBackground}" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse-${identifier}" aria-expanded="false" aria-controls="flush-collapse-${identifier}">
                     ${languageManager.currentLang.selectorHeadings[identifier]}
                 </button>
             </h2>
@@ -220,6 +220,8 @@ class SelectorBuilder {
             }
         } catch (error) {
             console.error(`Error setting up circuit selector for ${circuitSet.identifier}:`, error);
+            showMessage(error, "error", false);
+            pushErrorEventMatomo(errorActions.circuitSelectorSetupError, `(${circuitSet.identifier})` + error);
         }
     }
 
@@ -236,7 +238,6 @@ class SelectorBuilder {
         const btnOverlay = document.getElementById(circuitMap.btnOverlay);
 
         // Fill div with svg
-        //let svgData = state.pyodide.FS.readFile(circuitMap.overViewSvgFile, {encoding: "utf8"});
         try {
             let svgData = await state.pyodideAPI.readFile(circuitMap.overViewSvgFile, "utf8");
             svgData = setSvgWidthTo(svgData, "100%");
@@ -263,6 +264,8 @@ class SelectorBuilder {
                 this.circuitSelectorStartButtonPressed(circuitMap, pageManager));
         } catch (error) {
             console.error(`Error loading ${circuitMap.overViewSvgFile}:`, error);
+            showMessage(error, "error", false);
+            pushErrorEventMatomo(errorActions.loadingOverviewError, `(${circuitMap.selectorGroup})` + error);
         }
     }
 
@@ -279,7 +282,7 @@ class SelectorBuilder {
 
     addVoltFreqOverlay(circuitDiv, circuitMap) {
         // Add voltage and frequency overlay for R, L, C and mixed Circuits
-        if ([circuitMapper.selectorIds.quick, circuitMapper.selectorIds.symbolic].includes(circuitMap.selectorGroup)){
+        if ([circuitMapper.selectorIds.quick, circuitMapper.selectorIds.symbolic, circuitMapper.selectorIds.wheatstone].includes(circuitMap.selectorGroup)){
             // nothing here
         } else {
             if (circuitMap.frequency === undefined || circuitMap.frequency === null) {
@@ -356,20 +359,23 @@ class SelectorBuilder {
         state.currentCircuitMap = circuitMap;
         state.pictureCounter = 0;
         state.allValuesMap = new Map();
+        let dropdown = document.getElementById("selector-dropdown");
+        dropdown.hidden = false;
 
         if (circuitMap.selectorGroup === circuitMapper.selectorIds.kirchhoff) {
-            if (state.gamification) {
-                addLivesField();
-            }
             document.title = "Kirchhoff";
             pushPageViewMatomo(circuitMap.selectorGroup + "/" + circuitMap.circuitFile);
             startKirchhoff();
+        } else if (circuitMap.selectorGroup === circuitMapper.selectorIds.wheatstone) {
+            document.title = "Wheatstone";
+            pushPageViewMatomo(circuitMap.selectorGroup + "/" + circuitMap.circuitFile);
+            state.options = await getWheatstoneValues(); // only here because we only need to read once, not on reset
+            startWheatstone();
         } else {
             document.title = "Simplifier";
             pushPageViewMatomo(circuitMap.selectorGroup + "/" + circuitMap.circuitFile)
             startSimplifier();
         }
-
 
         pageManager.disableSettings();
         const selectorPage = document.getElementById("select-page-container");
@@ -391,7 +397,9 @@ class SelectorBuilder {
         circuit.style.borderColor = colors.keyYellow;
         circuit.style.opacity = "0.5";
         btnOverlay.style.display = "block";
-        if (!(btnOverlay.id.includes(circuitMapper.selectorIds.quick) || btnOverlay.id.includes(circuitMapper.selectorIds.symbolic))) {
+        if (!(btnOverlay.id.includes(circuitMapper.selectorIds.quick)
+            || btnOverlay.id.includes(circuitMapper.selectorIds.symbolic)
+            || btnOverlay.id.includes(circuitMapper.selectorIds.wheatstone))) {
             document.getElementById(`${btnOverlay.id}-volt-freq`).style.opacity = "0.5";
         }
     }
@@ -399,7 +407,9 @@ class SelectorBuilder {
         circuit.style.borderColor = colors.currentForeground;
         circuit.style.opacity = "1";
         btnOverlay.style.display = "none";
-        if (!(btnOverlay.id.includes(circuitMapper.selectorIds.quick) || btnOverlay.id.includes(circuitMapper.selectorIds.symbolic))) {
+        if (!(btnOverlay.id.includes(circuitMapper.selectorIds.quick)
+                || btnOverlay.id.includes(circuitMapper.selectorIds.symbolic)
+            || btnOverlay.id.includes(circuitMapper.selectorIds.wheatstone))) {
             document.getElementById(`${btnOverlay.id}-volt-freq`).style.opacity = "1";
         }
     }

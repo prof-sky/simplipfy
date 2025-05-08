@@ -32,9 +32,16 @@ function setupNextElementsVoltageLawContainer() {
             //for (let i = 0; i <= state.pictureCounter; i++) {
              //   removeSvgEventHandlers(`svgDivVolt${i}`);
             //}
-            state.selectedElements = [];
-            await nextKirchhoffCurrStep(true);
-            scrollContainerToTop(document.getElementById("junctionHeading"));
+            // Finish circuit if enough equations found
+            if (await state.kirchhoffSolverAPI.foundAllEquations()) {
+                let contentCol = document.getElementById("content-col");
+                finishKirchhoff(contentCol);
+                setTimeout(() => {showMessage(languageManager.currentLang.foundEnoughVoltLoops, "success", false);});
+            } else {
+                    state.selectedElements = [];
+                    await nextKirchhoffCurrStep(true);
+                    scrollContainerToTop(document.getElementById("junctionHeading"));
+            }
         } else {
             setTimeout(() => {
                 showMessage(languageManager.currentLang.alertNotAllVoltLoopsFound, "warning");
@@ -121,16 +128,11 @@ function subtract1Live() {
     if (!state.gamification) return;
 
     let lives = document.getElementById("lives");
-    if (lives.innerHTML === "3") {
-        lives.innerHTML = "2";
-        showBrokenHeart();
-    } else if (lives.innerHTML === "2") {
-        lives.innerHTML = "1";
-        showBrokenHeart();
-    } else if (lives.innerHTML === "1") {
-        lives.innerHTML = "0";
-        showBrokenHeart();
+    state.lives = state.lives - 1;
+    showBrokenHeart();
+    lives.innerHTML = state.lives.toString();
 
+    if (state.lives === 0) {
         setTimeout(() => {
             let msg = document.getElementById("alert-msg");
             if (msg !== null) {
@@ -198,7 +200,8 @@ function setupModalQuestions() {
                 img.src = "./src/resources/mascot/smiling.svg";
                 img.style.transform = "rotate(-6deg)";
                 let lives = document.getElementById("lives");
-                lives.innerHTML = "1";
+                state.lives = state.lives + 1;
+                lives.innerHTML = state.lives.toString();
                 let modal = document.getElementById("extraLiveModal");
                 let modalInstance = bootstrap.Modal.getInstance(modal);
                 setTimeout(() => {
@@ -213,7 +216,7 @@ function setupModalQuestions() {
                 eq.style.border = "1px solid #888";
                 eq.style.color = "#888";
             }
-        });
+        }, { once : true});
     }
 
 
@@ -236,7 +239,7 @@ function addLivesField() {
     if (live === null) {
         let logo = document.getElementById("nav-logo");
         logo.hidden = true;
-        let toggler = document.getElementById("nav-toggler");
+        let nav = document.getElementById("navbarSupportedContent");
         let heartDiv = document.createElement("div");
         heartDiv.id = "heart-container";
         heartDiv.innerHTML = `<svg id='hearts' xmlns=\"http://www.w3.org/2000/svg\" shape-rendering=\"geometricPrecision\" text-rendering=\"geometricPrecision\" image-rendering=\"optimizeQuality\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" viewBox=\"0 0 512 456.079\"><path fill=\"${colors.keyYellow}\" d=\"M253.647 83.481c130.392-219.054 509.908 65.493-.512 372.598-514.787-328.94-101.874-598.694.512-372.598z\"/><path fill=\"#F4B34A\" d=\"M344.488 10.579c146.33-39.079 316.839 185.127-65.021 429.133C561.646 215.547 470.393 36.15 344.488 10.579zM121.413.645C170.08-4.2 221.438 18.567 250.749 77.574a201.544 201.544 0 013.537 11.587c10.541 34.29.093 49.643-12.872 50.552-18.137 1.271-20.216-14.851-24.967-27.643C192.689 48.096 158.774 12.621 116.43 1.862c1.653-.434 3.315-.84 4.983-1.217z\"/><path fill=\"#FBE393\" d=\"M130.558 35.501c-42.657-4.246-87.652 23.898-99.173 66.067-7.868 25.593-.07 37.052 9.607 37.73 13.537.949 15.088-11.084 18.635-20.632 17.732-47.748 43.045-74.226 74.65-82.256a107.173 107.173 0 00-3.719-.909z\"/></svg>`;
@@ -245,16 +248,16 @@ function addLivesField() {
         let lives = document.createElement("span");
         lives.id = "lives";
         lives.style.color = colors.currentForeground;
-        lives.innerHTML = "3";
+        lives.innerHTML = state.lives.toString();
         lives.style.fontFamily = "Roboto Condensed";
         lives.style.fontSize = "large";
         lives.style.fontWeight = "bold";
         lives.style.paddingLeft = "5px";
         lives.style.paddingTop = "5px";
         heartDiv.appendChild(lives);
-        toggler.insertAdjacentElement("afterend", heartDiv);
+        nav.insertAdjacentElement("beforebegin", heartDiv);
     } else {
-        live.innerHTML = "3";
+        live.innerHTML = state.lives.toString();
     }
 }
 
@@ -607,10 +610,14 @@ function chooseKirchhoffElement(svgContainer, element, nextElementsList, selecto
     MathJax.typeset();
 }
 
-function resetArrowHighlights(svgDiv) {
+function resetArrowHighlights(svgDiv, selector) {
     let arrows = svgDiv.querySelectorAll(".arrow");
     for (let arrow of arrows) {
-        removeHighlight(arrow);
+        if (elementMarkedDone(arrow, selector)) {
+            lightHighlightElement(svgDiv, arrow, selector);
+        } else {
+            removeHighlight(arrow);
+        }
     }
 }
 

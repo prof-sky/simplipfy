@@ -9,4 +9,5 @@ const allowedDirNames = {
     mixed: "mixed",
     symbolic: "symbolic",
     kirchhoff: "kirchhoff",
+    wheatstone: "wheatstone",
 }

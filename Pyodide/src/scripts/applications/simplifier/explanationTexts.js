@@ -195,9 +195,12 @@ function getTotalCurrent(stepObject) {
     } else {
         str += `$$I_{${sfx}} = \\frac{${languageManager.currentLang.voltageSymbol}_{${sfx}}}{Z_{${stepObject.simplifiedTo.Z.name}}}$$`
     }
-
-    str += `$$I_{${sfx}} = \\frac{${stepObject.simplifiedTo.U.val}}{${stepObject.simplifiedTo.Z.impedance}}$$`;
-    str += `$$I_{${sfx}} = ${stepObject.simplifiedTo.I.val}$$`;
+    if (currentCircuitIsSymbolic()) {
+        str += `$$I_{${sfx}} = ${renameVSrc(stepObject.simplifiedTo.I.val)}$$`;
+    } else {
+        str += `$$I_{${sfx}} = \\frac{${stepObject.simplifiedTo.U.val}}{${stepObject.simplifiedTo.Z.impedance}}$$`;
+        str += `$$I_{${sfx}} = ${stepObject.simplifiedTo.I.val}$$`;
+    }
     return str;
 }
 
@@ -260,7 +263,7 @@ function getReciprocalCalculation(stepObject) {
     if (currentCircuitIsSymbolic()) {
         return `$$${stepObject.simplifiedTo.Z.name} = ${stepObject.getZVal(stepObject.simplifiedTo)}$$`;
     }
-    
+
     let str = "";
     str += `$$\\frac{1}{${stepObject.simplifiedTo.Z.name}} = `;
     stepObject.components.forEach((component) => {str+= `\\frac{1}{${component.Z.name}} + `});
@@ -298,6 +301,17 @@ function getAdditionCalculation(stepObject) {
     return str;
 }
 
+function renameVSrc(val) {
+    let newVal;
+    let replaceVal = `${languageManager.currentLang.voltageSymbol}_{${languageManager.currentLang.totalSuffix}}`;
+    if (val.includes("V_{1}")) {
+        newVal = val.replaceAll("V_{1}", replaceVal);
+    } else {
+        newVal = val;
+    }
+    return newVal;
+}
+
 function getSymbolicSeriesVCDescription(stepObject) {
     let str = "";
     // Calculate current
@@ -307,7 +321,7 @@ function getSymbolicSeriesVCDescription(stepObject) {
     } else {
         str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.name}}{Z_{${stepObject.simplifiedTo.Z.name}}}$$`;
     }
-    str += `$$${stepObject.simplifiedTo.I.name} = ${stepObject.simplifiedTo.I.val}$$<br>`;
+    str += `$$${stepObject.simplifiedTo.I.name} = ${renameVSrc(stepObject.simplifiedTo.I.val)}$$<br>`;
     // Text
     str += `${languageManager.currentLang.relationTextSeries}.<br>`;
     str += `${languageManager.currentLang.currentStaysTheSame}.<br>`;
@@ -317,7 +331,7 @@ function getSymbolicSeriesVCDescription(stepObject) {
     });
     str = str.slice(0, -3);  // remove last =
     str += `$$`;
-    str += `$$= ${stepObject.simplifiedTo.I.val}$$`;
+    str += `$$= ${renameVSrc(stepObject.simplifiedTo.I.val)}$$`;
     // Voltage split
     str += `<br>${languageManager.currentLang.voltageSplits}.<br>`;
     stepObject.components.forEach((component) => {
@@ -335,8 +349,8 @@ function getSymbolicSeriesVCDescription(stepObject) {
         if (component.Z.impedance.includes("+")) {
             value = `(${component.Z.impedance})`;  // parentheses for combined values
         }
-        str += `$$= ${value} \\cdot ${stepObject.simplifiedTo.I.val}$$`;  // use simplifiedTo val to make it more explanatory in symbolic circuits
-        str += `$$= ${component.U.val}$$<br>`;
+        str += `$$= ${value} \\cdot ${renameVSrc(stepObject.simplifiedTo.I.val)}$$`;  // use simplifiedTo val to make it more explanatory in symbolic circuits
+        str += `$$= ${renameVSrc(component.U.val)}$$<br>`;
     });
     return str;
 }
@@ -350,7 +364,7 @@ function getSymbolicParallelVCDescription(stepObject) {
     } else {
         str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.name}}{Z_{${stepObject.simplifiedTo.Z.name}}}$$`;
     }
-    str += `$$${stepObject.simplifiedTo.I.name} = ${stepObject.simplifiedTo.I.val}$$<br>`;
+    str += `$$${stepObject.simplifiedTo.I.name} = ${renameVSrc(stepObject.simplifiedTo.I.val)}$$<br>`;
     // Text
     str += `${languageManager.currentLang.relationTextParallel}.<br>`;
     str += `${languageManager.currentLang.voltageStaysTheSame}.<br>`;
@@ -358,7 +372,7 @@ function getSymbolicParallelVCDescription(stepObject) {
     stepObject.components.forEach((component) => {str+= `${component.U.name} = `});
     str = str.slice(0, -3);  // remove last =
     str += `$$`;
-    str += `$$= ${stepObject.simplifiedTo.U.val}$$`;
+    str += `$$= ${renameVSrc(stepObject.simplifiedTo.U.val)}$$`;
     // Current split
     str += `<br>${languageManager.currentLang.currentSplits}.<br>`;
     stepObject.components.forEach((component) => {
@@ -367,13 +381,13 @@ function getSymbolicParallelVCDescription(stepObject) {
     str += `<br>`;
     // Current calculation
     stepObject.components.forEach((component) => {
+        let renamedU = renameVSrc(component.U.val);
         if (stepObject.simplifiedTo.Z.name.includes("R") || stepObject.simplifiedTo.Z.name.includes("Z")) {
-            str += `$$${component.I.name} = \\frac{${component.U.name}}{${component.Z.name}}$$`;
+            str += `$$${component.I.name} = \\frac{${renamedU}}{${component.Z.name}}$$`;
         } else {
-            str += `$$${component.I.name} = \\frac{${component.U.name}}{X_{${component.Z.name}}}$$`;
+            str += `$$${component.I.name} = \\frac{${renamedU}}{X_{${component.Z.name}}}$$`;
         }
-        str += `$$= \\frac{${component.U.val}}{${component.Z.impedance}}$$`;
-        str += `$$= ${component.I.val}$$<br>`;
+        str += `$$= ${renameVSrc(component.I.val)}$$<br>`;
     });
     return str;
 }

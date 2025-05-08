@@ -1,6 +1,7 @@
 class ColorDefinitions {
 
     keyYellow = "#FFC107";
+    keyYellowDarkened = "#af8807";
     keyLight = "white";
     keyDark = "black";
     kirchhoffGray = "gray";

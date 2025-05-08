@@ -67,7 +67,6 @@ async function getJsonAndSvgStepFiles() {
 }
 
 async function createAndShowStep0(circuitMap) {
-    //await clearSolutionsDir();
     try {
         let paramMap = new Map();
         paramMap.set("volt", languageManager.currentLang.voltageSymbol);
@@ -84,7 +83,9 @@ async function createAndShowStep0(circuitMap) {
         hideSpinnerLoadingCircuit();
         nextSimplifierStep(state.step0Data);
     } catch (error) {
-        throw error;
+        console.error("Error creating step 0: " + error);
+        showMessage(error, "error", false);
+        pushErrorEventMatomo(errorActions.step0Error, "(simplifier) " + error);
     }
 }
 
@@ -107,11 +108,8 @@ function startSimplifier() {
         }
     }
     catch (error){
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.alertErrorInit, "danger", false);
-        }, 0);
+        showMessage(error, "error", false);
     }
-
 }
 
 function createTotalCurrentContainer() {

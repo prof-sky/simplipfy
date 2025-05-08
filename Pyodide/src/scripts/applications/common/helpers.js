@@ -81,7 +81,7 @@ function getClassAndEmoji(prio) {
     } else if (prio === "info") {
         emoji = "";
         bootstrapAlert = "secondary";
-    } else if (prio === "danger") {
+    } else if (prio === "danger" || prio === "error") {
         emoji = "";
         bootstrapAlert = "danger";
     } else {
@@ -128,7 +128,11 @@ function showMessage(message, prio = "warning", autoHide = true) {
     }
 
     let msgSpan = document.createElement('span');
-    msgSpan.innerHTML = message;
+    if (prio === "error" || prio === "danger") {
+        msgSpan.innerHTML = languageManager.currentLang.alertError + message;
+    } else {
+        msgSpan.innerHTML = message;
+    }
     msg.appendChild(msgSpan);
     body.appendChild(msg);
 
@@ -231,11 +235,14 @@ function checkIfSimplifierPageNeedsReset() {
         resetSimplifierPage();
         resetKirchhoffPage();
 
-        if (state.gamification) {
+        // Hide dropdown and lives if gamification is enabled
+        let dropdown = document.getElementById("selector-dropdown");
+        dropdown.hidden = true;
+        /*if (state.gamification) {
             removeLivesAndShowLogo();
             state.extraLiveUsed = false;
-            resetExtraLiveModal();
-        }
+        }*/
+        resetExtraLiveModal();
         let msg = document.getElementById("alert-msg");
         if (msg !== null) {
             msg.remove();
