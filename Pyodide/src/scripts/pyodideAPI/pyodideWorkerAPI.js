@@ -27,22 +27,34 @@ function getResolve(msg, resolve, event) {
         // ###################### Pyodide API ########################
         // Only for functions which require a specific return value
         if (msg.action === "readdir") {
-            resolve(event.data.files);
+            resolve([event.data.status, event.data.files]);
         } else if (msg.action === "pyimport") {
             resolve(event.data.module);
         } else if (msg.action === "readFile") {
             resolve(event.data.file);
         } else if (msg.action === "runPython") {
             resolve(event.data.result);
+        } else if (msg.action === "isValidCircuitFile") {
+            resolve([event.data.isValid, event.data.errorMsgs, event.data.warnMsgs]);
+        } else if (msg.action === "isValidCircuitString") {
+            resolve([event.data.isValid, event.data.errorMsgs, event.data.warnMsgs]);
+        } else if (msg.action === "forceDrawing") {
+            resolve([event.data.isValidSyntax, event.data.svgData, event.data.errMsgs, event.data.warnMsgs]);
+        } else if (msg.action === "getCircuitFiles") {
+            resolve(event.data.files);
         }
-            // ###################### Simplifier API ########################
+        // ###################### Simplifier API ########################
         // Only for functions which require a specific return value
         else if (msg.action === "createStep0") {
             resolve(event.data.step0);
         } else if (msg.action === "simplifyNCpts") {
             resolve(event.data.simplifiedStep);
         }
-            // ###################### Kirchhoff API ########################
+        // ###################### Drawing Config API ###################
+        else if (msg.action === "isLocked") {
+            resolve(event.data.isLocked);
+        }
+        // ###################### Kirchhoff API ########################
         // Only for functions which require a specific return value
         else if (msg.action === "checkVoltageLoopRule") {
             resolve([event.data.errorCode, event.data.eq]);
@@ -54,6 +66,11 @@ function getResolve(msg, resolve, event) {
             resolve(event.data.foundAll);
         } else if (msg.action === "equations") {
             resolve(event.data.equations);
+        }
+        // ###################### WheatstoneSolver API ###################
+        //  -
+        else if (msg.action === "equationIsValid") {
+            resolve(event.data.valid);
         }
         // ###################### Error handling #######################
         else {

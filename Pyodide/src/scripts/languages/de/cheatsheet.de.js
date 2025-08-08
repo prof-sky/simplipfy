@@ -17,4 +17,6 @@ window.cheatsheetDeTexts = {
         "ZUSAMMENFASSUNGS-FORMELN",
     resReaTableHeading:
         "KOMPLEXER WIDERSTAND",
+    wheatstoneFormulaHeading:
+        "WHEATSTONE-BRÜCKE"
 }

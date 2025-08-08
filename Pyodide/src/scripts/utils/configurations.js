@@ -33,6 +33,13 @@ class Configurations {
         this.pyodideCircuitPath = conf.pyodideCircuitPath;
         this.pyodideSolutionsPath = conf.pyodideSolutionsPath;
         this.pyodideSolvePath = "/" + conf.pyodideSolvePath;
+        this.pyodideUserCircuitBasePath = conf.pyodideUserCircuitBasePath;
+
+        // Where uploaded user zip dirs are stored
+        this.userSvgDirName = conf.userSvgDirName;
+        this.userDirName = conf.userDirName;
+        this.userCircuitsPath = conf.pyodideUserCircuitBasePath + "/" + conf.userDirName + "/";
+        this.userSvgPath = conf.pyodideUserCircuitBasePath + "/" + conf.userSvgDirName + "/";
     }
 
     async loadConf() {

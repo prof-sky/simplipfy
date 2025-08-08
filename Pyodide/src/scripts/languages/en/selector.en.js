@@ -3,14 +3,14 @@ window.selectorEnTexts = {
         "Loading circuits...",
     selectorHeadings:
         {
-            "quick": "QUICKSTART",
+            "quick": "TUTORIAL",
             "res":  "RESISTORS",
             "cap": "CAPACITORS",
             "ind": "INDUCTORS",
             "mixed": "MIXED CIRCUITS",
             "sym": "SYMBOLIC CALCULATION",
             "kirch": "KIRCHHOFF",
-            //"wheat": "WHEATSTONE",
+            "wheat": "WHEATSTONE",
         },
     overviewModalBtn:
         "Overview",

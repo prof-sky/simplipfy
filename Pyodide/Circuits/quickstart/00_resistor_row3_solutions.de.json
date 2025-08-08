@@ -21,11 +21,10 @@
     },
     "step0": {
         "step": "step0",
-        "source": {
-            "Type": "V",
-            "omega_0": "0",
-            "frequency": "0",
-            "sources": {
+        "sources": [{
+         	"Type": "V",
+            	"omega_0": "0",
+            	"frequency": "0",
                 "Z": {
                     "name": "V1",
                     "impedance": "0",
@@ -46,8 +45,7 @@
                     "phase": "180.0 ^\\circ"
                 },
                 "hasConversion": true
-            }
-        },
+        }],
         "allComponents": [
             {
                 "Z": {

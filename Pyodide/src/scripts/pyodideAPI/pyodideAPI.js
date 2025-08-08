@@ -7,10 +7,10 @@ class PyodideAPI {
         this.worker = worker;
     }
 
-    unpackArchive(pkgArrBuff, packageExtension) {
+    unpackArchive(pkgArrBuff, packageExtension, options) {
         return requestResponse(this.worker, {
             action: "unpackArchive",
-            data: { buffer: pkgArrBuff, extension: packageExtension }
+            data: { buffer: pkgArrBuff, extension: packageExtension, options: options}
         });
     }
 
@@ -21,13 +21,21 @@ class PyodideAPI {
         });
     }
 
-    writeFile(path, content) {
+    writeFile(path, content, encoding="utf8") {
         return requestResponse(this.worker, {
             action: "writeFile",
             data: {
                 path: path,
                 content: content,
+                encoding: encoding
             }
+        });
+    }
+
+    deleteFile(path) {
+        return requestResponse(this.worker, {
+            action: "unlink",
+            data: { path: path }
         });
     }
 
@@ -60,6 +68,93 @@ class PyodideAPI {
         return requestResponse(this.worker, {
             action: "pyimport",
             data: { module: moduleName }
+        });
+    }
+
+    recursiveRmdir(path) {
+        return requestResponse(this.worker, {
+            action: "recursiveRmdir",
+            data: {path: path}
+        });
+    }
+
+    mkdir(path) {
+        return requestResponse(this.worker, {
+            action: "mkdir",
+            data: { path: path }
+        });
+    }
+
+    isValidCircuitFile(filename, filepath) {
+        return requestResponse(this.worker, {
+            action: "isValidCircuitFile",
+            data: {
+                circuitFile: filename,
+                circuitPath: filepath
+            }
+        });
+    }
+
+    isValidCircuitString(circuitString) {
+        return requestResponse(this.worker, {
+            action: "isValidCircuitString",
+            data: {
+                fileString: circuitString
+            }
+        });
+    }
+
+    forceDrawing(circuitString, paramMap, optionsString) {
+        return requestResponse(this.worker, {
+            action: "forceDrawing",
+            data: {
+                circuitString: circuitString,
+                paramMap: paramMap,
+                optionsString: optionsString
+            }
+        });
+    }
+
+    // TODO move to SVGGeneratorAPI
+    generateSvgFiles(path) {
+        return requestResponse(this.worker, {
+            action: "generateSvgFiles",
+            data: { path: path }
+        });
+    }
+
+    getGeneratorProgress() {
+        return requestResponse(this.worker, {
+            action: "getGeneratorProgress",
+            data: {}
+        });
+    }
+
+    initSVGGenerator(path) {
+        return requestResponse(this.worker, {
+            action: "initSVGGenerator",
+            data: { path: path }
+        });
+    }
+
+    getCircuitFiles() {
+        return requestResponse(this.worker, {
+            action: "getCircuitFiles",
+            data: {}
+        });
+    }
+
+    generateSvgFile(file) {
+        return requestResponse(this.worker, {
+            action: "generateSvgFile",
+            data: { file: file }
+        });
+    }
+
+    zipFiles(path) {
+        return requestResponse(this.worker, {
+            action: "zipFiles",
+            data: { path: path }
         });
     }
 }

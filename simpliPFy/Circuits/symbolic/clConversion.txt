@@ -1,0 +1,4 @@
+V1 0 1 ac 10 0 100; down
+L1 0 2 L1; right
+C2 2 3 C2; down
+W 3 1; left

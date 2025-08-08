@@ -1,6 +1,8 @@
 import os
 from warnings import warn
 
+from simplipfy.Tools.generateSVGFiles import SVGFileGenerator
+
 generateSVGFilesPath = "generateSVGFiles.py"
 circuitsFolderPath = "Circuits"
 
@@ -57,7 +59,7 @@ class TestSVGGeneration:
         assert len(svgFiles) == 0, "Removing svg files failed, check test"
 
         # generate the svg-files with the script that runs in the ci/cd
-        exec(open(generateSVGFilesPath).read())
+        SVGFileGenerator(circuitsFolderPath).generateAllFiles()
 
         # check if all svg-files got regenerated
         svgFiles, txtFiles = self.readAndSortFiles()

@@ -7,7 +7,10 @@ class WheatstoneSolverAPI {
         this.worker = worker;
     }
 
-    checkInput(v) {
-        return (v.Uq * ((v.R1/(v.R1 + v.R2)) - (v.R3/(v.R3 + v.R4)))) === v.Um;
+    equationIsValid(v) {
+        return requestResponse(this.worker, {
+            action: "equationIsValid",
+            data: { R1: v.R1, R2: v.R2, R3: v.R3, R4: v.R4, Uq: v.Uq, Um: v.Um }
+        });
     }
 }

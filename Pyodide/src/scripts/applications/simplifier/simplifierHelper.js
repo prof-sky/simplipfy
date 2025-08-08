@@ -27,7 +27,7 @@ function resetSimplifierPage(calledFromResetBtn = false) {
             pushCircuitEventMatomo(circuitActions.Aborted, state.pictureCounter);
         }
     }
-    clearSimplifierPageContent();
+    clearSimplifierPageContainer();
     showSpinnerLoadingCircuit();
     state.valuesShown = new Map();
     state.selectedElements = [];
@@ -37,6 +37,7 @@ function resetSimplifierPage(calledFromResetBtn = false) {
     if (calledFromResetBtn) {
         startSimplifier();  // Draw the first picture again
     }
+    state.drawingConfigAPI.unlock("# --generalize-false");
 }
 
 function enableLastCalcButton() {
@@ -54,9 +55,10 @@ async function getCircuitInfo() {
 
 }
 
+// Old
 async function getJsonAndSvgStepFiles() {
     //const files = await state.pyodide.FS.readdir(`${conf.pyodideSolutionsPath}`);
-    let files = await state.pyodideAPI.readDir(conf.pyodideSolutionsPath);
+    let [status, files] = await state.pyodideAPI.readDir(conf.pyodideSolutionsPath);
     state.jsonFiles_Z = files.filter(file => !file.endsWith("VC.json") && file.endsWith(".json"));
     state.jsonFiles_VC = files.filter(file => file.endsWith("VC.json"));
     if (state.jsonFiles_VC === []) {
@@ -66,13 +68,59 @@ async function getJsonAndSvgStepFiles() {
     state.currentStep = 0;
 }
 
+
+/**
+ * First function to be called when the user starts the simplifier.
+ * It initializes the step solver and creates the first step (step 0).
+ * @param {Object} circuitMap - The circuit map containing the circuit file and source directory.
+ */
 async function createAndShowStep0(circuitMap) {
     try {
-        let paramMap = new Map();
-        paramMap.set("volt", languageManager.currentLang.voltageSymbol);
-        paramMap.set("total", languageManager.currentLang.totalSuffix);
+        let paramMap = createParamMap();
+        let netlist;
+        let generalizeActive = false;
+        let netlistContainsWires = false;
 
-        await state.simplifierAPI.initStepSolver(circuitMap.circuitFile, `${conf.pyodideCircuitPath}/${circuitMap.sourceDir}`, paramMap);
+        if (state.currentCircuitFromUserZip) {
+            // Circuits uploaded from user with upload page
+            await state.simplifierAPI.initStepSolver(circuitMap.circuitFile, conf.userCircuitsPath + `${state.selectedZipDirName}/${circuitMap.sourceDir}`, paramMap);
+        } else if (state.currentCircuitFromQrScan) {
+            // Circuit scanned with a QR code
+            await state.simplifierAPI.initStepSolver(circuitMap.circuitFile, "/home/pyodide/" , paramMap);
+        } else {
+            // "Normal" circuits
+            await state.simplifierAPI.initStepSolver(circuitMap.circuitFile, `${conf.pyodideCircuitPath}/${circuitMap.sourceDir}`, paramMap);
+        }
+
+        // Check if generalize is possible
+        if (state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.res ||
+            state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.cap ||
+            state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.ind ||
+            state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.mixedId ||
+            state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.simplifier) {
+
+            if (state.currentCircuitFromUserZip) {
+                netlist = await state.pyodideAPI.readFile(conf.userCircuitsPath + `${state.selectedZipDirName}/${circuitMap.sourceDir}/${circuitMap.circuitFile}`);
+            } else if (state.currentCircuitFromQrScan) {
+                netlist = await state.pyodideAPI.readFile(`/home/pyodide/${circuitMap.circuitFile}`);
+            } else {
+                netlist = await state.pyodideAPI.readFile(`${conf.pyodideCircuitPath}/${circuitMap.sourceDir}/${circuitMap.circuitFile}`);
+            }
+            // Check netlist comments
+            let [optionsStr, cleanedNetlist] = extractCommentsAndNetlist(netlist);
+            if (optionsStr.includes("--generalize-true")) {
+                generalizeActive = true;
+            } else if (optionsStr.includes("--generalize-false")) {
+                generalizeActive = false;
+            } else if (optionsStr.includes("--generalize")) {
+                generalizeActive = true; // Generalize without parameter means active
+            }
+            // Check if wires inside netlist, check if any line starts with "W"
+            if (cleanedNetlist.split("\n").some(line => line.startsWith("W"))) {
+                // There is at least one wire
+                netlistContainsWires = true;
+            }
+        }
 
         let obj = await state.simplifierAPI.createStep0();
         obj.__proto__ = Step0Object.prototype;
@@ -81,7 +129,8 @@ async function createAndShowStep0(circuitMap) {
         state.allValuesMap.set(`${languageManager.currentLang.voltageSymbol}${languageManager.currentLang.totalSuffix}`, getSourceVoltageVal());
         state.allValuesMap.set(`I${languageManager.currentLang.totalSuffix}`, getSourceCurrentVal());
         hideSpinnerLoadingCircuit();
-        nextSimplifierStep(state.step0Data);
+
+        nextSimplifierStep(state.step0Data, generalizeActive, netlistContainsWires);
     } catch (error) {
         console.error("Error creating step 0: " + error);
         showMessage(error, "error", false);
@@ -162,5 +211,20 @@ function colorArrowsColorful(svgDiv) {
             label.style.fill = colors.currentRed;
             label.style.opacity = "0.8";
         }
+    }
+}
+
+async function highlightHelpButton() {
+    let helpBtn = document.getElementById("open-info-gif-btn");
+    if (helpBtn) {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        helpBtn.style.transition = "background 0.5s, color 0.5s";
+        helpBtn.style.background = colors.keyYellow;
+        helpBtn.style.color = colors.bootstrapDark;
+
+        setTimeout(() => {
+            helpBtn.style.background = "none";
+            helpBtn.style.color = colors.keyYellow;
+        }, 500);
     }
 }

@@ -2,21 +2,22 @@ window.kirchhoffEnTexts = {
     kirchVInfoGifHeading:
         "Explanation Voltage loops",
     kirchVInfoGifText:
-        "Click on the labels of the voltage arrows to select a voltage loop." +
-        "When you are finished, click on check to check the loop." +
-        "If you have found all voltage loops, click on 'Junction law' to check the junction law." +
+        "Click on the labels of the voltage arrows to select a voltage loop. " +
+        "The direction of the loop is determined by the order of the selected elements. " +
+        "When you are finished, click on 'check' to check the loop. " +
+        "If you have found all voltage loops, click on 'Junction law' to check the junction law. " +
         "(If you have found enough voltage loops, you don't need to find any junction equations)",
     kirchIInfoGifHeading:
         "Explanation Current junctions",
     kirchIInfoGifText:
-        "Click on the labels of the current arrows to select a junction." +
-        "When you are finished, click on check to check the junction." +
-        "Then select the correct equation." +
+        "Click on the labels of the current arrows to select a junction. " +
+        "When you are finished, click on check to check the junction. " +
+        "Then select the correct equation. " +
         "When you are finished, click on 'Finish' to check if you have found enough equations.",
     kirchhoffVoltageHeading:
-        "Voltage loops",
+        "Voltage equations",
     kirchhoffCurrentHeading:
-        "Junctions",
+        "Current equations",
     missingEquations:
         "All found equations:",
     chooseCorrectEquation:

@@ -13,20 +13,9 @@ window.landingDeTexts = {
     keyFeature3heading:
         "Vielfalt",
     keyFeature3:
-        "Du kannst nicht nur Widerst&aumlnde nutzen, sondern auch Kondensatoren und Spulen",
+        "Neben Schaltkreisvereinfachung kannst du auch Kirchhoff und Wheatstone lernen",
     landingPageExplanation1:
-        "Es gibt vorhandene Schaltungen die benutzt werden k&oumlnnen. " +
-        "Du kannst verschiedene elektrische Komponenten vereinfachen, z.B. " +
-        "Widerst&aumlnde, Kondensatoren oder Spulen. " +
-        "Schwierigere Netze kombinieren die verschiedenen Elemente. " +
-        "Es kann f&uumlr jeden Schritt die Rechnung angezeigt werden, " +
-        "sowohl f&uumlr den Gesamtwiderstand, als auch f&uumlr Spannungen und Str&oumlme.",
-    landingPageExplanation2:
-        "Beim Durchklicken durch die Schritte kannst du sehen wie die Werte zusammengefasst werden. Nachdem die " +
-        "Schaltung vereinfacht ist kannst du außerdem sehen wie die Spannungen und Str&oumlme berechnet werden.",
-    landingPageExplanation3:
-        "Auf der Homepage, dem Cheat Sheet und der Auswahlseite kannst du außerdem deine bevorzugte Sprache einstellen, " +
-        "sowie den passenden Ansichtsmodus w&aumlhlen. W&aumlhrend du Schaltungen vereinfachst sind diese Einstellungen " +
-        "nicht ver&aumlnderbar.",
+        "simplipfy wurde für eine Nutzung am Smartphone und Tablet optimiert, kann aber auch auf dem Desktop " +
+        "genutzt werden. Neben vorgegeben Schaltungen kannst du auch eigene Kreise erstellen und hochladen.",
 
 }

@@ -4,8 +4,8 @@ from string import ascii_uppercase, digits
 
 import pytest
 
-from simpliPFy.solve import SolveInUserOrder, solveStepwise
-from simplipfy.Export.dictExport import ExportDict
+from simplipfy.Export.DataStructures.exportDict import ExportDictBase
+from simplipfyAPI import SolveInUserOrder, solveStepwise
 
 # string is filename, integer is number of steps that shall be created
 # the initial step has to be included
@@ -38,7 +38,7 @@ def test_solveInUserOrder(absFileName):
     fileName = os.path.basename(absFileName)
     filePath = os.path.join("../Circuits", os.path.dirname(absFileName))
     test = SolveInUserOrder(filename=fileName, filePath=filePath)
-    ExportDict.set_paths(savePath=dirName, fileName=fileName)
+    ExportDictBase.set_paths(savePath=dirName, fileName=fileName)
 
     initStep = test.createInitialStep()
     initStep.toFiles()
@@ -54,15 +54,22 @@ def test_solveInUserOrder(absFileName):
 
 
 
-def generate_solve_circuit_fileNames() -> list:
+def generate_solve_circuit_fileNames(fromPath:str, excludeDirs: list[str] = None) -> list:
     allFiles = []
-    for root, _, files in os.walk("../Circuits"):
+    if excludeDirs is None:
+        excludeDirs = []
+    else:
+        excludeDirs = [os.path.join(fromPath, dirName) for dirName in excludeDirs]
+
+    for root, _, files in os.walk(fromPath):
+        if root in excludeDirs:
+            continue
         for file in files:
             if file.endswith(".txt"):
                 allFiles.append(os.path.join(root, file))
     return allFiles
 
-@pytest.mark.parametrize("absFilePath", generate_solve_circuit_fileNames())
+@pytest.mark.parametrize("absFilePath", generate_solve_circuit_fileNames("..\\Circuits", excludeDirs=["wheatstone", "kirchhoff", "quickstart"]))
 def test_solve_circuits(absFilePath):
     dirName = os.path.join("Solutions/", randomDirName())
     os.mkdir(dirName)

@@ -17,5 +17,10 @@ window.dataLegalAboutEnTexts = {
         "<li><a href='https://github.com/prof-sky/lcapy/tree/lcapy-inskale'>Lcapy (adapted)</a> [LGPL-2.1 license]</li>" +
         "<li><a href='https://github.com/prof-sky/simplipfy/tree/main/Schemdraw'>SchemDraw (adapted)</a> [MIT license]</li>" +
         "<li><a href='https://github.com/pyodide/pyodide'>Pyodide</a> [MPL-2.0 license]</li>" +
+        "<li><a href='https://github.com/codemirror/dev/'>CodeMirror</a> [MIT license]</li>" +
+        "<li><a href='https://github.com/davidshimjs/qrcodejs'>QRCode.js</a> [MIT license]</li>" +
+        "<li><a href='https://github.com/mebjas/html5-qrcode'>Html5-QRCode</a> [Apache-2.0 license]</li>" +
+        "<li><a href='https://github.com/catdad/canvas-confetti'>Canvas Confetti</a> [ISC license]</li>" +
+        "<li><a href='https://github.com/veltman/flubber'>Flubber</a> [MIT license]</li>" +
         "</ul>"
 }

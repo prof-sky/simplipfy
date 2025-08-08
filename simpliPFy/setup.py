@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 from setuptools import find_packages, setup
 
-__version__ = '0.1.dev3'
+from simplipfy.__version__ import __version__
 
 long_description = "Backend for interactive learning environment for electrical engineering hosted at simplipfy.org"
-
-tests_require = ['pytest']
 
 
 setup(name='simpliPFy',
@@ -17,11 +15,12 @@ setup(name='simpliPFy',
       long_description_content_type="text/markdown",
       url='https://github.com/prof-sky/simplipfy/tree/main/simpliPFy',
       download_url='https://github.com/prof-sky/simplipfy/tree/main/simpliPFy',
-      install_requires=['lcapyInskale', 'schemdrawInskale'],
+      install_requires=['lcapyInskale', 'schemdrawInskale', 'generalizeNetlistDrawing'],
       python_requires='>=3.7',  # >=3.6 should still work but not tested
       extras_require={
-          'test': tests_require,
-          'release': ['wheel', 'twine'],
+          'test': ['pytest'],
+          'release': ['wheel', 'build', 'setuptools'],
+          'docs': ['sphinx', 'sphinx_rtd_theme'],
       },
       license='LGPL-2.1-or-later',
       packages=find_packages(exclude=['demo']),
@@ -29,5 +28,5 @@ setup(name='simpliPFy',
       classifiers=[
           "Programming Language :: Python :: 3",
           "Operating System :: OS Independent",
-      ],
+      ]
       )

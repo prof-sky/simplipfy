@@ -1,3 +1,5 @@
-R1, R2, R3
+R2, R3
+R1, Rs1
 R4, R5
-Rs1, Rs2, R6
+Rs3, R6
+Rs2, Rs4

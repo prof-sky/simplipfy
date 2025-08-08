@@ -1,42 +1,91 @@
 image: inskale
 
+.git_config: &git_config
+  - git config --global user.email "yannick.wieland@hs-pforzheim.de"
+  - git config --global user.name "gitlab-ci-runner"
+
+.install_packages: &install_packages
+  - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy*' | head -n 1)
+  - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw*' | head -n 1)
+  - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy*' | head -n 1)
+  - genDrawPkgName=$(ls Pyodide/Packages | grep 'generalizenetlistdrawing*' | head -n 1)
+  - "echo \"lcapyPkgName: $lcapyPkgName\""
+  - "echo \"schemdrawPkgName: $schemdrawPkgName\""
+  - "echo \"simplipfyPkgName: $simplipfyPkgName\""
+  - "echo \"genDrawPkgName: $genDrawPkgName\""
+  - pip3 install Pyodide/Packages/$lcapyPkgName
+  - pip3 install Pyodide/Packages/$schemdrawPkgName
+  - pip3 install Pyodide/Packages/$genDrawPkgName
+  - pip3 install Pyodide/Packages/$simplipfyPkgName
+
+.release_cli: &release_cli
+  - apk add --no-cache curl
+  - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/api/v4/projects/gitlab-org%2Frelease-cli/packages/generic/release-cli/latest/release-cli-linux-amd64"
+  - chmod +x /usr/local/bin/release-cli
+  - release-cli -v
+
+.make_scripts_executable: &make_scripts_executable
+  - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
+  - chmod +x ./Pyodide/Scripts/clearFTPServerDev.sh
+  - chmod +x ./Pyodide/Scripts/copyFiles.sh
+  - chmod +x ./Pyodide/Scripts/createDevRedirectIndex.sh
+  - chmod +x ./Pyodide/Scripts/createRedirectIndex.sh
+  - chmod +x ./Pyodide/Scripts/updateSecretOnServer.sh
+
+.echo_branch_and_commitMsg: &echo_branch_and_commitMsg
+  - commitMsg=$(git log -1 --pretty=%B)
+  - echo "On branch - $CI_COMMIT_BRANCH commit - $commitMsg"
+
+.generate_svg_files: &generate_svg_files
+  - cd $CI_PROJECT_DIR
+  - cd ./Pyodide
+  - python3 ./Scripts/generateSVGFiles.py -path Circuits
+  - rm -rf __pycache__
+  - zip -r Circuits Circuits && rm -r Circuits/
+
+.navigate_into_pyodide: &navigate_into_pyodide
+  - cd $CI_PROJECT_DIR
+  - cd ./Pyodide
+
 stages:
+  - pre_check
   - deploy
+
+# check if pipelines are blocked. Blocked pipelines get an extra with && $EXEC_PIPELINES in their condition.
+# some pipeliens always run so the script should not exit here.
+check_pipeline_blocked:
+  stage: pre_check
+  script:
+    - |
+      if [ "$EXEC_PIPELINES" != "true" ]; then
+        echo "⚠️  Pipeline execution blocked in GitLab. Set EXEC_PIPELINES=true to enable."
+        exit 0
+      fi
+  rules:
+    - when: always
 
 deploy-develop:
   stage: deploy
 
   before_script:
-    - git config --global user.email "yannick.wieland@hs-pforzheim.de"
-    - git config --global user.name "Automated Develop Deployment"
-    - chmod +x ./Pyodide/Scripts/clearFTPServerDev.sh
-    - chmod +x ./Pyodide/Scripts/createDevRedirectIndex.sh
-    - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy*' | head -n 1)
-    - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw*' | head -n 1)
-    - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy*' | head -n 1)
-    - pip3 install Pyodide/Packages/$lcapyPkgName
-    - pip3 install Pyodide/Packages/$schemdrawPkgName
-    - pip3 install Pyodide/Packages/$simplipfyPkgName
-    - apk add --no-cache curl
-    - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/api/v4/projects/gitlab-org%2Frelease-cli/packages/generic/release-cli/latest/release-cli-linux-amd64"
-    - chmod +x /usr/local/bin/release-cli
-    - release-cli -v
+    - *git_config
+    - *make_scripts_executable
+    - *install_packages
+    - *release_cli
 
   script:
-    - commitMsg=$(git log -1 --pretty=%B)
-    - echo "On branch - $CI_COMMIT_BRANCH commit - $commitMsg"
+    - *echo_branch_and_commitMsg
     - ls -la  # List files from the tag's commit
     - ./Pyodide/Scripts/clearFTPServerDev.sh
     - cp ./Pyodide/Scripts/UpdateInProgress.html ./index.html
     - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER_DEV ./index.html
     - ./Pyodide/Scripts/createDevRedirectIndex.sh
-    - cd Pyodide/
+    - *navigate_into_pyodide
+    - ./Scripts/updateSecretOnServer.sh
     - ls -a
-    # generate svg files for circuit selector
-    - python3 Scripts/generateSVGFiles.py
-    - rm -rf __pycache__
-    - zip -r Circuits Circuits && rm -r Circuits/
+    - *generate_svg_files
     # remove files that should not be on simplipfy.org
+    - *navigate_into_pyodide
     - rm -rf .idea/
     - rm -rf .gitignore
     - rm -rf GzipSimplePythonHttpServer.py
@@ -50,35 +99,27 @@ deploy-develop:
   rules:
     - if: '$CI_COMMIT_TAG'
       when: never
-    - when: always
+    - if: '$EXEC_PIPELINES == "true"'
+      when: always
+    - when: never
 
 
 deploy-profSky:
   stage: deploy
 
   before_script:
-  - git config --global user.email "yannick.wieland@hs-pforzheim.de"
-  - git config --global user.name "Automated Release Deployment"
-  - chmod +x ./Pyodide/Scripts/copyFiles.sh
-  - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy*' | head -n 1)
-  - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw*' | head -n 1)
-  - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy*' | head -n 1)
-  - pip3 install Pyodide/Packages/$lcapyPkgName
-  - pip3 install Pyodide/Packages/$schemdrawPkgName
-  - pip3 install Pyodide/Packages/$simplipfyPkgName
+  - *git_config
+  - *make_scripts_executable
+  - *install_packages
 
   script:
-    - echo $CI_COMMIT_SHA
-    - commitMsg=$(git log -1 --pretty=%B)
-    - echo $commitMsg
+    - *echo_branch_and_commitMsg
+    - echo "Commit SHA - $CI_COMMIT_SHA"
     - git rev-parse HEAD
     # generate svg files for circuit selector
-    - cd Pyodide
-    - python3 ./Scripts/generateSVGFiles.py
-    - rm -rf __pycache__
-    - zip -r Circuits Circuits
-    - cd ..
+    - *generate_svg_files
     # upload to github of prof-sky asdf
+    - cd $CI_PROJECT_DIR
     - sed -i /setSiteId/s/'2'/'3'/ ./Pyodide/src/scripts/utils/matomoHelper.js
     - git submodule update --init --recursive
     - cd lcapy-inskale
@@ -102,7 +143,9 @@ deploy-profSky:
 
 
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" && $EXEC_PIPELINES == "true"'
+      when: always
+    - when: never
 
 
 deploy-release:
@@ -111,22 +154,13 @@ deploy-release:
     - if: "$CI_COMMIT_TAG"
 
   before_script:
+    - *git_config
+    - *make_scripts_executable
+    - *install_packages
+    - *release_cli
     - export FTP_SERVER_FULL_PATH="ftp://${FTP_SERVER}${FTP_FOLDER}"
     - export versionPath=$FTP_SERVER$FTP_FOLDER/$CI_COMMIT_TAG
-    - git config --global user.email "yannick.wieland@hs-pforzheim.de"
-    - git config --global user.name "Automated Release Deployment"
-    - chmod +x ./Pyodide/Scripts/createRedirectIndex.sh
-    - lcapyPkgName=$(ls Pyodide/Packages | grep 'lcapy*' | head -n 1)
-    - schemdrawPkgName=$(ls Pyodide/Packages | grep 'schemdraw*' | head -n 1)
-    - simplipfyPkgName=$(ls Pyodide/Packages | grep 'simplipfy*' | head -n 1)
-    - pip3 install Pyodide/Packages/$lcapyPkgName
-    - pip3 install Pyodide/Packages/$schemdrawPkgName
-    - pip3 install Pyodide/Packages/$simplipfyPkgName
     - apk add uglify-js
-    - apk add --no-cache curl
-    - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/api/v4/projects/gitlab-org%2Frelease-cli/packages/generic/release-cli/latest/release-cli-linux-amd64"
-    - chmod +x /usr/local/bin/release-cli
-    - release-cli -v
 
   script:
     - versionPath=$FTP_SERVER$FTP_FOLDER/$CI_COMMIT_TAG
@@ -137,11 +171,11 @@ deploy-release:
     - ./Pyodide/Scripts/createRedirectIndex.sh
     - cd Pyodide/
     - ls -a
+    - ./Scripts/updateSecretOnServer.sh
     # generate svg files for circuit selector
-    - python3 Scripts/generateSVGFiles.py
-    - rm -rf __pycache__
-    - zip -r Circuits Circuits && rm -r Circuits/
+    - *generate_svg_files
     # remove files that should not be on simplipfy.org
+    - *navigate_into_pyodide
     - rm -rf .idea/
     - rm -rf .gitignore
     - rm -rf GzipSimplePythonHttpServer.py

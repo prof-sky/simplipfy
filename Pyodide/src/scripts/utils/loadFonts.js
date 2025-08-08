@@ -2,7 +2,8 @@
 This file is used to load the MathJax fonts into the document.
 With this, when the font is used in the document, it will be already loaded.
 */
-
+/*
+TODO: loading before solving circuit to make displaying functions faster -> Necessary with MathJax 4.0?? no fonts available in beta
 const fontFile = new FontFace(
     "MathJax_Zero",
     "url(./src/scripts/extern/mathjax/es5/output/chtml/fonts/woff-v2/MathJax_Zero.woff) format('woff')",
@@ -25,3 +26,4 @@ document.fonts.add(fontFile3);
 fontFile.load();
 fontFile2.load();
 fontFile3.load();
+*/

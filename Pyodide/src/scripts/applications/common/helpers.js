@@ -17,6 +17,12 @@ function disableStartBtnAndSimplifierLink() {
     document.getElementById("start-button").style.animation = "";
 }
 
+/**
+ * Get all elements (V1, R1, C2, L3, Z4, ...) from the SVG container
+ * These elements will get an event listener to be clickable
+ * @param svgContainer
+ * @returns {unknown[]}
+ */
 function getElementsFromSvgContainer(svgContainer) {
     const pathElements = svgContainer.querySelectorAll('path');
     return Array.from(pathElements).filter(path =>
@@ -91,9 +97,9 @@ function getClassAndEmoji(prio) {
     return {bootstrapAlert, emoji};
 }
 
-function createAlert(bootstrapAlert) {
+function createAlert(bootstrapAlert, id = "alert-msg") {
     const msg = document.createElement('div');
-    msg.id = "alert-msg";
+    msg.id = id;
     msg.classList.add("alert", `alert-${bootstrapAlert}`);
     msg.style.position = "fixed";
     msg.style.zIndex = "2000";
@@ -114,10 +120,10 @@ function removeMsgHandler() {
     }
 }
 
-function showMessage(message, prio = "warning", autoHide = true) {
+function showMessage(message, prio = "warning", autoHide = true, id = "alert-msg") {
     let body = document.getElementsByTagName("body")[0];
     let {bootstrapAlert, emoji} = getClassAndEmoji(prio);
-    let msg = createAlert(bootstrapAlert);
+    let msg = createAlert(bootstrapAlert, id);
 
     if (emoji !== "") {
         let emojiSpan = document.createElement('span');
@@ -133,6 +139,7 @@ function showMessage(message, prio = "warning", autoHide = true) {
     } else {
         msgSpan.innerHTML = message;
     }
+    msgSpan.style.whiteSpace = "pre-line";
     msg.appendChild(msgSpan);
     body.appendChild(msg);
 
@@ -162,13 +169,19 @@ function setPgrBarTo(percent) {
     progressBar.style.width = `${percent}%`;
 }
 
-function clearSimplifierPageContent() {
+function clearSimplifierPageContainer() {
     const contentCol = document.getElementById("content-col");
     contentCol.innerHTML = '';
 
+    const landingPage = document.getElementById("landing-page-container");
     const simplifierPage = document.getElementById("simplifier-page-container");
+    const uploadPage = document.getElementById("upload-page-container");
     const selectorPage = document.getElementById("select-page-container");
+    const toolPage = document.getElementById("tool-page-container");
+    landingPage.classList.remove("slide-in-right");
     simplifierPage.classList.remove("slide-in-right");
+    uploadPage.classList.remove("slide-in-right");
+    toolPage.classList.remove("slide-in-right");
     selectorPage.classList.remove("slide-out-left");
     selectorPage.style.opacity = "1";
 }
@@ -182,7 +195,7 @@ async function clearSolutionsDir() {
         try {
             //An array of file names representing the solution files in the Solutions directory.
             //let solutionFiles = await state.pyodide.FS.readdir(`${conf.pyodideSolutionsPath}`);
-            let solutionFiles = await state.pyodideAPI.readDir(conf.pyodideSolutionsPath);
+            let [status, solutionFiles] = await state.pyodideAPI.readDir(conf.pyodideSolutionsPath);
             solutionFiles.forEach(file => {
                 if (file !== "." && file !== "..") {
                     worker.postMessage({action: "unlink", data: {path: `${conf.pyodideSolutionsPath}/${file}`}});
@@ -236,17 +249,22 @@ function checkIfSimplifierPageNeedsReset() {
         resetKirchhoffPage();
 
         // Hide dropdown and lives if gamification is enabled
-        let dropdown = document.getElementById("selector-dropdown");
-        dropdown.hidden = true;
         /*if (state.gamification) {
             removeLivesAndShowLogo();
             state.extraLiveUsed = false;
         }*/
         resetExtraLiveModal();
-        let msg = document.getElementById("alert-msg");
-        if (msg !== null) {
-            msg.remove();
-        }
+        document.getElementById("alert-msg")?.remove();
+    }
+    if (state.gamification) {
+        stopSpeedModeTimer();
+        let speedModeBar = document.getElementById("speedModeBar");
+        speedModeBar?.remove();
+    }
+    if (state.sessionId) {
+        sendEventToDB(circuitActions.Closing);
+        // Reset session ID, finished with circuit
+        state.sessionId = null;
     }
 
 }
@@ -283,13 +301,30 @@ function setLanguageAndScheme() {
     if (!prefersDark) {
         changeToLightMode();
         darkModeSwitch.checked = false;
+    } else {
+        changeToDarkMode(); // This is set by default, but it's a good idea for testing purposes to do it anyway
     }
 
-    var userLang = navigator.language;
-    if (userLang === "de-DE" || userLang === "de-AT" || userLang === "de-CH" || userLang === "de") {
-        languageManager.currentLang = german;
+    // Check if a language is cached
+    const cachedLang = localStorage.getItem("language");
+    if (cachedLang === null) {
+        // Use browser language
+        var userLang = navigator.language;
+        if (userLang === "de-DE" || userLang === "de-AT" || userLang === "de-CH" || userLang === "de") {
+            languageManager.currentLang = german;
+        } else {
+            languageManager.currentLang = english;
+        }
     } else {
-        languageManager.currentLang = english;
+        // Use cached language
+        if (cachedLang === germanShortSymbol) {
+            languageManager.currentLang = german;
+        } else if (cachedLang === frenchShortSymbol) {
+            languageManager.currentLang = french;
+        } else {
+            console.warn("Cached language not recognized, using default (English)");
+            languageManager.currentLang = english;
+        }
     }
 }
 
@@ -313,16 +348,17 @@ function setBodyPaddingForFixedTopNavbar() {
     body.style.paddingTop = height + "px";
 }
 
+// TODO, currently only the first source is used!
 function getSourceVoltageVal() {
-    return state.step0Data.source.sources.U.val;
+    return state.step0Data.sources[0].U.val;
 }
 
 function getSourceCurrentVal() {
-    return state.step0Data.source.sources.I.val;
+    return state.step0Data.sources[0].I.val;
 }
 
 function getSourceFrequency() {
-    return state.step0Data.source.frequency;
+    return state.step0Data.sources[0].frequency;
 }
 
 function sourceIsAC() {
@@ -358,7 +394,34 @@ function finishStartBtns() {
         if (stripeOverlay) {
             stripeOverlay.remove();
         }
+        // For upload button and scanned start btn
+        if (btn.classList.contains("disabled")) {
+            btn.classList.remove("disabled");
+        }
     }
+}
+
+function enableNetlistEditor() {
+    // Netlist progress bar
+    let div = document.getElementById("drawing-field-div");
+    if (div) {
+        div.innerHTML = languageManager.currentLang.startTyping; // Replace pgr bar with text
+    }
+    let editor = document.getElementsByClassName("CodeMirror")[0];
+    if (editor) {
+        editor.style.backgroundColor = "white";
+        editor.CodeMirror.setOption("readOnly", false);
+    }
+    // Enable checkboxes
+    let checkboxes = document.querySelectorAll(".form-check-input.netlist-comment");
+    checkboxes.forEach(checkbox => {
+        checkbox.disabled = false;
+    });
+}
+
+function enableBlockedStuff() {
+    finishStartBtns(); // including all progress bars for pyodide
+    enableNetlistEditor();
 }
 
 function showSpinnerLoadingCircuit() {
@@ -412,4 +475,213 @@ function createNextCircuitButton() {
         }
     });
     return nextCircuitBtn;
+}
+
+// Old, remove if surely not needed anymore
+function checkDownloadLinkAndShowNote() {
+    let downloadLink = window.location.hash.substring(1); // remove #
+
+    if (downloadLink !== "" && downloadLink !== undefined) {
+        if (!isValidLink(downloadLink)) {
+            setTimeout(() => {
+                showMessage(languageManager.currentLang.alertNoValidLinkCheck, "info", false);
+            });
+            return;
+        }
+        setTimeout(() => {
+            // Show download note, _blank target for new tab
+            showMessage(`<h3>Download zip</h3><br><p class="mb-0" style="word-wrap: break-word">${languageManager.currentLang.downloadInfoMsg}(${downloadLink})</p>
+            <div class='container d-flex justify-content-center' style="gap: 15px;">
+                <btn class='btn btn-secondary' id='noDownload' style='color:white'>${languageManager.currentLang.no}</btn>
+                <a class='btn btn-warning' id='download' style='color:#222' href='${downloadLink}' target='_blank'>${languageManager.currentLang.yes}</a>
+            </div>`, "info", false, "download-note");
+
+            // Yes clicked, remove note, set isLinkedZip to true, show upload page
+            document.getElementById("download").addEventListener("click", () => {
+                document.getElementById("download-note")?.remove();
+                state.isLinkedZip = true;
+                setTimeout(() => {
+                    pageManager.showUploadPage()
+                }, 1000);
+                // Let landing page start button link to upload page instead of selector page
+                let startBtn = document.getElementById("start-button");
+                startBtn.addEventListener("click", async () => {
+                    pageManager.showUploadPage();
+                });
+            });
+            // No clicked, remove note, set isLinkedZip to false
+            document.getElementById("noDownload").addEventListener("click", () => {
+                document.getElementById("download-note")?.remove();
+                state.isLinkedZip = false;
+            });
+
+            // Remove hash from url
+            history.replaceState(null, null, window.location.pathname + window.location.search);
+        });
+    }
+}
+
+function createParamMap() {
+    let paramMap = new Map();
+    paramMap.set("volt", languageManager.currentLang.voltageSymbol);
+    paramMap.set("total", languageManager.currentLang.totalSuffix);
+    return paramMap;
+}
+
+function dataURLtoBlob(dataurl) {
+    let arr = dataurl.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]),
+        n = bstr.length,
+        u8arr = new Uint8Array(n);
+    while(n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], {type:mime});
+}
+
+function isValidLink(str) {
+    let pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+        '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+    return !!pattern.test(str);
+}
+
+async function parseHashAndStartCircuit(hash) {
+    // hash is something like #sel=selector&net=......
+    const cleanHash = hash.startsWith("#") ? hash.slice(1) : hash;
+    const params = new URLSearchParams(cleanHash);
+    const sessionId = params.get("id") || null;
+    const selector = params.get("sel") || null;
+    const compressed = params.get("net") || null;
+
+    if (sessionId) {
+        console.log("Found session ID: " + sessionId);
+        state.sessionId = sessionId;
+        sendEventToDB(`Scanned QR Code with session ID: ${sessionId}`);
+    }
+
+    if (selector === null || compressed === null) {
+        console.error("No selector or netlist found in hash");
+        showMessage(languageManager.currentLang.selOrNetNull, "error", false);
+        return;
+    }
+
+    // Remove hash
+    history.replaceState(null, null, window.location.pathname + window.location.search);
+
+    // Decompress netlist
+    const netlist = LZString.decompressFromEncodedURIComponent(compressed);
+
+    setTimeout(() => {showMessage(languageManager.currentLang.QRloadingNote,
+        "info", false, "waiting-note-backend")}, 1000);
+
+    // Show loading page, add pyodide progress bar
+    clearSimplifierPageContainer();
+    let contentCol = document.getElementById("content-col");
+    contentCol.innerHTML =
+        `<div class="circuitStartBtn mx-auto" style="height: 10px;">
+            <div class="fill-layer"></div>
+            <div class="progress-stripes"></div>
+        </div>`;
+    pageManager.showSimplifierPage();
+
+    // Disable burger navigation
+    let btn = document.getElementById("nav-toggler");
+    if (btn) {
+        btn.disabled = true;
+    }
+    // Remove event listener from logo by cloning it
+    let logo = document.getElementById("nav-logo");
+    if (logo) {
+        let newLogo = logo.cloneNode(true);
+        logo.parentNode.replaceChild(newLogo, logo);
+        logo = newLogo; // Update logo variable to the new logo
+    }
+
+    // Wait for pyodide to be ready before continuing
+    while (!state.pyodideReady) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    // Close Message
+    let msg = document.getElementById("waiting-note-backend");
+    if (msg) {
+        msg.remove();
+    }
+
+    // write fileContent to a default file in pyodide
+    let defaultFileName = "scannedNetlist.txt";
+    await state.pyodideAPI.writeFile(`/home/pyodide/${defaultFileName}`, netlist);
+    state.currentCircuitMap = {
+        circuitDivID: `scanned-circuit-div`,
+        btn: `scanned-circuit-btn`,
+        btnOverlay: `scanned-circuit-overlay`,
+        circuitFile: defaultFileName,
+        sourceDir: "",
+        svgFile: "",
+        selectorGroup: "",
+        overViewSvgFile: "",
+        voltage: "",
+        frequency: ""
+    };
+
+    if (selector === simplifierQRSelector) {
+        state.currentCircuitMap.selectorGroup = circuitMapper.selectorIds.simplifier;
+    } else if (selector === kirchhoffQRSelector) {
+        state.currentCircuitMap.selectorGroup = circuitMapper.selectorIds.kirchhoff;
+    } else {
+        console.error("Unknown selector: " + selector);
+    }
+
+    await selectorBuilder.circuitSelectorStartButtonPressed(state.currentCircuitMap, true);
+    // Enable burger navigation again
+    btn.disabled = false;
+    // Add event listener to logo again
+    logo.addEventListener("click", () => {
+        checkIfSimplifierPageNeedsReset();
+        closeNavbar();
+        pageManager.showLandingPage();
+    })
+}
+
+function saveFinishedCircuitAndUpdateSelectorCounters() {
+    let identifier = state.currentCircuitMap.selectorGroup;
+
+    // Handling wheatstone options
+    if (state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.wheatstone) {
+        // Add option to storage doneCircuits-wheat
+        // Option name = option_{state.currentOption}
+        let doneCircuits = JSON.parse(localStorage.getItem(`doneCircuits-${identifier}`)) || [];
+        let optionName = `option_${state.currentOption}`;
+        if (doneCircuits.includes(optionName)) {
+            return; // already finished once
+        }
+        doneCircuits.push(optionName);
+        localStorage.setItem(`doneCircuits-${identifier}`, JSON.stringify(doneCircuits));
+    } else {
+        // Rest of selector groups if not quickstart
+        if (state.currentCircuitMap.selectorGroup !== circuitMapper.selectorIds.quick) {
+            // Add circuitfilename to storage doneCircuits-identifier
+            let doneCircuits = JSON.parse(localStorage.getItem(`doneCircuits-${identifier}`)) || [];
+            if (doneCircuits.includes(state.currentCircuitMap.circuitFile)) {
+                return; // already finished once
+            }
+            doneCircuits.push(state.currentCircuitMap.circuitFile);
+            localStorage.setItem(`doneCircuits-${identifier}`, JSON.stringify(doneCircuits));
+        }
+    }
+    selectorBuilder.updateSelectorCounters();
+}
+
+function printHello() {
+    console.log(`
+             ____ ___ __  __ ____  _     ___ ____  _______   __
+            / ___|_ _|  \\/  |  _ \\| |   |_ _|  _ \\|  ___\\ \\ / /
+            \\___ \\| || |\\/| | |_) | |    | || |_) | |_   \\ V / 
+             ___) | || |  | |  __/| |___ | ||  __/|  _|   | |  
+            |____/___|_|  |_|_|   |_____|___|_|   |_|     |_|  `);
 }

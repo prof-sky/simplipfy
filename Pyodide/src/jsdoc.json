@@ -1,0 +1,9 @@
+{
+  "source": {
+    "include": ["scripts", "./readme.md"]
+  },
+  "opts": {
+    "destination": "./docs",
+    "tutorials": "./tutorials"
+  }
+}

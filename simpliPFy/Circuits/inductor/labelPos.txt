@@ -1,0 +1,10 @@
+V1 1 0 dc 10; down
+L6 1 2; right
+L1 2 3; right
+L2 3 5; down
+L3 5 4; left
+L4 4 2; up
+W 4 0; left
+W 3 6; right
+L5 6 7; down
+W 7 5; left

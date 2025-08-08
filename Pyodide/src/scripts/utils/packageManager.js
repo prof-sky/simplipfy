@@ -28,8 +28,7 @@ class PackageManager {
             state.loadingProgress = 100;
             updateStartBtnLoadingPgr(state.loadingProgress);
             state.pyodideReady = true;
-            finishStartBtns();
-            this.enableDropdownOptions();
+            enableBlockedStuff();
             selectorBuilder.enableStartBtns();
 
             let endTime = new Date().getTime();
@@ -44,17 +43,6 @@ class PackageManager {
         }
     }
 
-    enableDropdownOptions() {
-        // Enable dropdown options which need pyodide to be loaded
-        let dropdownMenu = document.getElementById("selector-dropdown");
-        let menu = dropdownMenu.querySelector(".dropdown-menu");
-        let items = menu.querySelectorAll(".dropdown-item");
-        items.forEach(item => {
-            item.style.cursor = "pointer";
-            item.style.color = colors.currentForeground;
-        });
-    }
-
     async importPyodidePackages() {
         // Idea for loading packages:
         // - use unpackArchive instead of loadPackage to reduce overhead on loading
@@ -67,6 +55,7 @@ class PackageManager {
         let content = await (await fetch(conf.sourceSolvePath)).text();
         await state.pyodideAPI.writeFile(conf.pyodideSolvePath, content);
         await state.pyodideAPI.loadSolver();
+        state.solverLoaded = true;
     }
 
     async import_packages() {

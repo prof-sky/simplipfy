@@ -17,4 +17,6 @@ window.cheatsheetEnTexts = {
         "SUBSTITUTION FORMULAS",
     resReaTableHeading:
         "COMPLEX IMPEDANCE",
+    wheatstoneFormulaHeading:
+        "WHEATSTONE BRIDGE"
 }

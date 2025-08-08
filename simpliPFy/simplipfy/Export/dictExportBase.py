@@ -1,66 +1,36 @@
-import os
-from json import dump as jdump
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
-import sympy
-from sympy import Float
-from sympy import Mul
-from sympy import simplify
+from sympy import Float, Mul, simplify
 from sympy.printing import latex
 
 from lcapyInskale import Expr
-from lcapyInskale.componentRelation import ComponentRelation
-from simplipfy.langSymbols import LangSymbols
-from simplipfy.unitPrefixer import SIUnitPrefixer
+from simplipfy.Helpers.unitPrefixer import SIUnitPrefixer
 
-
-class ExportDict(dict):
-    save_path = None
-    file_name = None
-
-    @classmethod
-    def set_paths(cls, savePath, fileName):
-        cls.save_path = savePath
-        cls.file_name = fileName
-
-    def toFiles(self, savePath=None, fileName=None) -> tuple[bool, str, str]:
-        if not self["step"] or not self["svgData"]:
-            return False, "", ""
-
-        return True, self.toJSON(savePath, fileName), self.toSVG(savePath, fileName)
-
-    def toSVG(self, savePath=None, fileName=None) -> str:
-        savePath = savePath if savePath else self.save_path
-        fileName = fileName if fileName else self.file_name
-
-        step = self["step"]
-        fileName = os.path.splitext(fileName)[0]
-        svgFilePath = os.path.join(savePath, fileName) + "_" + step + ".svg"
-        svgFile = open(svgFilePath, "w", encoding="utf8")
-        svgFile.write(self["svgData"])
-        svgFile.close()
-
-        return svgFilePath
-
-    def toJSON(self, savePath=None, fileName=None) -> str:
-        savePath = savePath if savePath else self.save_path
-        fileName = fileName if fileName else self.file_name
-
-        step = self["step"]
-        fileName = os.path.splitext(fileName)[0]
-        jsonFilePath = os.path.join(savePath, fileName) + "_" + step + ".json"
-        with open(jsonFilePath, "w", encoding="utf-8") as f:
-            jdump(self, f, ensure_ascii=False, indent=4)
-
-        return jsonFilePath
+if TYPE_CHECKING:
+    from simplipfy.Helpers.langSymbols import LangSymbols
+    from simplipfy.Helpers.solution import Solution
 
 
 class DictExportBase:
-    def __init__(self, precision: int, langSymbol: LangSymbols, circuitType: str = "RLC", isSymbolic=False):
+    """
+    Base class for the classes that create dictionaries with information about the circuit relevant to the frontend
+    Handles conversation from lcapy objects to latex strings
+
+    .. note::
+        The difference between ExportDict and DictExport
+        
+        * ExportDict is a modified Dictionary to hold data
+        * DictExport is the class that populates an ExportDict with data for the frontend
+    """
+    def __init__(self, precision: int, langSymbol: 'LangSymbols', isSymbolic=False):
+        """
+        :param precision: int with the number of decimal places to round to
+        :param langSymbol: LangSymbols object with the symbols to use for the circuit
+        :param isSymbolic: bool, True if the circuit is calculated with symbolic values instead of numeric values
+        """
         self.precision = precision
         self.prefixer = SIUnitPrefixer()
         self.ls = langSymbol
-        self.isHomCir = True if circuitType in ['R', 'L', 'C'] else False  # only has one type of components (except source) e.g. R or C not R and C
         self.isSymbolic = isSymbolic
 
     def _latexRealNumber(self, value: Union[Mul, Expr], prec=None, addPrefix: bool = True) -> str:
@@ -84,7 +54,7 @@ class DictExportBase:
         return latexString
 
     @staticmethod
-    def _latexComplexNumber(value: Union[Mul, Expr]):
+    def _latexComplexNumber(value: Union['Mul', Expr]):
 
         test = latex(value.evalf(n=3, chop=True))
         return test
@@ -103,7 +73,7 @@ class DictExportBase:
         latexString = latex(toPrint, imaginary_unit="j")
         return latexString
 
-    def latexWithPrefix(self, value: Union[Mul, Expr], prec=None, addPrefix: bool = True) -> str:
+    def latexWithPrefix(self, value: Union['Mul', Expr], prec=None, addPrefix: bool = True) -> str:
         if value.is_Add:
             return self._latexComplexNumber(value)
         else:
@@ -115,96 +85,5 @@ class DictExportBase:
         else:
             return self._latexRealNumber(value, prec, addPrefix=False)
 
-    def _getValueFieldKeys(self, *args: str) -> list[str]:
-        """
-        finds fields that include the strings of args in their name to automatically convert them to a latex string
-        on export. All fields are converted to lowercase so this functino is not case-sensitive.
-        :return: list of keys<str> that have the name of the fields that match the criteria
-        """
-
-        keys = list(self.__dict__.keys())
-        valueFiledKeys = []
-        for key in keys:
-            lcKey = key.lower()
-            if any(arg.lower() in lcKey for arg in args):
-                valueFiledKeys.append(key)
-
-        return valueFiledKeys
-
-    def getDictForStep(self, step, solution: 'lcapyInskale.Solution'):
+    def getDictForStep(self, step, solution: 'Solution'):
         raise NotImplementedError("Implement in Child class")
-
-    @staticmethod
-    def emptyExportDict() -> ExportDict:
-        return ExportDict({
-                "step": None,
-                "canBeSimplified": False,
-                "simplifiedTo": DictExportBase.emptyExportDictCpt(),
-                "componentsRelation": ComponentRelation.none.to_string(),
-                "components": [],
-                "allComponents": [],
-                "svgData": None
-            })
-
-    @staticmethod
-    def exportDict(step: str, canBeSimplified: bool, simplifiedTo: dict,
-                   componentsRelation: ComponentRelation, svgData: str,
-                   cpts: list[ExportDict], allCpts: list[ExportDict]) -> ExportDict:
-        """
-        :param step: step of simplification step1 step2 step3...
-        :param canBeSimplified: True, False if the selected cpts can be simplified
-        :param simplifiedTo: components which results from simplifying cpts a,b,c...
-        :param componentsRelation: if the cpts where in series or in parallel
-        :param svgData: svg data string of the circuit
-        :param cpts: the components which where simplified to simplifiedTo
-        :param allCpts: all cpts in the circuit (excepts sources)
-        :return: Dictionary with the information
-        cpts and allCpts dicts are self.exportDictCpt
-        """
-        return ExportDict({
-            "step": step,
-            "canBeSimplified": canBeSimplified,  # bool
-            "simplifiedTo": simplifiedTo,
-            "componentsRelation": componentsRelation.to_string(),
-            "components": cpts,
-            "allComponents": allCpts,
-            "svgData": svgData
-        })
-
-    @staticmethod
-    def exportDictCpt(rName: str, uName: str, iName: str, zImpedance, cpxVal, re, im, phase, zVal, uVal, uPhase, iVal,
-                      iPhase, hasConversion: bool) -> ExportDict:
-        return ExportDict({
-            "Z": {"name": rName, "impedance": zImpedance, "cpxVal": cpxVal, "re":re, "im":im, "phase": phase, "val": zVal},
-            "U": {"name": uName, "val": uVal, "phase": uPhase},
-            "I": {"name": iName, "val": iVal, "phase": iPhase},
-            "hasConversion": hasConversion
-        })
-
-    @staticmethod
-    def emptyExportDictCpt():
-        return ExportDict({
-            "Z": {"name": None, "impedance": None, "cpxVal": None, "re":None, "im":None, "phase": None, "val": None},
-            "U": {"name": None, "val": None, "phase": None},
-            "I": {"name": None, "val": None, "phase": None},
-            "hasConversion": False
-        })
-
-    def step0ExportDictSource(self, sourceType: str, omega_0, val: ExportDict):
-        return ExportDict({
-            "Type": sourceType,  # V,I
-            "omega_0": self.latexWithPrefix(omega_0),
-            "frequency": self.latexWithPrefix(omega_0/(2*sympy.pi)),
-            "sources": val
-        })
-
-    @staticmethod
-    def step0ExportDict(step, source: ExportDict, allCpts: list[ExportDict],
-                        circuitType: str, svgData: str):
-        return ExportDict({
-            "step": step,
-            "source": source,
-            "allComponents": allCpts,
-            "componentTypes": circuitType,
-            "svgData": svgData
-        })

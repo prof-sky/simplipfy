@@ -16,6 +16,8 @@ class ColorDefinitions {
     languagesLightBg = "#efefef";
     correctEquationColor = "green";
     wrongEquationColor = "red";
+    syntaxErrorRed = "#ff3131";
+    warningOrange = "#ff7835";
 
 
     currentForeground = this.keyLight;
@@ -27,6 +29,7 @@ class ColorDefinitions {
 
     bsColorSchemeLight = "light";
     bsColorSchemeDark = "dark";
+    currentBsColorScheme = this.bsColorSchemeDark;
 
     lightModeSvgStrokeColor = this.keyDark;
     darkModeSvgStrokeColor = this.keyLight;
@@ -36,11 +39,13 @@ class ColorDefinitions {
         this.currentHeadingsForeground = this.keyYellow;
         this.currentBackground = this.keyDark;
         this.currentBsBackground = this.bootstrapDark;
+        this.currentBsColorScheme = this.bsColorSchemeDark;
     }
     setLightModeColors() {
         this.currentForeground = this.keyDark;
         this.currentHeadingsForeground = this.keyDark;
         this.currentBackground = this.keyLight;
         this.currentBsBackground = this.bootstrapWhite;
+        this.currentBsColorScheme = this.bsColorSchemeLight;
     }
 }

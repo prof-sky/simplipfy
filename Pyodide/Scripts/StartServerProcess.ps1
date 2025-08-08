@@ -9,11 +9,11 @@ if (Test-Path "server.pid") {
     } catch {
         Write-Output "Server with PID $filePid is not running, deleting file"
         Remove-Item "server.pid"
-        $serverProcess = Start-Process .\StartServer.ps1 -PassThru
+        $serverProcess = Start-Process .\StartServer_wg_wz.ps1 -PassThru
         $serverProcess.Id | Out-File -FilePath "server.pid"
     }
 } else {
-    $serverProcess = Start-Process .\StartServer.ps1 -PassThru
+    $serverProcess = Start-Process .\StartServer_wg_wz.ps1 -PassThru
     $serverProcess.Id | Out-File -FilePath "server.pid"
 }
 

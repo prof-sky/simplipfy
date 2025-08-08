@@ -1,4 +1,16 @@
-## 1.24+inskale.0.38
+## simplipfy.0.2
+- fix found all equations
+- remove padding wit - in found equations
+- change label of sources to letters if more than one source
+- elements names only numbers -> U1 instead of UR1
+- generateSVGFiles.py does a simple validation to avoid crashing
+- add Wheatstone bridge solver
+- svg always centered
+- draw voltmeter with VM and Ammeter with AM
+- add generalisiation with --generalize and optimization with --optimize-mobile
+- add connection based on element positions
+
+## 1.24+inskale.0.38 (simplipfy.0.1)
 - make kirchhoff solver dummy
 - create voltage equations
 - create current equations
@@ -7,7 +19,6 @@
 - remove test execution from build process
 - remove $ sign from latex equation
 - elements list from Kirchhoff has placeholders for unfound equations
-- 
 
 ## 1.24+inskale.0.37
 - use new voltage source element

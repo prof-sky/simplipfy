@@ -21,11 +21,10 @@
     },
     "step0": {
         "step": "step0",
-        "source": {
+      	"sources": [{
             "Type": "V",
             "omega_0": "0",
             "frequency": "0",
-            "sources": {
                 "Z": {
                     "name": "V1",
                     "impedance": "0",
@@ -36,18 +35,18 @@
                     "val": "0"
                 },
                 "U": {
-                    "name": "Uges",
+                    "name": "Vtot",
                     "val": "10.0 \\text{V}",
                     "phase": "0"
                 },
                 "I": {
-                    "name": "Iges",
+                    "name": "Itot",
                     "val": "0.133 \\text{A}",
                     "phase": "180.0 ^\\circ"
                 },
                 "hasConversion": true
-            }
-        },
+            
+        }],
         "allComponents": [
             {
                 "Z": {

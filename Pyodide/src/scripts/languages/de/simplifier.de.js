@@ -8,13 +8,16 @@ window.simplifierDeTexts = {
         "&uumlberpr&uumlfe deine Auswahl mit dem 'check' Button. " +
         "Wenn die Elemente vereinfacht werden k&oumlnnen, siehst du den " +
         "n&aumlchsten Schritt und kannst dort die n&aumlchsten " +
-        "Elemente ausw&aumlhlen.",
+        "Elemente ausw&aumlhlen. Benutze den Schalter um zwischen einer generalisierten " +
+        "und der urspr&uumlnglichen Darstellung zu wechseln. Die Darstellungen zeigen jeweils den " +
+        "selben Schaltkreis an, jedoch kann die generalisierte Ansicht dabei helfen " +
+        "Reihen- und Parallelschaltungen zu erkennen.",
     nextElementsHeading:
-        "N&aumlchste Elemente",
+        "Ausgew&aumlhlte Elemente",
     nextElementsVoltLawHeading:
         "N&aumlchste Elemente f&uumlr Masche",
     nextElementsCurrentHeading:
-        "N&aumlchste Elemente f&uumlr Knoten",
+        "N&aumlchste Elemente f&uumlr Stromgleichung",
     showCalculationBtn:
         "Rechnung",
     hideCalculationBtn:

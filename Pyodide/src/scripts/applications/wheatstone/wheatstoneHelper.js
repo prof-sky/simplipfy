@@ -1,16 +1,3 @@
-async function initWheatstoneSolverObject(circuitMap) {
-    if (state.wheatstoneSolverAPI !== null) {
-        await state.wheatstoneSolverAPI.resetWheatstoneSolver();
-    }
-
-    let paramMap = new Map();
-    paramMap.set("volt", languageManager.currentLang.voltageSymbol);
-    paramMap.set("total", languageManager.currentLang.totalSuffix);
-
-    state.wheatstoneSolverAPI = new WheatstoneSolverAPI(worker);
-    await state.wheatstoneSolverAPI.initWheatstoneSolver(circuitMap.circuitFile, `${conf.pyodideCircuitPath}/${circuitMap.sourceDir}`, paramMap);
-}
-
 async function setupWheatstoneSVGContainer() {
     const circuitContainer = document.createElement('div');
     circuitContainer.classList.add("circuit-container", "row", "justify-content-center", "mt-4", "mb-2");
@@ -33,20 +20,45 @@ async function setupWheatstoneSVG(svgData) {
 
     // Svg manipulation
     svgData = setSvgColorMode(svgData);
+    svgData = svgData.replaceAll("#ffc107", colors.currentForeground);  // recolor from selector
     svgDiv.innerHTML = svgData;
     svgDiv.querySelector("svg").style.scale = "1.3";
     svgDiv.querySelector("svg").style.zIndex = "-10";
     fillLabels(svgDiv);
+    hideSvgArrows(svgDiv);
+    adaptVoltmeter(svgDiv);
+    adaptV1Label(svgDiv);
+
+    // Add value over element labels
     addValueLabels(svgDiv);
     updateValueLabels(svgDiv);
-    hideSvgArrows(svgDiv);
-    // TODO showVoltmeterArrow(svgDiv);
 
     // SVG Data written, now add eventListeners, only afterward because they would be removed on rewrite of svgData
     addWheatstoneCircuitNavigator(svgDiv);
     addWheatstoneInfoHelpButton(svgDiv);
 
     return svgDiv;
+}
+
+function adaptV1Label(svgDiv) {
+    // Hide the V1 label and show the arrow
+    let v1Label = svgDiv.querySelector("text.element-label.V1");
+    let tspan = v1Label.querySelector("tspan");
+    tspan.innerHTML = `${languageManager.currentLang.voltageSymbol}q`;
+}
+
+function adaptVoltmeter(svgDiv) {
+    // Hide the voltmeter label and show the arrow
+    let voltmeter = svgDiv.querySelector(".element-label.VMm");
+    voltmeter.style.display = "none";
+
+    let voltmeterArrow = svgDiv.querySelectorAll(".voltage-label.arrow.Um");
+    for (let arrow of voltmeterArrow) {
+        arrow.style.display = "block";
+    }
+    let voltmeterArrowLabel = svgDiv.querySelector("text.voltage-label.arrow.Um");
+    let tspan = voltmeterArrowLabel.querySelector("tspan");
+    tspan.innerHTML = `${languageManager.currentLang.voltageSymbol}m`;
 }
 
 function addValueLabels(svgDiv) {
@@ -60,6 +72,9 @@ function addValueLabels(svgDiv) {
     let r4Span = R4.querySelector("tspan");
     let V1 = svgDiv.querySelector(".element-label.V1");
     let v1Span = V1.querySelector("tspan");
+    let Vmm = svgDiv.querySelector("text.voltage-label.arrow.Um");
+    let vmmSpan = Vmm.querySelector("tspan");
+
     let cloned = r1Span.cloneNode(true);
     R1.insertBefore(cloned, r1Span);
     cloned = r2Span.cloneNode(true);
@@ -70,6 +85,8 @@ function addValueLabels(svgDiv) {
     R4.insertBefore(cloned, r4Span);
     cloned = v1Span.cloneNode(true);
     V1.insertBefore(cloned, v1Span);
+    cloned = vmmSpan.cloneNode(true);
+    Vmm.insertBefore(cloned, vmmSpan);
 }
 
 function updateValueLabels(svgDiv) {
@@ -83,12 +100,15 @@ function updateValueLabels(svgDiv) {
     let r4Span = R4.querySelector("tspan");
     let V1 = svgDiv.querySelector(".element-label.V1");
     let v1Span = V1.querySelector("tspan");
+    let Vmm = svgDiv.querySelector("text.voltage-label.arrow.Um");
+    let vmmSpan = Vmm.querySelector("tspan");
 
     r1Span.innerHTML = state.options[state.currentOption].R1 + "Ω";
     r2Span.innerHTML = state.options[state.currentOption].R2 + "Ω";
     r3Span.innerHTML = state.options[state.currentOption].R3 + "Ω";
     r4Span.innerHTML = state.options[state.currentOption].R4 + "Ω";
     v1Span.innerHTML = state.options[state.currentOption].Uq + "V";
+    vmmSpan.innerHTML = state.options[state.currentOption].Um + "V";
 }
 
 function addWheatstoneCircuitNavigator(svgDiv) {
@@ -104,7 +124,7 @@ function addWheatstoneCircuitNavigator(svgDiv) {
     prevBtn.style.background = "none";
     prevBtn.style.fontWeight = "bold";
     prevBtn.style.zIndex = "10";
-    prevBtn.innerText = "<";
+    prevBtn.innerText = "←";
     prevBtn.id = "wheat-prev-btn";
     svgDiv.insertAdjacentElement("afterbegin", prevBtn);
 
@@ -120,37 +140,37 @@ function addWheatstoneCircuitNavigator(svgDiv) {
     nextBtn.style.background = "none";
     nextBtn.style.fontWeight = "bold";
     nextBtn.style.zIndex = "10";
-    nextBtn.innerText = ">";
+    nextBtn.innerText = "→";
     nextBtn.id = "wheat-next-btn";
     svgDiv.insertAdjacentElement("afterbegin", nextBtn);
 
+    if (state.currentOption === 0) {
+        prevBtn.disabled = true;
+        nextBtn.disabled = false;
+    } else if (state.currentOption === (state.options.length - 1)) {
+        prevBtn.disabled = false;
+        nextBtn.disabled = true;
+    }
+
     prevBtn.onclick = async () => {
-        state.currentOption--;
-        if (state.currentOption < 0) {
-            state.currentOption = state.options.length - 1;
+        // Disable button when left end reached
+        if (state.currentOption === 0) {
+            prevBtn.setAttribute("disabled", "true");
+        } else {
+            prevBtn.removeAttribute("disabled");
+            state.currentOption--;
+            resetWheatstonePage(true);
         }
-        let exp = document.getElementById("explanation-container");
-        if (exp) {
-            exp.remove();
-        }
-        setTableValues(state.options[state.currentOption]);
-        updateValueLabels(svgDiv);
-        let checkBtn = document.getElementById("check-btn");
-        checkBtn.disabled = false;
     };
     nextBtn.onclick = async () => {
-        state.currentOption++;
-        if (state.currentOption >= state.options.length) {
-            state.currentOption = 0;
+        // Disable button when right end reached
+        if (state.currentOption === (state.options.length - 1)) {
+            nextBtn.setAttribute("disabled", "true");
+        } else {
+            nextBtn.removeAttribute("disabled");
+            state.currentOption++;
+            resetWheatstonePage(true);
         }
-        let exp = document.getElementById("explanation-container");
-        if (exp) {
-            exp.remove();
-        }
-        setTableValues(state.options[state.currentOption]);
-        updateValueLabels(svgDiv);
-        let checkBtn = document.getElementById("check-btn");
-        checkBtn.disabled = false;
     };
 }
 
@@ -177,23 +197,48 @@ function addWheatstoneInfoHelpButton(svgDiv) {
 
 async function getWheatstoneValues() {
     let options = {};
-    let optionsFile = state.currentCircuitMap.circuitFile.replace(".txt", `_options.json`);
-    let optionsPath = `${conf.pyodideCircuitPath}/${state.currentCircuitMap.sourceDir}` + "/" + optionsFile;
+    // TODO don't hardcode !!
+    //let optionsFile = state.currentCircuitMap.circuitFile.replace(".txt", `_options.json`);
+    let optionsFile = "00_wheat_options.json";
+    let optionsPath;
+    //if (state.currentCircuitFromUserZip) {
+    //    optionsPath = conf.userCircuitsPath + `${state.selectedZipDirName}/${state.currentCircuitMap.sourceDir}` + "/" + optionsFile;
+    //} else {
+    optionsPath = `${conf.pyodideCircuitPath}/wheatstone/` + optionsFile;
+    //}
+
+    let content;
     try {
-        let content = await state.pyodideAPI.readFile(optionsPath);
-        options = JSON.parse(content);
+        content = await state.pyodideAPI.readFile(optionsPath);
+        if (content === null || content === "" || content === undefined) {
+            throw new Error("Options file is empty or not found");
+        } else {
+            options = JSON.parse(content);
+        }
     } catch (error) {
-        console.error("Error fetching options file: " + error);
+        console.error("Error parsing options file: " + error);
         showMessage(error, "error", false);
         options = null;
         pushErrorEventMatomo(errorActions.optionsFileError, error);
     }
     for (let option of options) {
+        if (option.R1 === undefined) {
+            option.R1 = "?";
+        }
+        if (option.R2 === undefined) {
+            option.R2 = "?";
+        }
         if (option.R3 === undefined) {
             option.R3 = "?";
         }
         if (option.R4 === undefined) {
             option.R4 = "?";
+        }
+        if (option.Uq === undefined) {
+            option.Uq = "?";
+        }
+        if (option.Um === undefined) {
+            option.Um = "?";
         }
     }
 
@@ -226,11 +271,12 @@ function setupButtonContainer() {
 }
 
 async function resetWheatstonePage(calledFromResetBtn = false) {
-    clearSimplifierPageContent();
+    clearSimplifierPageContainer();
     showSpinnerLoadingCircuit();
     state.pictureCounter = 0;
-    resetExtraLiveModal();
+    //resetExtraLiveModal();
     scrollBodyToTop();
+    //resetLives();
     if (calledFromResetBtn) {
         startWheatstone();  // Draw the first picture again
     }
@@ -251,9 +297,132 @@ function createPopupInput() {
     return inputPopup;
 }
 
+function createCells(table) {
+    // top left
+    let row1 = table.insertRow();
+    let cell = row1.insertCell();
+    if (state.options[state.currentOption].R1 === "?") {
+        cell.innerHTML = `\\(R1=${state.options[state.currentOption].R1}\\)`;
+        cell.classList.add("wheatstone-unknown");
+        state.unknown += "R1";
+    } else {
+        cell.innerHTML = `\\(R1=${state.options[state.currentOption].R1}\\Omega\\)`;
+    }
+    cell.id = "R1";
+    cell.setAttribute("value", `${state.options[state.currentOption].R1}`);
+
+    // top right
+    cell = row1.insertCell();
+    if (state.options[state.currentOption].R3 === "?") {
+        cell.innerHTML = `\\(R3=${state.options[state.currentOption].R3}\\)`;
+        cell.classList.add("wheatstone-unknown");
+        state.unknown += "R3";
+    } else {
+        cell.innerHTML = `\\(R3=${state.options[state.currentOption].R3}\\Omega\\)`;
+    }
+    cell.id = "R3";
+    cell.setAttribute("value", `${state.options[state.currentOption].R3}`);
+
+    // middle left
+    let row2 = table.insertRow();
+    cell = row2.insertCell();
+    if (state.options[state.currentOption].R2 === "?") {
+        cell.innerHTML = `\\(R2=${state.options[state.currentOption].R2}\\)`;
+        cell.classList.add("wheatstone-unknown");
+        state.unknown += "R2";
+    } else {
+        cell.innerHTML = `\\(R2=${state.options[state.currentOption].R2}\\Omega\\)`;
+    }
+    cell.setAttribute("value", `${state.options[state.currentOption].R2}`);
+    cell.id = "R2";
+
+    // middle right
+    cell = row2.insertCell();
+    if (state.options[state.currentOption].R4 === "?") {
+        cell.innerHTML = `\\(R4=${state.options[state.currentOption].R4}\\)`;
+        cell.classList.add("wheatstone-unknown");
+        state.unknown += "R4";
+    } else {
+        cell.innerHTML = `\\(R4=${state.options[state.currentOption].R4}\\Omega\\)`;
+    }
+    cell.setAttribute("value", `${state.options[state.currentOption].R4}`);
+    cell.id = "R4";
+
+    // bottom left
+    let row3 = table.insertRow();
+    cell = row3.insertCell();
+    if (state.options[state.currentOption].Um === "?") {
+        cell.innerHTML = `\\(${languageManager.currentLang.voltageSymbol}m=${state.options[state.currentOption].Um}\\)`;
+        cell.classList.add("wheatstone-unknown");
+        state.unknown += "Um";
+    } else {
+        cell.innerHTML = `\\(${languageManager.currentLang.voltageSymbol}m=${state.options[state.currentOption].Um}V\\)`;
+    }
+    cell.setAttribute("value", `${state.options[state.currentOption].Um}`);
+    cell.id = "Um";
+
+    // bottom right
+    cell = row3.insertCell();
+    if (state.options[state.currentOption].Uq === "?") {
+        cell.innerHTML = `\\(${languageManager.currentLang.voltageSymbol}q=${state.options[state.currentOption].Uq}\\)`;
+        cell.classList.add("wheatstone-unknown");
+        state.unknown += "Uq";
+    } else {
+        cell.innerHTML = `\\(${languageManager.currentLang.voltageSymbol}q=${state.options[state.currentOption].Uq}V\\)`;
+    }
+    cell.setAttribute("value", `${state.options[state.currentOption].Uq}`);
+    cell.id = "Uq";
+}
+
+function cellClickedHandler(td) {
+    td.style.textAlign = "left";
+    if (td.classList.contains("wheatstone-unknown")) {
+        td.style.color = colors.keyYellow;
+        td.style.borderBottom = `1px solid ${colors.keyYellow}`;
+        td.style.cursor = "pointer";
+        td.addEventListener("click", () => {
+            td.style.color = colors.keyYellowDarkened;
+            setTimeout(() => {
+                td.style.color = colors.keyYellow;
+            }, 50);
+            const inputPopup = document.getElementById("input-popup");
+            inputPopup.style.display = "block";
+            const numberInput = document.getElementById("number-input");
+            numberInput.focus();
+            numberInput.value = "";
+            const popupConfirm = document.getElementById("popup-confirm");
+            popupConfirm.onclick = async () => {
+                let value = parseFloat(numberInput.value);
+                if (isNaN(value)) {
+                    showMessage(languageManager.currentLang.alertInvalidNumber, "warning");
+                    return;
+                }
+                let id = td.id;
+                if (id.toString().includes("Um")) {
+                    td.innerHTML = `\\(${languageManager.currentLang.voltageSymbol}m=${value}V\\)`;
+                } else if (id.toString().includes("Uq")) {
+                    td.innerHTML = `\\(${languageManager.currentLang.voltageSymbol}q=${value}V\\)`;
+                } else {
+                    td.innerHTML = `\\(${id}=${value}\\Omega\\)`;
+                }
+                td.setAttribute("value", value.toString());
+                inputPopup.style.display = "none";
+                await MathJax.typesetPromise();
+            };
+            const popupCancel = document.getElementById("popup-cancel");
+            popupCancel.onclick = () => {
+                inputPopup.style.display = "none";
+            };
+        });
+    } else {
+        td.style.color = colors.currentForeground;
+    }
+}
+
 function setupValuesTable() {
     let overlay = document.createElement("div");
     overlay.id = "values-table-overlay";
+    overlay.style.position = "relative"; // something different from static to get the z-index working
     overlay.style.zIndex = "100";
     let table = document.createElement("table");
     table.classList.add("table", "table-borderless", "mx-auto");
@@ -264,68 +433,11 @@ function setupValuesTable() {
     }
     table.style.width = "fit-content";
 
-    let row1 = table.insertRow();
-    let cell = row1.insertCell();
-    cell.innerHTML = `\\(R1=${state.options[state.currentOption].R1}\\Omega\\)`; // top left
-    cell.setAttribute("value", `${state.options[state.currentOption].R1}`);
-    cell.id = "R1";
-    cell = row1.insertCell();
-    cell.innerHTML = `\\(R3=${state.options[state.currentOption].R3}\\Omega\\)`; // top right
-    cell.setAttribute("value", `${state.options[state.currentOption].R3}`);
-    cell.id = "R3";
-    if (state.options[state.currentOption].R3 === "?") {
-        cell.classList.add("wheatstone-unknown");
-    }
-    let row2 = table.insertRow();
-    cell = row2.insertCell();
-    cell.innerHTML = `\\(R2=${state.options[state.currentOption].R2}\\Omega\\)`; // bottom left
-    cell.setAttribute("value", `${state.options[state.currentOption].R2}`);
-    cell.id = "R2";
-    cell = row2.insertCell();
-    // bottom right
-    cell.innerHTML = `\\(R4=${state.options[state.currentOption].R4}\\)`;
-    cell.id = "R4";
-    if (state.options[state.currentOption].R4 === "?") {
-        cell.classList.add("wheatstone-unknown");
-    }
-    cell.setAttribute("value", `${state.options[state.currentOption].R4}`);
+    state.unknown = ""; // reset
+    createCells(table);
 
     table.querySelectorAll("td").forEach(td => {
-        td.style.textAlign = "left";
-        if (td.classList.contains("wheatstone-unknown")) {
-            td.style.color = colors.keyYellow;
-            td.style.borderBottom = `1px solid ${colors.keyYellow}`;
-            td.style.cursor = "pointer";
-            td.addEventListener("click", () => {
-                td.style.color = colors.keyYellowDarkened;
-                setTimeout(() => {
-                    td.style.color = colors.keyYellow;
-                }, 50);
-                const inputPopup = document.getElementById("input-popup");
-                inputPopup.style.display = "block";
-                const numberInput = document.getElementById("number-input");
-                numberInput.focus();
-                numberInput.value = "";
-                const popupConfirm = document.getElementById("popup-confirm");
-                popupConfirm.onclick = async () => {
-                    let value = parseFloat(numberInput.value);
-                    if (isNaN(value)) {
-                        showMessage(languageManager.currentLang.alertInvalidNumber, "warning");
-                        return;
-                    }
-                    td.innerHTML = `\\(R4=${value}\\Omega\\)`;
-                    cell.setAttribute("value", value.toString());
-                    inputPopup.style.display = "none";
-                    MathJax.typeset();
-                };
-                const popupCancel = document.getElementById("popup-cancel");
-                popupCancel.onclick = () => {
-                    inputPopup.style.display = "none";
-                };
-            });
-        } else {
-            td.style.color = colors.currentForeground;
-        }
+        cellClickedHandler(td);
     });
     overlay.appendChild(table);
     return overlay;
@@ -337,13 +449,72 @@ function createWheatstoneExplanationContainer(values) {
     explanationContainer.classList.add("explanation-container", "mb-3", "p-2");
     explanationContainer.style.backgroundColor = colors.currentBsBackground;
     explanationContainer.style.color = colors.currentForeground;
-    // Display formula v.Uq * ((v.R1/(v.R1 + v.R2)) - (v.R3/(v.R3 + v.R4))) === v.Um;
-    explanationContainer.innerHTML = `
-        <h5 class="text-center">${languageManager.currentLang.wheatstoneExplanationTitle}</h5>
-        <div class="text-center">
-            <p class="mb-1">\\(Uq * \\left(\\frac{R1}{R1 + R2} - \\frac{R3}{R3 + R4}\\right) = Um\\)</p>
-            <p class="mb-1">\\(${values.Uq} * \\left(\\frac{${values.R1}}{${values.R1} + ${values.R2}} - \\frac{${values.R3}}{${values.R3} + ${values.R4}}\\right) = ${values.Um}\\)</p>
-        </div>
-    `;
+    explanationContainer.innerHTML = getExplanation(values);
     return explanationContainer;
+}
+
+function makeElementsClickableForWheatstone(svgContainer, electricalElements) {
+    electricalElements.forEach(element => {
+        element.style.cursor = "pointer";
+        element.addEventListener('click', () => {
+            let id = element.getAttribute("id");
+            if (id === "VMm_Circle") {
+                id = "Um";
+            }
+            if (state.options[state.currentOption][id] === "?") {
+                let tableDiv = document.getElementById("values-table-overlay");
+                let table = tableDiv.querySelector("table");
+                let td = table.querySelector(`#${id}`);
+                td.click();
+            } else {
+                setTimeout(() => {
+                    showMessage(languageManager.currentLang.canNotSetElement, "info");
+                });
+            }
+        });
+    });
+}
+
+function getTableValues() {
+    let tableDiv = document.getElementById("values-table-overlay");
+    let table = tableDiv.querySelector("table");
+    let values = {};
+    let row1 = table.rows[0];
+    let row2 = table.rows[1];
+    let row3 = table.rows[2];
+    let topLeft = row1.cells[0];
+    let topRight = row1.cells[1];
+    let bottomLeft = row2.cells[0];
+    let bottomRight = row2.cells[1];
+    let um = row3.cells[0];
+    let uq = row3.cells[1];
+    values.R1 = parseFloat(topLeft.getAttribute("value"));
+    values.R2 = parseFloat(bottomLeft.getAttribute("value"));
+    values.R3 = parseFloat(topRight.getAttribute("value"));
+    values.R4 = parseFloat(bottomRight.getAttribute("value"));
+    values.Um = parseFloat(um.getAttribute("value"));
+    values.Uq = parseFloat(uq.getAttribute("value"));
+    return values;
+}
+
+function checkValues(values) {
+    let errorCode = 0;
+    for (const key in values) {
+        if (key === "Um" || key === "Uq") {
+            if (isNaN(values[key])) {
+                errorCode = 1;
+                break;
+            } else {
+                continue; // Can be positive and negative
+            }
+        }
+        if (isNaN(values[key])) {
+            errorCode = 1;
+            break;
+        } else if (values[key] <= 0) {
+            errorCode = 2;
+            break;
+        }
+    }
+    return errorCode;
 }

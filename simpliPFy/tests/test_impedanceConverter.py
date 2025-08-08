@@ -1,11 +1,10 @@
 from os.path import join
 
-from lcapyInskale import Circuit
-from lcapyInskale import Expr
+from lcapyInskale import Circuit, Expr
 from lcapyInskale.componentnamer import ComponentNamer
-from simplipfy.impedanceConverter import FileToImpedance, ValueToComponent
-from simplipfy.langSymbols import LangSymbols
-from simplipfy.solution import Solution
+from simplipfy.Helpers.impedanceConverter import FileToImpedance, ValueToComponent
+from simplipfy.Helpers.langSymbols import LangSymbols
+from simplipfy.Helpers.solution import Solution
 
 
 class TestImpedanceConverter:
@@ -14,7 +13,7 @@ class TestImpedanceConverter:
     def getCompTypeSolStep1(sol) -> str:
         """
         :param sol: Solution that has 'step1'
-        :return: Z value of Zsim1 from sol['step1'].circuit
+        :returns: Z value of Zsim1 from sol['step1'].circuit
         """
         cir = sol['step1'].circuit
         value = cir.Zs1.Z

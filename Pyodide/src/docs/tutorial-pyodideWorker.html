@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Tutorial: pyodideWorker</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Tutorial: pyodideWorker</h1>
+
+    <section>
+
+<header>
+    
+
+    <h2>pyodideWorker</h2>
+</header>
+
+<article>
+    <h1>Pyodide Worker API</h1>
+<p>To get a more fluid rendering in the frontend, pyodide is moved to a webworker.
+In this worker, all functions for simplipfy are called.</p>
+<h2>Workflow</h2>
+<p>The handling of pyodide is split into 3 parts:</p>
+<ul>
+<li>A webworker that handles the pyodide instance (pyodideWorker.js)</li>
+<li>A webworker API that is called from the frontend classed to access the pyodide instance (pyodideWorkerAPI.js)</li>
+<li>A specific group of functions inside an object that are grouped as one API, example
+<ul>
+<li>pyodideAPI.js</li>
+<li>stepSolverAPI.js</li>
+<li>kirchhoffSolverAPI.js</li>
+</ul>
+</li>
+</ul>
+<p>The splitting of the functions into different files is done to keep the code clean and organized.
+The calls inside this files are exactly the same. Following is an example of how the API is used.</p>
+<h3>Usage</h3>
+<p>At some place the function exampleAPICall (a python function in the backend) should be called.
+For this, a exampleAPI.js is created, looking something like this:</p>
+<pre class="prettyprint source lang-js"><code>class ExampleAPI {
+    
+    constructor(worker) {
+        this.worker = worker; // the worker instance
+    }
+    
+    exampleAPICall(a, b) {
+        return requestResponse(this.worker, {
+            action: &quot;exampleAPICall&quot;,
+            data: { a: a, b: b },
+        });
+    }
+</code></pre>
+<p>The functions call <code>requestResponse</code> which is a function that handles the communication with the worker.
+It returns a promise that resolves when the worker has finished the calculation and returns the result.
+For this, the resolve return values have to be handled, this happens in <code>getResolve</code> in pyodideWorkerAPI.js</p>
+<pre class="prettyprint source lang-js"><code>function getResolve(msg, resolve, event) {
+    try {
+        if (msg.action === &quot;someAction&quot;) {
+            resolve(event.data.status);
+        } else if (msg.action === &quot;exampleAPICall&quot;) {
+            resolve([event.data.c, event.data.d]);
+        } ...
+</code></pre>
+<p>And for <code>event.data.c</code> and <code>event.data.d</code> to be available, the pyodideWorker.js has to be adapted, e.g. like this:</p>
+<pre class="prettyprint source lang-js"><code>try {
+    // Make sure pyodide and micropip is loaded before doing anything else
+    self.pyodide = await self.pyodideReadyPromise;
+
+    // ###################### Some API ######################
+    if (event.data.action === &quot;exampleAPICall&quot;) {
+        await self.pyodide.someImportedModule.exampleAPICall(event.data.data.a, event.data.data.b);
+        self.postMessage({id: _id});
+    } 
+    ...
+</code></pre>
+<h3>Important things to note</h3>
+<ul>
+<li>The strings like &quot;exampleAPICall&quot; must match between the different files (improvable)</li>
+<li>Each function in the pyodideWorker.js must finish with a self.postMessage({id: _id}) to send the result back to the frontend.</li>
+<li>The calls of the worker are filtered by this id, so that the right result is sent back to the right request.</li>
+</ul>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Tutorials</h3><ul><li><a href="tutorial-applications.html">applications</a></li><li><a href="tutorial-mathjax.html">mathjax</a></li><li><a href="tutorial-matomo.html">matomo</a></li><li><a href="tutorial-newLanguage.html">newLanguage</a></li><li><a href="tutorial-pageManagerUsage.html">pageManagerUsage</a></li><li><a href="tutorial-progressBar.html">progressBar</a></li><li><a href="tutorial-pyodideWorker.html">pyodideWorker</a></li><li><a href="tutorial-sessionTracking.html">sessionTracking</a></li><li><a href="tutorial-start.html">start</a></li></ul><h3>Global</h3><ul><li><a href="global.html#circuitMapper">circuitMapper</a></li><li><a href="global.html#colors">colors</a></li><li><a href="global.html#conf">conf</a></li><li><a href="global.html#languageManager">languageManager</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#packageManager">packageManager</a></li><li><a href="global.html#pageManager">pageManager</a></li><li><a href="global.html#participantName">participantName</a></li><li><a href="global.html#selectorBuilder">selectorBuilder</a></li><li><a href="global.html#state">state</a></li><li><a href="global.html#worker">worker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Thu Jul 24 2025 11:25:09 GMT+0200 (Mitteleuropäische Sommerzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,12 +1,13 @@
 ''' Sources, meters, and lamp elements '''
 
 from __future__ import annotations
+
 import math
 
 from .elements import Element2Term, gap
 from .twoterm import resheight
-from ..segments import Segment, SegmentCircle, SegmentText
 from .. import util
+from ..segments import Segment, SegmentCircle, SegmentText
 
 
 class Source(Element2Term):
@@ -17,7 +18,6 @@ class Source(Element2Term):
         class_ = kwargs.get('class_', "na")
         self.segments.append(Segment([(0, 0), (0, 0), gap, (1, 0), (1, 0)], userparams={'id_': id_+"_line", 'class_': class_}))
         self.segments.append(SegmentCircle((0.5, 0), 0.5, userparams={'id_': id_+"_Circle", 'class_': class_}))
-        self.elmparams['theta'] = 90
 
 class StabilizedSource(Source):
     ''' Stabilized source element (Circle with line, plus and minus sign) '''
@@ -27,12 +27,13 @@ class StabilizedSource(Source):
         class_ = kwargs.get('class_', "na")
         self.segments.append(Segment([(0, 0), (1, 0)], userparams={'id_': id_+"_sourceLne", 'class_': class_}))
         plus_len = .2
-        self.segments.append(Segment([(-.25, -plus_len/2 + .25),
-                                      (-.25, plus_len/2 + .25)], userparams={'id_': id_+"_minusSign", 'class_': class_}))    # '-' sign
-        self.segments.append(Segment([(1.25-plus_len/2, .25),
-                                      (1.25+plus_len/2, .25)], userparams={'id_': id_+"_plusSign1", 'class_': class_}))  # '+' sign
-        self.segments.append(Segment([(1.25, -plus_len/2 + .25),
-                                      (1.25, plus_len/2 + .25)], userparams={'id_': id_+"_plusSign2", 'class_': class_}))     # '+' sign
+        self.segments.append(Segment([(-.3, -plus_len/2 + .3),
+                                      (-.3, plus_len/2 + .3)], userparams={'id_': id_+"_minusSign", 'class_': class_}))    # '+' sign
+        self.segments.append(Segment([(-.3-plus_len/2, .3),
+                                      (-.3+plus_len/2, .3)], userparams={'id_': id_+"_plusSign1", 'class_': class_}))  # '+' sign
+
+        self.segments.append(Segment([(1.3, -plus_len/2 + .3),
+                                      (1.3, plus_len/2 + .3)], userparams={'id_': id_+"_plusSign2", 'class_': class_}))     # '-' sign
 
 
 class SourceV(Source):

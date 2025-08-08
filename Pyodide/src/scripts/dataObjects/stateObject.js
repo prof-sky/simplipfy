@@ -5,6 +5,10 @@ class StateObject {
     loadingProgress = 0;
     circuitsLoadedPromise = null;
     overviewSvgsLoadedPromise = null;
+    solverLoaded = false;
+
+    // Map to store interval ids for tracking qr codes
+    trackerIntervalMap = new Map();
 
     //Tracks the current step in the circuit simplification process.
     currentStep = 0;
@@ -28,16 +32,31 @@ class StateObject {
     stepSolverAPI = null;
     hardcodedStepSolverAPI = null;
     wheatstoneSolverAPI = null;
+    drawingConfigAPI = null;
 
     doneVoltages = [];
     doneCurrents = [];
     voltEquations = [];
+
+    checkBtnAlreadyClicked = false;
     gamification = false;
     extraLiveUsed = false;
     lives = 3;
+    shakeAlreadySetup = false;
+    speedMode = {
+        startTime: null,
+        duration: null,
+        requestId: null,
+        div: null
+    }
+    simplifierSolveTimeMs = 5000;
+    simplifierAddTimeMs = 500; // ms per element
+    kirchhoffSolveTimeMs = 10000;
+    kirchhoffAddTimeMs = 1000; // ms per element
 
     options = []; // List of possible wheatstone circuits
     currentOption = 0; // Current option
+    unknown = ""; // Unknown variable
 
     //Boolean to track if the Pyodide environment is ready.
     pyodide = null;
@@ -53,4 +72,22 @@ class StateObject {
 
     // Toggle variables
     valuesShown = new Map();
+
+    // Uploader
+    currentCircuitFromUserZip = false;
+    selectedZipDir = null;
+    selectedZipDirName = "";
+    circuitSets = null;
+    uploadCircuitSets = null;
+    isLinkedZip = false;
+    isLinkedAlertShown = false;
+
+    currentCircuitFromQrScan = false;
+    fileForQrCode = null;
+    html5QrCode = null;
+    isScanning = false;
+
+    selectedSvgsZip = null;
+
+    sessionId = null;
 }

@@ -1,3 +1,13 @@
+
+/*
+// TODO !!
+- berechnen des stroms für Rs2 raus, das haben wir im unteren bild schon gemacht
+   (geht das immer, in ruhe anschauen ob mans wirklich streichen kann???)
+- auch bei RLC usw diesen block rausstreichen
+ */
+
+
+
 // Generates a paragraph describing the resistance simplification step
 function generateTextForZ(stepObject) {
     let relation = stepObject.componentsRelation;
@@ -51,14 +61,14 @@ function getLorCtoZExplanations(stepObject) {
     let str = "";
     for (let component of stepObject.components) {
         if (component.Z.name.includes("C")) {
-            str += `${languageManager.currentLang.complexImpedanceHeading} \\(\\mathbf{Z_{${component.Z.name}}}\\)<br>`;
-            str += `$$\\mathbf{Z_{${component.Z.name}}} = \\frac{-j}{2\\pi f ${component.Z.name}}$$`;
-            str += `$$\\mathbf{Z_{${component.Z.name}}} = ${component.Z.cpxVal}$$<br>`;
+            str += `${languageManager.currentLang.complexImpedanceHeading} \\(\\underline{Z_{${component.Z.name}}}\\)<br>`;
+            str += `$$\\underline{Z_{${component.Z.name}}} = \\frac{-j}{2\\pi f ${component.Z.name}}$$`;
+            str += `$$\\underline{Z_{${component.Z.name}}} = ${component.Z.cpxVal}$$<br>`;
         }
         if (component.Z.name.includes("L")) {
-            str += `${languageManager.currentLang.complexImpedanceHeading} \\(\\mathbf{Z_{${component.Z.name}}}\\)<br>`;
-            str += `$$\\mathbf{Z_{${component.Z.name}}} = j \\cdot 2\\pi f ${component.Z.name}$$`;
-            str += `$$\\mathbf{Z_{${component.Z.name}}} = ${component.Z.cpxVal}$$<br>`;
+            str += `${languageManager.currentLang.complexImpedanceHeading} \\(\\underline{Z_{${component.Z.name}}}\\)<br>`;
+            str += `$$\\underline{Z_{${component.Z.name}}} = j \\cdot 2\\pi f ${component.Z.name}$$`;
+            str += `$$\\underline{Z_{${component.Z.name}}} = ${component.Z.cpxVal}$$<br>`;
         }
     }
     return str;
@@ -73,44 +83,44 @@ function getComplexAdditionCalculation(stepObject) {
 
     // Add all Z
     str += `${languageManager.currentLang.complexImpedanceHeading} \\(${stepObject.simplifiedTo.Z.name}\\)<br>`;
-    str += `$$\\mathbf{${stepObject.simplifiedTo.Z.name}} = `;
+    str += `$$\\underline{${stepObject.simplifiedTo.Z.name}} = `;
     for (let component of stepObject.components) {
         if (component.Z.name.includes("Z")) {
-            str += `\\mathbf{${component.Z.name}} + `;
+            str += `\\underline{${component.Z.name}} + `;
         } else {
-            str += `\\mathbf{Z_{${component.Z.name}}} + `;
+            str += `\\underline{Z_{${component.Z.name}}} + `;
         }
     }
     str = str.slice(0, -3);  // remove last +
     str += `$$`;
 
-    str += `$$\\mathbf{${stepObject.simplifiedTo.Z.name}} = `;
+    str += `$$\\underline{${stepObject.simplifiedTo.Z.name}} = `;
     for (let component of stepObject.components) {
         str += `${component.Z.cpxVal} + `;
     }
     str = str.slice(0, -3);  // remove last +
     str += `$$`;
     // Carthesian
-    str += `$$\\mathbf{${stepObject.simplifiedTo.Z.name}} = ${stepObject.simplifiedTo.Z.cpxVal}$$`;
+    str += `$$\\underline{${stepObject.simplifiedTo.Z.name}} = ${stepObject.simplifiedTo.Z.cpxVal}$$`;
     // At this point we know we simplify to a complex impedance, if however we find that simplifiedTo.Z.name
     // contains either L or C, we know that we can calculate the complex value back to L or C
     if (stepObject.simplifiedTo.Z.name.includes("L")) {
         str += `${languageManager.currentLang.onlyImaginaryPart}\\(${stepObject.simplifiedTo.Z.name}\\)`;
-        str += `$$(${stepObject.simplifiedTo.Z.name} = \\frac{\\mathbf{${stepObject.simplifiedTo.Z.name}}}{j2\\pi f} = ${stepObject.simplifiedTo.Z.val})$$<br>`;
+        str += `$$(${stepObject.simplifiedTo.Z.name} = \\frac{\\underline{${stepObject.simplifiedTo.Z.name}}}{j2\\pi f} = ${stepObject.simplifiedTo.Z.val})$$<br>`;
     }
     if (stepObject.simplifiedTo.Z.name.includes("C")) {
         str += `${languageManager.currentLang.onlyImaginaryPart}\\(${stepObject.simplifiedTo.Z.name}\\)`;
-        str += `$$(${stepObject.simplifiedTo.Z.name} = \\frac{-j}{2\\pi f \\mathbf{${stepObject.simplifiedTo.Z.name}}} = ${stepObject.simplifiedTo.Z.val})$$<br>`;
+        str += `$$(${stepObject.simplifiedTo.Z.name} = \\frac{-j}{2\\pi f \\underline{${stepObject.simplifiedTo.Z.name}}} = ${stepObject.simplifiedTo.Z.val})$$<br>`;
     }
 
 
     // Absolute value
-    str += `$$|\\mathbf{${stepObject.simplifiedTo.Z.name}}| = \\sqrt{(${stepObject.simplifiedTo.Z.re}\\Omega)^2 + (${stepObject.simplifiedTo.Z.im}\\Omega)^2} $$`;
-    str += `$$|\\mathbf{${stepObject.simplifiedTo.Z.name}}| = ${stepObject.simplifiedTo.Z.impedance}$$`;
+    str += `$$|\\underline{${stepObject.simplifiedTo.Z.name}}| = \\sqrt{(${stepObject.simplifiedTo.Z.re}\\Omega)^2 + (${stepObject.simplifiedTo.Z.im}\\Omega)^2} $$`;
+    str += `$$|\\underline{${stepObject.simplifiedTo.Z.name}}| = ${stepObject.simplifiedTo.Z.impedance}$$`;
     // Phase
     str += `$$\\varphi = \\arctan(\\frac{${stepObject.simplifiedTo.Z.im}}{${stepObject.simplifiedTo.Z.re}}) = ${stepObject.simplifiedTo.Z.phase}$$`;
     // Polar
-    str += `$$\\mathbf{${stepObject.simplifiedTo.Z.name}} = ${toPolar(stepObject.simplifiedTo.Z.impedance, stepObject.simplifiedTo.Z.phase)}$$`;
+    str += `$$\\underline{${stepObject.simplifiedTo.Z.name}} = ${toPolar(stepObject.simplifiedTo.Z.impedance, stepObject.simplifiedTo.Z.phase)}$$`;
 
     return str;
 }
@@ -142,25 +152,25 @@ function getComplexReciprocalCalculation(stepObject) {
     str = str.slice(0, -3);  // remove last +
     str += `$$`;
     // Carthesian
-    str += `$$\\mathbf{${stepObject.simplifiedTo.Z.name}} = ${stepObject.simplifiedTo.Z.cpxVal}$$`;
+    str += `$$\\underline{${stepObject.simplifiedTo.Z.name}} = ${stepObject.simplifiedTo.Z.cpxVal}$$`;
     // At this point we know we simplify to a complex impedance, if however we find that simplifiedTo.Z.name
     // contains either L or C, we know that we can calculate the complex value back to L or C
     if (stepObject.simplifiedTo.Z.name.includes("L")) {
         str += `${languageManager.currentLang.onlyImaginaryPart}${stepObject.simplifiedTo.Z.name}`;
-        str += `$$(${stepObject.simplifiedTo.Z.name} = \\frac{\\mathbf{${stepObject.simplifiedTo.Z.name}}}{j2\\pi f} = ${stepObject.simplifiedTo.Z.val})$$<br>`;
+        str += `$$(${stepObject.simplifiedTo.Z.name} = \\frac{\\underline{${stepObject.simplifiedTo.Z.name}}}{j2\\pi f} = ${stepObject.simplifiedTo.Z.val})$$<br>`;
     }
     if (stepObject.simplifiedTo.Z.name.includes("C")) {
         str += `${languageManager.currentLang.onlyImaginaryPart}${stepObject.simplifiedTo.Z.name}`;
-        str += `$$(${stepObject.simplifiedTo.Z.name} = \\frac{-j}{2\\pi f \\mathbf{${stepObject.simplifiedTo.Z.name}}} = ${stepObject.simplifiedTo.Z.val})$$<br>`;
+        str += `$$(${stepObject.simplifiedTo.Z.name} = \\frac{-j}{2\\pi f \\underline{${stepObject.simplifiedTo.Z.name}}} = ${stepObject.simplifiedTo.Z.val})$$<br>`;
     }
 
     // Absolute value
-    str += `$$|\\mathbf{${stepObject.simplifiedTo.Z.name}}| = \\sqrt{(${stepObject.simplifiedTo.Z.re}\\Omega)^2 + (${stepObject.simplifiedTo.Z.im}\\Omega)^2} $$`;
-    str += `$$|\\mathbf{${stepObject.simplifiedTo.Z.name}}| = ${stepObject.simplifiedTo.Z.impedance}$$`;
+    str += `$$|\\underline{${stepObject.simplifiedTo.Z.name}}| = \\sqrt{(${stepObject.simplifiedTo.Z.re}\\Omega)^2 + (${stepObject.simplifiedTo.Z.im}\\Omega)^2} $$`;
+    str += `$$|\\underline{${stepObject.simplifiedTo.Z.name}}| = ${stepObject.simplifiedTo.Z.impedance}$$`;
     // Phase
     str += `$$\\varphi = \\arctan(\\frac{${stepObject.simplifiedTo.Z.im}}{${stepObject.simplifiedTo.Z.re}}) = ${stepObject.simplifiedTo.Z.phase}$$`;
     // Polar
-    str += `$$\\mathbf{${stepObject.simplifiedTo.Z.name}} = ${toPolar(stepObject.simplifiedTo.Z.impedance, stepObject.simplifiedTo.Z.phase)}$$`;
+    str += `$$\\underline{${stepObject.simplifiedTo.Z.name}} = ${toPolar(stepObject.simplifiedTo.Z.impedance, stepObject.simplifiedTo.Z.phase)}$$`;
 
     return str;
 }
@@ -188,12 +198,16 @@ function getTotalCurrent(stepObject) {
         circuitMapper.selectorIds.mixed].includes(state.currentCircuitMap.selectorGroup)) {
         sfx += "," + languageManager.currentLang.effectiveSuffix;
     }
+    let lastComponentType = stepObject.simplifiedTo.Z.name[0]; // R, L, C, Z
 
     str += `${languageManager.currentLang.currentCalcHeading} \\(${stepObject.simplifiedTo.Z.name}\\)<br>`;
-    if (stepObject.simplifiedTo.Z.name.includes("R") || stepObject.simplifiedTo.Z.name.includes("Z")) {
-        str += `$$I_{${sfx}} = \\frac{${languageManager.currentLang.voltageSymbol}_{${sfx}}}{${stepObject.simplifiedTo.Z.name}}$$`
+
+    if (lastComponentType === "Z" || lastComponentType === "R") {
+        str += `$$I_{${sfx}} = \\frac{${languageManager.currentLang.voltageSymbol}_{${sfx}}}{${lastComponentType}_{${sfx}}}$$`;
+        str += `$$I_{${sfx}} = ${stepObject.simplifiedTo.I.name} = \\frac{${languageManager.currentLang.voltageSymbol}_{${sfx}}}{${stepObject.simplifiedTo.Z.name}}$$`
     } else {
-        str += `$$I_{${sfx}} = \\frac{${languageManager.currentLang.voltageSymbol}_{${sfx}}}{Z_{${stepObject.simplifiedTo.Z.name}}}$$`
+        str += `$$I_{${sfx}} = \\frac{${languageManager.currentLang.voltageSymbol}_{${sfx}}}{Z_{${sfx}}}$$`;
+        str += `$$I_{${sfx}} = ${stepObject.simplifiedTo.I.name} = \\frac{${languageManager.currentLang.voltageSymbol}_{${sfx}}}{Z_{${stepObject.simplifiedTo.Z.name}}}$$`
     }
     if (currentCircuitIsSymbolic()) {
         str += `$$I_{${sfx}} = ${renameVSrc(stepObject.simplifiedTo.I.val)}$$`;
@@ -213,13 +227,13 @@ function getComplexTotalCurrent(stepObject) {
 
     str += `${languageManager.currentLang.currentCalcHeading} \\(${stepObject.simplifiedTo.Z.name}\\)<br>`;
     if (stepObject.simplifiedTo.Z.name.includes("Z")) {
-        str += `$$\\mathbf{I_{${sfx}}} = \\frac{\\mathbf{${languageManager.currentLang.voltageSymbol}_{${sfx}}}}{\\mathbf{${stepObject.simplifiedTo.Z.name}}}$$`
+        str += `$$\\underline{I_{${sfx}}} = \\underline{${stepObject.simplifiedTo.I.name}} = \\frac{\\underline{${languageManager.currentLang.voltageSymbol}_{${sfx}}}}{\\underline{${stepObject.simplifiedTo.Z.name}}}$$`
     } else {
-        str += `$$\\mathbf{I_{${sfx}}} = \\frac{\\mathbf{${languageManager.currentLang.voltageSymbol}_{${sfx}}}}{\\mathbf{Z_{${stepObject.simplifiedTo.Z.name}}}}$$`
+        str += `$$\\underline{I_{${sfx}}} = \\frac{\\underline{${languageManager.currentLang.voltageSymbol}_{${sfx}}}}{\\underline{Z_{${stepObject.simplifiedTo.Z.name}}}}$$`
     }
 
-    str += `$$\\mathbf{I_{${sfx}}} = \\frac{${stepObject.simplifiedTo.U.val}}{${toPolar(stepObject.simplifiedTo.Z.impedance, stepObject.simplifiedTo.Z.phase)}}$$`;
-    str += `$$\\mathbf{I_{${sfx}}} = ${toPolar(stepObject.simplifiedTo.I.val, stepObject.simplifiedTo.I.phase)}$$`;
+    str += `$$\\underline{I_{${sfx}}} = \\frac{${stepObject.simplifiedTo.U.val}}{${toPolar(stepObject.simplifiedTo.Z.impedance, stepObject.simplifiedTo.Z.phase)}}$$`;
+    str += `$$\\underline{I_{${sfx}}} = ${toPolar(stepObject.simplifiedTo.I.val, stepObject.simplifiedTo.I.phase)}$$`;
     return str;
 }
 
@@ -314,15 +328,6 @@ function renameVSrc(val) {
 
 function getSymbolicSeriesVCDescription(stepObject) {
     let str = "";
-    // Calculate current
-    str += `${languageManager.currentLang.currentCalcHeading} \\(${stepObject.simplifiedTo.Z.name}\\)<br>`;
-    if (stepObject.simplifiedTo.Z.name.includes("R") || stepObject.simplifiedTo.Z.name.includes("Z")) {
-        str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.name}}{${stepObject.simplifiedTo.Z.name}}$$`;
-    } else {
-        str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.name}}{Z_{${stepObject.simplifiedTo.Z.name}}}$$`;
-    }
-    str += `$$${stepObject.simplifiedTo.I.name} = ${renameVSrc(stepObject.simplifiedTo.I.val)}$$<br>`;
-    // Text
     str += `${languageManager.currentLang.relationTextSeries}.<br>`;
     str += `${languageManager.currentLang.currentStaysTheSame}.<br>`;
     str += `$$${stepObject.simplifiedTo.I.name} = `;
@@ -357,15 +362,6 @@ function getSymbolicSeriesVCDescription(stepObject) {
 
 function getSymbolicParallelVCDescription(stepObject) {
     let str = "";
-    // Calculate current
-    str += `${languageManager.currentLang.currentCalcHeading} \\(${stepObject.simplifiedTo.Z.name}\\)<br>`;
-    if (stepObject.simplifiedTo.Z.name.includes("R") || stepObject.simplifiedTo.Z.name.includes("Z")) {
-        str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.name}}{${stepObject.simplifiedTo.Z.name}}$$`;
-    } else {
-        str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.name}}{Z_{${stepObject.simplifiedTo.Z.name}}}$$`;
-    }
-    str += `$$${stepObject.simplifiedTo.I.name} = ${renameVSrc(stepObject.simplifiedTo.I.val)}$$<br>`;
-    // Text
     str += `${languageManager.currentLang.relationTextParallel}.<br>`;
     str += `${languageManager.currentLang.voltageStaysTheSame}.<br>`;
     str += `$$${stepObject.simplifiedTo.U.name} = `;
@@ -421,21 +417,11 @@ function getComplexNonSymbolicParallelVC(stepObject) {
     let SimplifiedIinPolar = toPolar(stepObject.simplifiedTo.I.val, stepObject.simplifiedTo.I.phase);
     let SimplifiedUinPolar = toPolar(stepObject.simplifiedTo.U.val, stepObject.simplifiedTo.U.phase);
 
-    // Calculate current
-    str += `${languageManager.currentLang.currentCalcHeading} \\(${stepObject.simplifiedTo.Z.name}\\)<br>`;
-    if (stepObject.simplifiedTo.Z.name.includes("R") || stepObject.simplifiedTo.Z.name.includes("Z")) {
-        str += `$$\\mathbf{${stepObject.simplifiedTo.I.name}} = \\frac{\\mathbf{${stepObject.simplifiedTo.U.name}}}{\\mathbf{${stepObject.simplifiedTo.Z.name}}}$$`;
-    } else {
-        str += `$$\\mathbf{${stepObject.simplifiedTo.I.name}} = \\frac{\\mathbf{${stepObject.simplifiedTo.U.name}}}{\\mathbf{Z_{${stepObject.simplifiedTo.Z.name}}}}$$`;
-    }
-    str += `$$\\mathbf{${stepObject.simplifiedTo.I.name}} = \\frac{${stepObject.simplifiedTo.U.val}}{${SimplifiedZinPolar}}$$`;
-    str += `$$\\mathbf{${stepObject.simplifiedTo.I.name}} = ${toPolar(stepObject.simplifiedTo.I.val, stepObject.simplifiedTo.I.phase)}$$<br>`;
-    // Text
     str += `${languageManager.currentLang.relationTextParallel}.<br>`;
     str += `${languageManager.currentLang.voltageStaysTheSame}.<br>`;
-    str += `$$\\mathbf{${stepObject.simplifiedTo.U.name}} = `;
+    str += `$$\\underline{${stepObject.simplifiedTo.U.name}} = `;
     stepObject.components.forEach((component) => {
-        str += `\\mathbf{${component.U.name}} = `
+        str += `\\underline{${component.U.name}} = `
     });
     str = str.slice(0, -3);  // remove last =
     str += `$$`;
@@ -443,15 +429,15 @@ function getComplexNonSymbolicParallelVC(stepObject) {
     // Voltage split
     str += `<br>${languageManager.currentLang.currentSplits}.<br>`;
     stepObject.components.forEach((component) => {
-        str += `$$\\mathbf{${component.I.name}} = ?$$`;
+        str += `$$\\underline{${component.I.name}} = ?$$`;
     });
     str += `<br>`;
     // Current calculation
     stepObject.components.forEach((cpt) => {
         if (cpt.Z.name.includes("Z")) {
-            str += `$$\\mathbf{${cpt.I.name}} = \\frac{\\mathbf{${cpt.U.name}}}{\\mathbf{${cpt.Z.name}}}$$`;
+            str += `$$\\underline{${cpt.I.name}} = \\frac{\\underline{${cpt.U.name}}}{\\underline{${cpt.Z.name}}}$$`;
         } else {
-            str += `$$\\mathbf{${cpt.I.name}} = \\frac{\\mathbf{${cpt.U.name}}}{\\mathbf{Z_{${cpt.Z.name}}}}$$`;
+            str += `$$\\underline{${cpt.I.name}} = \\frac{\\underline{${cpt.U.name}}}{\\underline{Z_{${cpt.Z.name}}}}$$`;
         }
         str += `$$= \\frac{${SimplifiedUinPolar}}{${toPolar(cpt.Z.impedance, cpt.Z.phase)}}$$`;
         str += `$$= ${toPolar(cpt.I.val, cpt.I.phase)}$$<br>`;
@@ -467,21 +453,11 @@ function getComplexNonSymbolicSeriesVC(stepObject) {
     let SimplifiedIinPolar = toPolar(stepObject.simplifiedTo.I.val, stepObject.simplifiedTo.I.phase);
     let SimplifiedUinPolar = toPolar(stepObject.simplifiedTo.U.val, stepObject.simplifiedTo.U.phase);
 
-    // Calculate current
-    str += `${languageManager.currentLang.currentCalcHeading} \\(${stepObject.simplifiedTo.Z.name}\\)<br>`;
-    if (stepObject.simplifiedTo.Z.name.includes("R") || stepObject.simplifiedTo.Z.name.includes("Z")) {
-        str += `$$\\mathbf{${stepObject.simplifiedTo.I.name}} = \\frac{\\mathbf{${stepObject.simplifiedTo.U.name}}}{\\mathbf{${stepObject.simplifiedTo.Z.name}}}$$`;
-    } else {
-        str += `$$\\mathbf{${stepObject.simplifiedTo.I.name}} = \\frac{\\mathbf{${stepObject.simplifiedTo.U.name}}}{\\mathbf{Z_{${stepObject.simplifiedTo.Z.name}}}}$$`;
-    }
-    str += `$$\\mathbf{${stepObject.simplifiedTo.I.name}} = \\frac{${SimplifiedUinPolar}}{${SimplifiedZinPolar}}$$`;
-    str += `$$\\mathbf{${stepObject.simplifiedTo.I.name}} = ${toPolar(stepObject.simplifiedTo.I.val, stepObject.simplifiedTo.I.phase)}$$<br>`;
-    // Text
     str += `${languageManager.currentLang.relationTextSeries}.<br>`;
     str += `${languageManager.currentLang.currentStaysTheSame}.<br>`;
-    str += `$$\\mathbf{${stepObject.simplifiedTo.I.name}} = `;
+    str += `$$\\underline{${stepObject.simplifiedTo.I.name}} = `;
     stepObject.components.forEach((component) => {
-        str += `\\mathbf{${component.I.name}} = `
+        str += `\\underline{${component.I.name}} = `
     });
     str = str.slice(0, -3);  // remove last =
     str += `$$`;
@@ -489,15 +465,15 @@ function getComplexNonSymbolicSeriesVC(stepObject) {
     // Voltage split
     str += `<br>${languageManager.currentLang.voltageSplits}.<br>`;
     stepObject.components.forEach((component) => {
-        str += `$$\\mathbf{${component.U.name}} = ?$$`;
+        str += `$$\\underline{${component.U.name}} = ?$$`;
     });
     str += `<br>`;
     // Voltage calculation
     stepObject.components.forEach((cpt) => {
         if (cpt.Z.name.includes("Z")) {
-            str += `$$\\mathbf{${cpt.U.name}} = \\mathbf{${cpt.Z.name}} \\cdot  \\mathbf{${cpt.I.name}}$$`;
+            str += `$$\\underline{${cpt.U.name}} = \\underline{${cpt.Z.name}} \\cdot  \\underline{${cpt.I.name}}$$`;
         } else {
-            str += `$$\\mathbf{${cpt.U.name}} = \\mathbf{Z_{${cpt.Z.name}}} \\cdot  \\mathbf{${cpt.I.name}}$$`;
+            str += `$$\\underline{${cpt.U.name}} = \\underline{Z_{${cpt.Z.name}}} \\cdot  \\underline{${cpt.I.name}}$$`;
         }
         str += `$$= ${toPolar(cpt.Z.impedance, cpt.Z.phase)} \\cdot ${toPolar(stepObject.simplifiedTo.I.val, stepObject.simplifiedTo.I.phase)}$$`;  // use simplifiedTo val to make it more explanatory in symbolic circuits
         str += `$$= ${toPolar(cpt.U.val, cpt.U.phase)}$$<br>`;
@@ -509,15 +485,6 @@ function getNonSymbolicSeriesVC(stepObject) {
     let str = "";
     // Calculate current
     // make distinction between RLC and R L C again
-    str += `${languageManager.currentLang.currentCalcHeading} \\(${stepObject.simplifiedTo.Z.name}\\)<br>`;
-    if (stepObject.simplifiedTo.Z.name.includes("R") || stepObject.simplifiedTo.Z.name.includes("Z")) {
-        str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.name}}{${stepObject.simplifiedTo.Z.name}}$$`;
-    } else {
-        str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.name}}{Z_{${stepObject.simplifiedTo.Z.name}}}$$`;
-    }
-    str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.val}}{${stepObject.simplifiedTo.Z.impedance}}$$`;
-    str += `$$${stepObject.simplifiedTo.I.name} = ${stepObject.simplifiedTo.I.val}$$<br>`;
-    // Text
     str += `${languageManager.currentLang.relationTextSeries}.<br>`;
     str += `${languageManager.currentLang.currentStaysTheSame}.<br>`;
     str += `$$${stepObject.simplifiedTo.I.name} = `;
@@ -548,16 +515,6 @@ function getNonSymbolicSeriesVC(stepObject) {
 
 function getNonSymbolicParallelVC(stepObject) {
     let str = "";
-    // Calculate current
-    str += `${languageManager.currentLang.currentCalcHeading} \\(${stepObject.simplifiedTo.Z.name}\\)<br>`;
-    if (stepObject.simplifiedTo.Z.name.includes("R") || stepObject.simplifiedTo.Z.name.includes("Z")) {
-        str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.name}}{${stepObject.simplifiedTo.Z.name}}$$`;
-    } else {
-        str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.name}}{Z_{${stepObject.simplifiedTo.Z.name}}}$$`;
-    }
-    str += `$$${stepObject.simplifiedTo.I.name} = \\frac{${stepObject.simplifiedTo.U.val}}{${stepObject.simplifiedTo.Z.impedance}}$$`;
-    str += `$$${stepObject.simplifiedTo.I.name} = ${stepObject.simplifiedTo.I.val}$$<br>`;
-    // Text
     str += `${languageManager.currentLang.relationTextParallel}.<br>`;
     str += `${languageManager.currentLang.voltageStaysTheSame}.<br>`;
     str += `$$${stepObject.simplifiedTo.U.name} = `;

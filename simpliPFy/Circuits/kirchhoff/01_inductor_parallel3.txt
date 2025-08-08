@@ -1,4 +1,4 @@
-V1 2 0 ac {10} {0} {2*pi*100}; up
+Va 2 0 ac {10} {0} {2*pi*100}; down
 W 2 3; right
 L1 3 4 {0.001}; down
 W 3 5; right
@@ -7,5 +7,4 @@ W 5 7; right
 L3 7 8 {0.001}; down
 W 8 6; left
 W 6 4; left
-W 4 9; left
-W 9 0; left
+W 4 0; left

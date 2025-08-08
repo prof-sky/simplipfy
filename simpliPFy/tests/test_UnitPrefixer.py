@@ -1,9 +1,8 @@
 from sympy import latex
 
 import lcapyInskale
-from lcapyInskale import omega0
-from lcapyInskale import resistance
-from simplipfy.unitPrefixer import SIUnitPrefixer
+from lcapyInskale import omega0, resistance
+from simplipfy.Helpers.unitPrefixer import SIUnitPrefixer
 
 lcapyInskale.state.show_units = True
 

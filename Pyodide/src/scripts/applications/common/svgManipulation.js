@@ -51,10 +51,12 @@ function showCurrentArrows(svgDiv) {
     }
 }
 
-function hideSourceLabel(svgDiv) {
-    let sourceLabel = svgDiv.querySelector(".element-label.V1");
-    if (sourceLabel !== null) {
-        sourceLabel.style.display = "none";
+function hideSourceLabel(svgDiv, toHide=["V1"]) {
+    for (let label of toHide){
+        let sourceLabel = svgDiv.querySelector(`.element-label.${label}`);
+        if (sourceLabel !== null) {
+            sourceLabel.style.display = "none";
+        }
     }
 }
 

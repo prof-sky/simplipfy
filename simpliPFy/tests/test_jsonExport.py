@@ -4,11 +4,11 @@ import shutil
 from random import choices
 from string import ascii_uppercase, digits
 
+import simplipfyAPI
 from lcapyInskale import Circuit
-from simpliPFy import solve
-from simplipfy.impedanceConverter import FileToImpedance
-from simplipfy.langSymbols import LangSymbols
-from simplipfy.solution import Solution
+from simplipfy.Helpers.impedanceConverter import FileToImpedance
+from simplipfy.Helpers.langSymbols import LangSymbols
+from simplipfy.Helpers.solution import Solution
 
 
 #not multithread save
@@ -35,9 +35,9 @@ class TestJsonExport:
         return data
 
     def helperJsonExportCircuitInfo(self, fileName: str, savePath):
-        sol = solve.SolveInUserOrder(fileName, filePath="Schematics", savePath=savePath)
+        sol = simplipfyAPI.SolveInUserOrder(fileName, filePath="Schematics")
         data = sol.createInitialStep()
-        for key in ["step", "source", "allComponents", "componentTypes", "svgData"]:
+        for key in ["step", "sources", "allComponents", "componentTypes", "svgData"]:
             assert key in data.keys(), f"filename: {fileName} dataKey {key} is missing"
 
         sol.createInitialStep()

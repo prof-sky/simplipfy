@@ -3,14 +3,14 @@ window.selectorDeTexts = {
         "Schaltungen werden geladen...",
     selectorHeadings:
         {
-            "quick": "SCHNELLSTART",
+            "quick": "TUTORIAL",
             "res":  "WIDERSTÄNDE",  // use the ä character because &auml is not rendered correctly here
             "cap": "KONDENSATOREN",
             "ind": "SPULEN",
             "mixed": "GEMISCHTE SCHALTUNGEN",
             "sym": "SYMBOLISCHE RECHNUNG",
             "kirch": "KIRCHHOFF",
-            //"wheat": "WHEATSTONE",
+            "wheat": "WHEATSTONE",
         },
     overviewModalBtn:
         "Übersicht",

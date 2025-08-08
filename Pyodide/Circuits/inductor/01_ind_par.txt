@@ -1,0 +1,10 @@
+V1 1 0 ac {10} {0} {2*pi*100}; down
+W 1 2; right
+L1 2 3 {0.001}; down
+W 2 4; right
+L2 4 5 {0.001}; down
+W 4 6; right
+L3 6 7 {0.001}; down
+W 7 5; left
+W 5 3; left
+W 3 0; left

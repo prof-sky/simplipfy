@@ -14,19 +14,19 @@ else{
 
 function adjustAndMoveSolvePy{
 
-    $content = Get-Content -Path "solve.py"
+    $content = Get-Content -Path "simplipfyAPI.py"
 
     $versionLine = [string]::Concat("# for simplipfy version: ", $version, "`r`n")
     $line1 = "import warnings`r`n"
     $line2 = "warnings.filterwarnings('ignore')`r`n"
     $content = $versionLine + $line1 + $line2 + ($content -join "`r`n")
-    Set-Content -Path "..\Pyodide\solve.py" -Value $content
+    Set-Content -Path "..\Pyodide\simplipfyAPI.py" -Value $content
 
-    Write-Output "Copied solve.py to: ..\Pyodide\"
+    Write-Output "Copied simplipfyAPI.py to: ..\Pyodide\"
 }
 
 function adjustAndMoveGenerateSVGFilesPy{
-    $content = Get-Content -Path "generateSVGFiles.py"
+    $content = Get-Content -Path "simplipfy/tools/generateSVGFiles.py"
 
     $versionLine = [string]::Concat("# for simplipfy version: ", $version, "`r`n")
     $content = $versionLine + ($content -join "`r`n")
@@ -45,6 +45,7 @@ Set-Location $PSScriptRoot
 Write-Host "Building package" -ForegroundColor Green
 
 try{
+    pythonPath -m bumpVersion
     pythonPath -m build
 }
 catch{
@@ -61,7 +62,7 @@ try{
     adjustAndMoveSolvePy
 }
 catch{
-    Write-Host "An error occured while handling solve.py" -ForegroundColor Red
+    Write-Host "An error occured while handling simplipfyAPI.py" -ForegroundColor Red
     Write-Host $_.Exception.Message -ForegroundColor Red
     Set-Location $startDir
     return
@@ -111,5 +112,5 @@ catch {
 Write-Output ([string]::Concat("Copied ", $newPackage, " to: ..\Pyodide\Packages\"))
 
 
-Write-Host "Successfully updated solve.py, generateSVGFiles.py and simpliPFy package in Pyodide distribution" -ForegroundColor Green
+Write-Host "Successfully updated simplipfyAPI.py, generateSVGFiles.py and simpliPFy package in Pyodide distribution" -ForegroundColor Green
 Set-Location $startDir

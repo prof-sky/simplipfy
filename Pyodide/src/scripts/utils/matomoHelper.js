@@ -7,6 +7,16 @@ const circuitActions = {
     ViewZExplanation: "Z Rechnung angeschaut",
     ViewTotalExplanation: "Gesamtrechnung angeschaut",
     ViewSolutions: "Lösungen angeschaut",
+    Closing: "Schließen",
+    // Kirchhoff
+    LoopAlreadyExists: "Masche existiert bereits",
+    InvalidVoltageLoop: "Ungültige Masche",
+    FinishedVoltages: "Maschenregel fertig",
+    WrongCurrentEquation: "Falsche Stromgleichung",
+    JunctionAlreadyExists: "Knoten existiert bereits",
+    InvalidJunction: "Ungültiger Knoten",
+    ToggleGeneralizeOn: "Generalisieren an",
+    ToggleGeneralizeOff: "Generalisieren aus",
 }
 
 const eventCategories = {
@@ -21,6 +31,7 @@ const eventCategories = {
     Configurations: "Konfigurationen",
     Errors: "Fehler",
     _SymIdx: " - sym",
+    Simplifier: "Simplifier",
 }
 
 const configActions = {
@@ -36,6 +47,7 @@ const configDarkModeValues = {
 const configLanguageValues = {
     German: "Deutsch",
     English: "Englisch",
+    French: "Französisch"
 }
 
 const errorActions = {
@@ -49,7 +61,7 @@ const errorActions = {
     step0Error: "Fehler beim Erstellen von Schritt 0",
     simplifyNCptsError: "Fehler beim Vereinfachen der NCpts",
     solutionsFileError: "Fehler beim Laden der Lösungsdatei (hardcodedStepSolver)",
-    optionsFileError: "Fehler beim Laden der Optionsdatei (wheatstone)",
+    optionsFileError: "Fehler beim Laden der Optionsdatei, möglicherweise nicht vorhanden (wheatstone)",
     pyodideNotLoadedError: "Pyodide nicht geladen",
     pyodideWorkerError: "Fehler im Pyodide Worker",
     workerAPIError: "Fehler in der Worker API",
@@ -57,7 +69,6 @@ const errorActions = {
     circuitSelectorSetupError: "Fehler beim Einrichten des Schaltungsselectors",
     loadingOverviewError: "Fehler beim Laden der Übersicht-SVG",
     startCircuitGroupError: "Fehler beim Starten der Schaltung (group)",
-
 }
 
 function pushPageViewMatomo(title="") {
@@ -77,6 +88,45 @@ function pushCircuitEventMatomo(action, value=-1) {
     if (category === circuitMapper.selectorIds.symbolic) circuitName += eventCategories._SymIdx;
     if (!allowedCircuitAction(action)) return;
     pushEventToMatomo(mappedCategory, action, circuitName, value);
+
+    // Send event to session database if sessionId is set
+    if (state.sessionId) {
+        let text = action;
+        // Show which elements were selected
+        if (action === circuitActions.ErrCanNotSimpl) {
+            text += " ("
+            state.selectedElements.forEach((el) => {
+                text += el + ", ";
+            });
+            // Remove the last comma and space
+            text = text.slice(0, -2);
+            text += ")";
+        } else if (action === circuitActions.InvalidVoltageLoop) {
+            // TODO fix Uges = U1 error. Tracking shows Uges as U1
+            text += " ("
+            state.selectedElements.forEach((el) => {
+                // Extract the number from the element name
+                const match = el.match(/\d+/);
+                el = "U" + `${parseInt(match[0], 10)}`;
+                text += el + ", ";
+            });
+            // Remove the last comma and space
+            text = text.slice(0, -2);
+            text += ")";
+        } else if (action === circuitActions.InvalidJunction) {
+            text += " ("
+            state.selectedElements.forEach((el) => {
+                // Extract the number from the element name
+                const match = el.match(/\d+/);
+                el = "I" + `${parseInt(match[0], 10)}`;
+                text += el + ", ";
+            });
+            // Remove the last comma and space
+            text = text.slice(0, -2);
+            text += ")";
+        }
+        sendEventToDB(text);
+    }
 }
 
 function pushLanguageEventMatomo(language) {
@@ -98,6 +148,7 @@ function mapCategory(category) {
     if (["sym"].includes(category)) return eventCategories.Symbolic;
     if (["kirch"].includes(category)) return eventCategories.Kirchhoff;
     if (["wheat"].includes(category)) return eventCategories.Wheatstone;
+    if (["simplifier"].includes(category)) return eventCategories.Simplifier;
     console.log("Category not possible, check: " + category);
     return null;
 }

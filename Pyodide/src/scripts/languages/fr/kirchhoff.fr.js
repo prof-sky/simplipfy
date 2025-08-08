@@ -1,0 +1,17 @@
+window.kirchhoffFrTexts = {
+    kirchVInfoGifHeading: "Boucle de tension d'explication",
+    kirchVInfoGifText: "Clique sur les étiquettes des flèches de tension pour sélectionner une boucle de tension.  La direction de la boucle est déterminée par l'ordre des éléments sélectionnés.  Lorsque vous avez terminé, clique sur 'check' pour vérifier la boucle.  Si tu as trouvé toutes les boucles de tension, clique sur 'Junction law' pour vérifier la loi sur la jonction.  (Si tu as trouvé suffisamment de boucles de tension, tu n'as pas besoin de trouver d'équations de jonction)",
+    kirchIInfoGifHeading: "Explication jonctions actuelles",
+    kirchIInfoGifText: "Clique sur les étiquettes des flèches actuelles pour sélectionner une jonction.  Lorsque tu as terminé, clique sur vérifier pour vérifier la jonction.  Sélectionne ensuite l'équation correcte.  Lorsque tu as terminé, clique sur «Finer» pour vérifier si tu as trouvé suffisamment d'équations.",
+    kirchhoffVoltageHeading: "Équations de tension",
+    kirchhoffCurrentHeading: "Équations actuelles",
+    missingEquations: "Toutes les équations trouvées:",
+    chooseCorrectEquation: "Choisis la bonne équation",
+    gameOverHeading: "Il ne reste plus de vie!",
+    gameOverText: "Tu as déjà utilisé votre vie supplémentaire, réessayez",
+    extraLiveText: "Oh non, réessaie ou résous correctement la tâche pour obtenir une vie supplémentaire",
+    givenValues: "Valeurs donnés",
+    foundAllVoltageLoops: "Toutes les boucles de tension trouvées",
+    foundEnoughVoltLoops: "Suffisamment d'équations trouvées pour résoudre le circuit sans équations de courant",
+    finishBtn: "Finition",
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Tutorial: start</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Tutorial: start</h1>
+
+    <section>
+
+<header>
+    
+
+    <h2>start</h2>
+</header>
+
+<article>
+    <h1>Start</h1>
+<h2>How the frontend is structured</h2>
+<p>If you cloned the simplipfy repository from <a href="https://gitlab.hs-pforzheim.de/stefan.kray/inskale.git">gitlab</a>, you
+will have an <code>inskale</code> directory, that contains:</p>
+<ul>
+<li><strong>lcapy-inskale</strong>: Adapted lcapy library</li>
+<li><strong>Schemdraw</strong>: Adapted schemdraw library</li>
+<li><strong>simpliPFy</strong>: Backend API for simplipfy</li>
+<li><strong>Pyodide</strong>: Frontend functionality</li>
+</ul>
+<p>So in this documentation, we will focus on the <strong>Pyodide</strong> directory, which contains the frontend code for simplipfy.
+If you want to see more information on the backend, navigate to the simplipfy documentation.</p>
+<p>The <strong>Pyodide</strong> directory contains the following subdirectories:</p>
+<ul>
+<li>Circuits: Containing the .txt, .svg and .json files for the circuits</li>
+<li>Circuits.zip: The above Circuits directory in a zip file</li>
+<li>Circuits_example: Example circuits for the user to download under &quot;Custom Circuits&quot;</li>
+<li>Packages: All necessary Python packages for the backend</li>
+<li>Scripts: Some development scripts</li>
+<li><strong>src: The source code for the frontend</strong></li>
+<li>various files</li>
+</ul>
+<p>The <strong>src</strong> directory contains the following subdirectories:</p>
+<ul>
+<li>conf: Directory containing conf.json to specifics paths and names</li>
+<li>docs: The documentation for the frontend</li>
+<li>fonts: Directory containing the fonts used in the frontend</li>
+<li>resources: Directory containing the resources used in the frontend (Images, Icons, etc.)</li>
+<li><strong>scripts: Directory containing the scripts used in the frontend</strong></li>
+<li><strong>styles: Directory containing the styles used in the frontend</strong></li>
+<li>tutorials: Directory containing the tutorials for the frontend documentation</li>
+<li>jsdoc.json and readme.md for documentation</li>
+</ul>
+<h2>The scripts directory</h2>
+<p>The <strong>scripts</strong> directory contains the following subdirectories:</p>
+<ul>
+<li>applications: Directory containing the applications (simplifier, kirchhoff, wheatstone, ...) for the frontend</li>
+<li>dataObjects:
+<ul>
+<li>stateObject.js: Definition of the state object that is used to store the state of the frontend</li>
+<li>stepObject.js: Containing the definitions for step objects received from the backend</li>
+</ul>
+</li>
+<li>dataPrivacyAndLegalNotice:
+<ul>
+<li>dataPrivacy.js: Setup function for data privacy page</li>
+<li>legalNotice.js: Setup function for legal notice page</li>
+</ul>
+</li>
+<li>definitions:
+<ul>
+<li>allowedCircuitDirectories.js: Specifying the allowed circuit directory names</li>
+<li>colorDefinitions.js: Defining the colors used in the frontend for easy access</li>
+<li>emojis.js: Defining the emojis used in the frontend (try to incorrectly solve a circuit if you want to see one)</li>
+<li>romanNumbersMap.js: Mapping of roman numbers to numbers (for Math equations)</li>
+<li>toggleSymbolDefinition.js: Defining the toggle symbol used in the frontend (toggle between symbol and value)</li>
+</ul>
+</li>
+<li>extern: Containing the external libraries used in the frontend (downloaded to be hosted here instead of using cdn to avoid cookie issues)</li>
+<li>languages:
+<ul>
+<li>de (Directory containing the German translations)</li>
+<li>en (Directory containing the English translations)</li>
+<li>languageManager.js</li>
+</ul>
+</li>
+<li>pyodideAPI (see more in the pyodideWorker tutorial):
+<ul>
+<li>hardcodedStepSolverAPI.js: Hardcoded step solver so no backend necessary for this</li>
+<li>kirchhoffSolverAPI.js: Kirchhoff solver API</li>
+<li>pyodideAPI.js: Pyodide API for the frontend</li>
+<li>pyodideWorker.js: The webworker that handles the pyodide instance</li>
+<li>pyodideWorkerAPI.js: The webworker API that is called from the frontend</li>
+<li>stepSolverAPI.js: Step solver API (for the basic simplification steps)</li>
+<li>wheatstoneSolverAPI.js: Wheatstone solver API</li>
+<li>workerAvailability.js: Script that checks if the webworker is available on the device</li>
+</ul>
+</li>
+<li>utils
+<ul>
+<li>circuitMapper.js: For loading the circuits and generating usable circuit objects</li>
+<li>configurations.js: Handler for the conf.json file</li>
+<li>darkModeFunctions.js: Functions for dark mode handling</li>
+<li>loadFonts.js: Function for loading the fonts used in the frontend</li>
+<li>matomoHelper.js: Functions for Matomo tracking</li>
+<li>packageManager.js: Functions for managing the Python packages used in the frontend</li>
+<li>pageManager.js: Functions for managing the &quot;navigator&quot;, i.e. the different used pages</li>
+<li>selectorBuilder.js: Functions for dynamically building the selectors (carousels, ...) used</li>
+</ul>
+</li>
+<li>main.js: The main script that is loaded in the index.html file and initializes the frontend</li>
+</ul>
+<h2>Program flow</h2>
+<p><img src="../tutorials/overviewgraph.png" alt="overview" title="Overview of the frontend program flow"></p>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Tutorials</h3><ul><li><a href="tutorial-applications.html">applications</a></li><li><a href="tutorial-mathjax.html">mathjax</a></li><li><a href="tutorial-matomo.html">matomo</a></li><li><a href="tutorial-newLanguage.html">newLanguage</a></li><li><a href="tutorial-pageManagerUsage.html">pageManagerUsage</a></li><li><a href="tutorial-progressBar.html">progressBar</a></li><li><a href="tutorial-pyodideWorker.html">pyodideWorker</a></li><li><a href="tutorial-sessionTracking.html">sessionTracking</a></li><li><a href="tutorial-start.html">start</a></li></ul><h3>Global</h3><ul><li><a href="global.html#circuitMapper">circuitMapper</a></li><li><a href="global.html#colors">colors</a></li><li><a href="global.html#conf">conf</a></li><li><a href="global.html#languageManager">languageManager</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#packageManager">packageManager</a></li><li><a href="global.html#pageManager">pageManager</a></li><li><a href="global.html#participantName">participantName</a></li><li><a href="global.html#selectorBuilder">selectorBuilder</a></li><li><a href="global.html#state">state</a></li><li><a href="global.html#worker">worker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Thu Jul 24 2025 11:25:09 GMT+0200 (Mitteleuropäische Sommerzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

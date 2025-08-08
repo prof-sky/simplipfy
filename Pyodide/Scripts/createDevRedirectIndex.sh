@@ -8,7 +8,11 @@ content=$(cat <<EOF
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting...</title>
     <script>
-      window.location.replace("/$CI_COMMIT_SHA"); // Redirects to current version
+      let downloadLink = window.location.hash.substring(1);
+      if (downloadLink !== ''){
+        downloadLink = "/#" + downloadLink;
+      }
+      window.location.replace("/$CI_COMMIT_SHA" + downloadLink); // Redirects to current version
     </script>
   </head>
   <body>

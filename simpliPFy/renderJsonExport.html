@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Content Viewer (LaTeX & SVG)</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #007bff;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-top: 25px;
+        }
+        .content-block {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: initial;
+            overflow-x: auto;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+        #jsonFileInput {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        svg {
+            max-width: 100%;
+            display: block;
+            margin: 10px auto;
+            border: 1px dashed #bbb;
+        }
+        p.plain-text {
+            white-space: pre-wrap; /* Preserve whitespace and break lines */
+            word-wrap: break-word; /* Break long words */
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload JSON to View LaTeX & SVG</h1>
+        <input type="file" id="jsonFileInput" accept=".json">
+        <div id="output">
+            <p>Upload a JSON file to see its content, with LaTeX and SVG strings rendered automatically.</p>
+        </div>
+    </div>
+
+    <script>
+        const jsonFileInput = document.getElementById('jsonFileInput');
+        const outputDiv = document.getElementById('output');
+
+        // Function to check if a string contains LaTeX patterns
+        function containsLatex(str) {
+            // Very basic heuristic: check for common LaTeX delimiters or commands
+            // This is not foolproof but covers many cases
+            return typeof str === 'string' && (
+                str.includes('$') ||
+                str.includes('\\frac') ||
+                str.includes('\\sqrt') ||
+                str.includes('\\int') ||
+                str.includes('\\sum') ||
+                str.includes('\\begin{') ||
+                str.includes('\\alpha') ||
+                str.includes('\\circ') ||
+                str.includes('{') ||
+                str.includes('}') ||
+                str.includes('_')// common math symbols
+            );
+        }
+
+        // Function to check if a string is a valid SVG
+        function isSvgString(str) {
+            // Trim whitespace and check for SVG root element tags
+            return typeof str === 'string' &&
+                   str.trim().startsWith('<svg') &&
+                   str.trim().endsWith('</svg>');
+        }
+
+        jsonFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+
+            if (!file) {
+                return; // No file selected
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    outputDiv.innerHTML = ''; // Clear previous output
+
+                    displayJsonContent(jsonData, outputDiv);
+
+                    // After adding new content, tell MathJax to typeset it
+                    // This function is provided by MathJax, ensure it loads first
+                    if (window.MathJax) {
+                        MathJax.typesetPromise();
+                    } else {
+                        console.warn("MathJax not loaded yet. LaTeX might not render.");
+                    }
+
+                } catch (error) {
+                    outputDiv.innerHTML = `<p class="error-message">Error parsing JSON: ${error.message}</p>`;
+                    console.error("JSON parsing error:", error);
+                }
+            };
+
+            reader.onerror = () => {
+                outputDiv.innerHTML = `<p class="error-message">Error reading file: ${reader.error}</p>`;
+                console.error("File reading error:", reader.error);
+            };
+
+            reader.readAsText(file);
+        });
+
+        // Recursive function to display content, handles nested objects
+        function displayJsonContent(data, parentElement, prefix = '') {
+            for (const key in data) {
+                if (Object.hasOwnProperty.call(data, key)) {
+                    const value = data[key];
+
+                    const contentBlock = document.createElement('div');
+                    contentBlock.classList.add('content-block');
+
+                    const header = document.createElement('h2');
+                    header.textContent = key;
+                    contentBlock.appendChild(header);
+
+                    if (isSvgString(value)) {
+                        // Display as SVG
+                        const svgContainer = document.createElement('div');
+                        // Use innerHTML to parse the SVG string into actual SVG elements
+                        svgContainer.innerHTML = value;
+                        contentBlock.appendChild(svgContainer);
+                    } else if (typeof value === 'object' && value !== null) {
+                        // Handle nested objects/arrays recursively
+                        const nestedDiv = document.createElement('div');
+                        displayJsonContent(value, nestedDiv, key); // Recursive call
+                        contentBlock.appendChild(nestedDiv);
+                    } else {
+                        // Display as LaTeX
+                        const latexContainer = document.createElement('div');
+                        // MathJax will automatically process the content of this div
+                        latexContainer.textContent = "$$" + value + "$$";
+                        contentBlock.appendChild(latexContainer);
+                    }
+                    parentElement.appendChild(contentBlock);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

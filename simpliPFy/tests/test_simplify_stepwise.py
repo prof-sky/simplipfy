@@ -6,9 +6,9 @@ import pytest
 import lcapyInskale
 from lcapyInskale import Circuit
 from lcapyInskale.componentnamer import ComponentNamer
-from simplipfy.impedanceConverter import FileToImpedance, ValueToComponent, getOmegaFromCircuit, getSourcesFromCircuit
-from simplipfy.langSymbols import LangSymbols
-from simplipfy.solution import Solution
+from simplipfy.Helpers.impedanceConverter import FileToImpedance, ValueToComponent, getOmegaFromCircuit
+from simplipfy.Helpers.langSymbols import LangSymbols
+from simplipfy.Helpers.solution import Solution
 
 
 class TestSimplifyStepwise:
@@ -34,7 +34,7 @@ class TestSimplifyStepwise:
         else:
             assert result == 1 / (1 / val1 + 1 / val2), "Calculation in Impedance is wrong"
 
-        omega_0 = getOmegaFromCircuit(orgCct, getSourcesFromCircuit(orgCct))
+        omega_0 = getOmegaFromCircuit(orgCct)
         realRes, realResCompType = ValueToComponent(result, omega_0)
         assert realResCompType == compType, "Converted type is not as expected"
 

@@ -2,13 +2,17 @@ window.wheatstoneEnTexts = {
     wheatstoneInfoGifHeading:
         "How to use the Wheatstone Bridge",
     wheatstoneInfoGifText:
-        "Choose the values so that the bridge is balanced.",
+        "Use the given values and the formula for the calculation of the Wheatstone bridge to calculate the missing value",
     inputPopupTitle:
-        "Enter a value (Ω)",
+        "Enter a value",
     wheatstoneExplanationTitle:
         "Wheatstone Calculation",
     alertInvalidSolution:
         "The solution is not correct",
     canNotSetElement:
         "This element can not be set",
+    wheatstoneBridgeVoltage0:
+        "The voltage Vm is 0V,<br> the resistance ratios must be equal",
+    rearrangeFor:
+        "Rearrange for",
 }

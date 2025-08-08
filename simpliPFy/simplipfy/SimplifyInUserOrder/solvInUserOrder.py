@@ -1,27 +1,23 @@
 import os
-from json import dump as jdump
 
 from lcapyInskale import Circuit
 from lcapyInskale.componentRelation import ComponentRelation
 from lcapyInskale.solutionStep import SolutionStep
-from simplipfy.Export.dictExportBase import DictExportBase
-from simplipfy.Export.dictExportBase import ExportDict
-from simplipfy.impedanceConverter import FileToImpedance
-from simplipfy.langSymbols import LangSymbols
-from simplipfy.solution import Solution
+from simplipfy.Export.DataStructures.exportDict import EmptyExportDict, ExportDict, ExportDictBase, Step0ExportDict
+from simplipfy.Helpers.impedanceConverter import FileToImpedance
+from simplipfy.Helpers.langSymbols import LangSymbols
+from simplipfy.Helpers.solution import Solution
 
 
 class SolveInUserOrder:
-    def __init__(self, filename: str, filePath="", savePath="", langSymbols: dict = {}):
+    def __init__(self, filename: str, filePath="", langSymbols: dict = {}):
         """
-        :param filename: str with filename of circuit to simplify
+        :param filename: str with filename of circuit to simplify, with extension
         :param filePath: str with path to circuit file if not in current directory
-        :param savePath: str with path to save the result svg and jason files to
         """
 
         self.filename = os.path.splitext(filename)[0]
         self.filePath = filePath
-        self.savePath = savePath
         self.langSymbols = LangSymbols(langSymbols)
         self.circuit = Circuit(FileToImpedance(os.path.join(filePath, filename)))
         self.steps: list[SolutionStep] = [
@@ -31,23 +27,14 @@ class SolveInUserOrder:
 
         return
 
-    def dictToFiles(self, stepData: dict) -> tuple[bool, str, str]:
-        step = stepData["step"]
-        jsonFilePath = os.path.join(self.savePath, self.filename) + "_" + step + ".json"
-        with open(jsonFilePath, "w", encoding="utf-8") as f:
-            jdump(stepData, f, ensure_ascii=False, indent=4)
-
-        svgFilePath = os.path.join(self.savePath, self.filename) + "_" + step + ".svg"
-        svgFile = open(svgFilePath, "w", encoding="utf8")
-        svgFile.write(stepData["svgData"])
-        svgFile.close()
-
-        return True, jsonFilePath, svgFilePath
+    @property
+    def Solution(self) -> Solution:
+        return Solution(self.steps, langSymbols=self.langSymbols)
 
     def simplifyNCpts(self, cpts: list) -> ExportDict:
         """
-        :param cpts: list with two component name strings to simplify ["R1", "R2"]
-        :return tuple with bool if simplification is possible, str with json filename, str with svg filename
+        :param cpts: list with n component names to simplify e.g., ["R1", "R2", "R3" ...]
+        :returns: ExportDict with the circuit information for the step
         """
         # ToDo this only works as long as only simplifiable components are selected which are represented as a
         # impedance internally in the cirucuit
@@ -65,7 +52,7 @@ class SolveInUserOrder:
                                            relation=ComponentRelation.parallel.value,
                                            lastStep=None, nextStep=None))
         else:
-            return DictExportBase.emptyExportDict()
+            return EmptyExportDict()
 
         sol = Solution(self.steps, langSymbols=self.langSymbols)
         newestStep = sol.available_steps[-1]
@@ -73,10 +60,10 @@ class SolveInUserOrder:
 
         return sol.exportStepAsDict(newestStep)
 
-    def createInitialStep(self) -> ExportDict:
+    def createInitialStep(self) -> Step0ExportDict:
         """
-        create the initial step or step0 of the circuit
-        :return tuple with bool if simplification is possible, str with json filename, str with svg filename
+        create the initial step / step0 of the circuit
+        :returns: Step0ExportDict with the circuit information of step0
         """
 
         sol = Solution(self.steps, langSymbols=self.langSymbols)
@@ -84,11 +71,13 @@ class SolveInUserOrder:
 
         return stepData
 
-    def createCircuitInfo(self) -> str:
-        raise NotImplementedError("Use createStep0() or createInitialStep()")
-
-    def createStep0(self) -> ExportDict:
+    def createStep0(self) -> ExportDictBase:
+        """
+        create the initial step / step0 of the circuit
+        :returns: Step0ExportDict with the circuit information of step0
+        """
         return self.createInitialStep()
 
-    def getSolution(self):
+    def getSolution(self) -> Solution:
+        """Get a copy of the solution object that is used in this class"""
         return Solution(self.steps, self.langSymbols)

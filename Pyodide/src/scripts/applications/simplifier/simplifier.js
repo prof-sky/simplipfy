@@ -1,12 +1,14 @@
-// ####################################################################################################################
-// #################################### Key function for simplifier circuits  #########################################
-// ####################################################################################################################
-function nextSimplifierStep(stepObject) {
+/**
+ * Key function for generating a new circuit step in simplifier mode.
+ * This will set up all the necessary elements for the next step.
+ * @param stepObject {(Step0Object|StepObject)} - The step object containing all the information for the next step.
+ */
+async function nextSimplifierStep(stepObject, generalizeActive, netlistContainsWires) {
     state.pictureCounter++;  // increment before usage in the below functions
 
     // Create the new elements for the current step
     appendToAllValuesMap(stepObject);  // Before setupCircuitContainer because values are needed for labels
-    const {circuitContainer, svgContainer} = setupCircuitContainer(stepObject);
+    const {circuitContainer, svgContainer} = setupCircuitContainer(stepObject, generalizeActive, netlistContainsWires);
 
     const {newCalcBtn, newVCBtn} = setupExplanationButtons();
     let electricalElements = getElementsFromSvgContainer(svgContainer);
@@ -20,7 +22,7 @@ function nextSimplifierStep(stepObject) {
     checkAndAddExplanationButtons(stepCalculationText, contentCol, stepVoltageCurrentText);
 
     // The order of function-calls is important
-    checkIfStillNotFinishedAndMakeClickable(electricalElements, nextElementsContainer);
+    makeElementsClickable(electricalElements, nextElementsContainer);
     prepareNextElementsContainer(contentCol, nextElementsContainer);
     const div = createExplanationBtnContainer(newCalcBtn);
     div.appendChild(newVCBtn);
@@ -29,13 +31,33 @@ function nextSimplifierStep(stepObject) {
     appendTotalValues(stepObject, electricalElements);
     scrollContainerToTop(circuitContainer);
     congratsAndVCDisplayIfFinished(electricalElements, contentCol, stepObject);
-    MathJax.typeset();
+    await MathJax.typesetPromise();
+
+    // At the end, so the help button exists
+    if (state.pictureCounter === 1) {
+        highlightHelpButton();
+    }
+
+    if (state.gamification && state.pictureCounter === 1) {
+        const duration = state.simplifierSolveTimeMs;
+        addSpeedModeTimeBar(duration, () => {
+            speedModeTimeoutHandler();
+        });
+    }
+
+    if (state.gamification && state.pictureCounter > 1 && state.speedMode?.paused) {
+        resumeSpeedMode();
+    }
 }
 
 // ####################################################################################################################
 // ############################################# Helper functions #####################################################
 // ####################################################################################################################
-
+/**
+ * Removes the source (where id starts with 'V') from the list of electrical elements,
+ * so it will not be selectable as an element to be simplified.
+ * @param electricalElements
+ */
 function removeSourceFromElements(electricalElements) {
     let withOutSource = [];
     withOutSource = electricalElements.filter(element => !element.getAttribute('id').startsWith("V"));
@@ -63,11 +85,14 @@ function MJtoText(mjStr) {
 function addComponentValues(component) {
     if (component.Z.name !== null && component.Z.name !== undefined) {
         if (component.hasConversion) {
+            // A conversion means the complex Z value used in the backend can be transformed to raw R, L or C
             state.allValuesMap.set(component.Z.name, component.Z.val);
         } else {
+            // No conversion means the impedance is complex and we have to use Z.impedance
             state.allValuesMap.set(component.Z.name, component.Z.impedance);
         }
         if (state.step0Data.componentTypes === "RLC") {
+            // Add complex values to map if circuit is RLC
             state.allValuesMap.set(`Z_{${component.Z.name}}`, component.Z.cpxVal);
             state.allValuesMap.set(`Zpolar_{${component.Z.name}}`, toPolar(component.Z.impedance, component.Z.phase));
             state.allValuesMap.set(component.U.name, toPolar(component.U.val, component.U.phase));
@@ -172,10 +197,10 @@ function setupNextElementsContainer(filteredPaths) {
     return nextElementsContainer;
 }
 
-function setupCircuitContainer(stepObject) {
+function setupCircuitContainer(stepObject, generalizeActive, netlistContainsWires) {
     const circuitContainer = document.createElement('div');
     circuitContainer.classList.add("circuit-container", "row", "justify-content-center", "my-2");
-    const svgContainer = setupSvgDivContainerAndData(stepObject);
+    const svgContainer = setupSvgDivContainerAndData(stepObject, generalizeActive, netlistContainsWires);
     circuitContainer.appendChild(svgContainer)
     return {circuitContainer, svgContainer};
 }
@@ -212,12 +237,10 @@ function divContainsZLabels(svgDiv) {
     return containsZ;
 }
 
-function setupSvgDivContainerAndData(stepObject) {
-    let svgData = stepObject.svgData;
+function setupSvgDivContainerAndData(stepObject, generalizeActive, netlistContainsWires) {
     const svgDiv = document.createElement('div');
     svgDiv.id = `svgDiv${state.pictureCounter}`;
     svgDiv.classList.add("svg-container", "p-2");
-    svgData = setSvgWidthTo(svgData, "100%");
     svgDiv.style.border = `1px solid ${colors.currentForeground}`;
     svgDiv.style.borderRadius = "6px";
     svgDiv.style.width = "350px";
@@ -225,6 +248,8 @@ function setupSvgDivContainerAndData(stepObject) {
     svgDiv.style.position = "relative";
 
     // Svg manipulation - set width and color for dark mode
+    let svgData = stepObject.svgData;
+    svgData = setSvgWidthTo(svgData, "100%");
     svgData = setSvgColorMode(svgData);
     svgDiv.innerHTML = svgData;
     let containsZ = divContainsZLabels(svgDiv);
@@ -246,6 +271,21 @@ function setupSvgDivContainerAndData(stepObject) {
     if (state.pictureCounter === 1) {
         addInfoHelpButton(svgDiv);
         if (!currentCircuitIsSymbolic()) addVoltageOverlay(svgDiv);
+        // Add generalize button to specific circuit groups
+        if (state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.res ||
+            state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.cap ||
+            state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.ind ||
+            state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.mixedId ||
+            state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.simplifier // scanned QR code
+        ) {
+            addGeneralizeSwitch(svgDiv, generalizeActive, netlistContainsWires);
+        }
+    } else {
+        // Disable switch input
+        const switchInput = document.getElementById(`generalizeSwitch1`); // only 1
+        if (switchInput) {
+            switchInput.disabled = true;  // Disable the switch
+        }
     }
     if (!currentCircuitIsSymbolic()) {
         // Add name value toggle only for non-symbolic circuits (no need to toggle between R1 and R1...:) )
@@ -297,6 +337,184 @@ function fillLabels(svgDiv) {
             span.innerHTML = label.classList[label.classList.length - 1];
         }
     }
+}
+
+function addGeneralizeSwitch(svgDiv, generalizeActive, netlistContainsWires) {
+    const switchDiv = document.createElement("div");
+    switchDiv.classList.add("form-check", "form-switch");
+    switchDiv.id = `generalizeSwitchDiv${state.pictureCounter}`;
+    switchDiv.style.position = "absolute";
+    switchDiv.style.top = "45px";
+    switchDiv.style.right = "0px";
+
+    const switchInput = document.createElement("input");
+    switchInput.classList.add("form-check-input");
+    switchInput.type = "checkbox";
+    switchInput.id = `generalizeSwitch${state.pictureCounter}`;
+    switchInput.checked = generalizeActive; // set according to netlist comment
+
+    switchDiv.appendChild(switchInput);
+    svgDiv.insertAdjacentElement("afterbegin", switchDiv);
+
+    if (generalizeActive && !netlistContainsWires) {
+        // Can not disable generalization if there are no wires in the netlist, not reversible
+        switchInput.checked = true;
+        switchInput.disabled = true;  // Disable the switch
+    }
+
+    // Add event listener to the input
+    switchInput.addEventListener("change", async () => {
+        if (switchInput.checked) {
+            await state.drawingConfigAPI.lock("# --generalize-true");
+            pushCircuitEventMatomo(circuitActions.ToggleGeneralizeOn);
+        } else {
+            await state.drawingConfigAPI.unlock("# --generalize-false");
+            pushCircuitEventMatomo(circuitActions.ToggleGeneralizeOff);
+        }
+        let obj;
+        if (state.pictureCounter === 1) {
+            // Create for step 0
+            obj = await state.simplifierAPI.createStep0();
+        } else {
+            return;
+        }
+        if (obj === undefined || obj === null) {
+            console.warn("Could not generalize this circuit!");
+            switchInput.checked = false;  // Uncheck the switch
+            switchInput.disabled = true;  // Disable the switch
+            setTimeout(() => {showMessage(languageManager.currentLang.alertCanNotGeneralize, "info", false)},0);
+            await state.drawingConfigAPI.unlock("# --generalize-false");
+            return;
+        }
+        obj.__proto__ = StepObject.prototype;
+        // Replace the svg
+        // Svg manipulation - set width and color for dark mode
+        let svgData = obj.svgData;
+        svgData = setSvgWidthTo(svgData, "100%");
+        svgData = setSvgColorMode(svgData);
+
+        // Show with animation for resistors, because we can :)
+        if (state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.res) {
+            replaceSVGwithAnimation(svgDiv, svgData);
+        }
+        // Show without animation for rest because capacitors and inductors are layered with invisible resistors for
+        // better click handling, so animation is harder
+        else if (state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.cap ||
+                   state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.ind ||
+                   state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.mixedId ||
+                    state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.simplifier // no difference in scanned QR codes
+        ) {
+            replaceSVGwithoutAnimation(svgDiv, svgData);
+        }
+    });
+}
+
+function insertAndFinishSVG(svgDiv, newSvg) {
+    let overlay = svgDiv.querySelector("#voltage-overlay");
+    //overlay.insertAdjacentHTML("beforebegin", svgData);
+    overlay.insertAdjacentElement("beforebegin", newSvg);
+    let containsZ = divContainsZLabels(svgDiv);
+
+    if (svgDiv.id === "svgDiv1" || containsZ) {
+        // First svg, set valuesShown to false
+        // Also set to zero if labels contain Z because they can't be toggled
+        state.valuesShown.set(svgDiv.id, false);
+    } else {
+        // Set valuesShown to the previous state
+        state.valuesShown.set(svgDiv.id, state.valuesShown.get(`svgDiv${state.pictureCounter - 1}`));
+    }
+
+    fillLabels(svgDiv);
+    hideSourceLabel(svgDiv);
+    hideSvgArrows(svgDiv);
+    colorArrowsColorful(svgDiv);
+
+    // Clickable again
+    let electricalElements = getElementsFromSvgContainer(svgDiv);
+    electricalElements = removeSourceFromElements(electricalElements);
+    const nextElementsContainer = document.getElementById("nextElementsContainer");
+    makeElementsClickable(electricalElements, nextElementsContainer);
+
+    // Cleanup
+    state.selectedElements = [];
+    let nextElementsList = document.getElementById("next-elements-list");
+    nextElementsList.innerHTML = "";
+}
+
+function replaceSVGwithoutAnimation(svgDiv, svgData) {
+    // Remove old svg
+    const oldSvg = svgDiv.querySelector("svg");
+    oldSvg.remove();
+    // Insert new SVG
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = svgData;
+    const newSvg = tempDiv.querySelector("svg");
+    newSvg.setAttribute("width", "100%");
+    insertAndFinishSVG(svgDiv, newSvg);
+}
+
+function replaceSVGwithAnimation(svgDiv, svgData) {
+    const oldSvg = svgDiv.querySelector("svg");
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = svgData;
+    const newSvg = tempDiv.querySelector("svg");
+    newSvg.setAttribute("width", "100%");
+
+    let elements = getElementsFromSvgContainer(svgDiv); // all paths with an ID
+    elements = removeSourceFromElements(elements);
+    let sharedIds = getIDsfromElements(elements);
+
+    const allOldElements = oldSvg.querySelectorAll("[id]");
+    const animatingIds = new Set(sharedIds);
+
+    for (const el of allOldElements) {
+        if (!animatingIds.has(el.id)) {
+            el.style.visibility = "hidden";
+        }
+    }
+
+    // Hide element labels
+    let elementLabels = oldSvg.querySelectorAll(".element-label");
+    for (let label of elementLabels) {
+        label.style.visibility = "hidden";
+    }
+
+    for (const id of sharedIds) {
+        const oldEl = oldSvg.querySelector(`#${id}`);
+        const newEl = newSvg.querySelector(`#${id}`);
+        if (oldEl && newEl && oldEl.tagName === "path" && newEl.tagName === "path") {
+            const from = oldEl.getAttribute("d");
+            const to = newEl.getAttribute("d");
+
+            const interpolator = flubber.interpolate(from, to);
+            let progress = 0;
+            const animate = () => {
+                if (progress >= 1) {
+                    oldEl.setAttribute("d", to);
+                    return;
+                }
+                oldEl.setAttribute("d", interpolator(progress));
+                progress += 0.02;
+                requestAnimationFrame(animate);
+            };
+            animate();
+        }
+    }
+
+    setTimeout(() => {
+        oldSvg.remove();
+        insertAndFinishSVG(svgDiv, newSvg);
+    }, 1000);
+}
+
+function getIDsfromElements(elements) {
+    let ids = [];
+    for (let element of elements) {
+        if (element.getAttribute('id') !== null && element.getAttribute('id') !== undefined) {
+            ids.push(element.getAttribute('id'));
+        }
+    }
+    return ids;
 }
 
 function addNameValueToggleBtn(svgDiv) {
@@ -443,19 +661,18 @@ function setupCalculationBtn() {
     return calcBtn;
 }
 
-function chooseElement(pathElement, nextElementsList) {
+async function chooseElement(pathElement, nextElementsList) {
 
     const bboxId = `bbox-${pathElement.getAttribute('id')}`;
     const existingBox = document.getElementById(bboxId);
 
     if (existingBox) {
         removeExistingBoxAndText(existingBox, bboxId, pathElement);
-    }
-    else {
+    } else {
         createNewHighlightedBoundingBox(pathElement, bboxId);
         addElementValueToTextBox(pathElement, bboxId, nextElementsList);
     }
-    MathJax.typeset();
+    await MathJax.typesetPromise();
 }
 
 async function checkAndSimplifyNext(div){
@@ -469,14 +686,44 @@ async function checkAndSimplifyNext(div){
         0);
         document.getElementById("check-btn").innerHTML = "check";
     } else {
-        //let obj = await stepSolve.simplifyNCpts(state.selectedElements).toJs({dict_converter: Object.fromEntries});
+        let elapsed;
+        if (state.gamification) {
+            elapsed = pauseSpeedMode();
+        }
+
+        let now = performance.now();
         let obj = await state.simplifierAPI.simplifyNCpts(state.selectedElements);
         obj.__proto__ = StepObject.prototype;
         checkAndSimplify(obj, contentCol, div);
+
+        // adjust start time for duration of calulation
+        let elapsedTime = performance.now() - now;
+        if (state.speedMode && state.speedMode?.startTime) {
+            state.speedMode.startTime += elapsedTime;
+        }
+
+        // Only add time if elements can be simplified, otherwise directly resume
+        // Also check for speed mode because this will not be executed for the last picture, speedMode will be null
+        if (state.gamification && obj.canBeSimplified && state.speedMode) {
+            // Get number of elements in the current circuit
+            const svgDiv = document.getElementById(`svgDiv${state.pictureCounter}`);
+            let electricElements = getElementsFromSvgContainer(svgDiv);
+            // Add 500ms per Element
+            state.speedMode.duration -= elapsed;
+            state.speedMode.duration += state.simplifierAddTimeMs * electricElements.length;
+            // Update remaining time
+            state.speedMode.remaining = Math.max(0, state.speedMode.duration);
+        }
+        if (state.gamification && state.speedMode && state.speedMode?.paused && !obj.canBeSimplified) {
+            // remaining time is time from before
+            state.speedMode.duration -= elapsed;
+            state.speedMode.remaining = Math.max(0, state.speedMode.duration);
+            resumeSpeedMode();
+        }
     }
 
     resetNextElements(svgDiv, nextElementsContainer);
-    MathJax.typeset();
+    await MathJax.typesetPromise();
 }
 
 function checkAndSimplify(stepObject, contentCol, div) {
@@ -503,7 +750,7 @@ function setupVCBtnFunctionality(vcText, contentCol, stepCalculationText) {
     const lastVCBtn = document.getElementById(`vcBtn${state.pictureCounter - 1}`);
     const explContainer = document.getElementById(`explBtnContainer${state.pictureCounter - 1}`);
 
-    lastVCBtn.addEventListener("click", () => {
+    lastVCBtn.addEventListener("click", async () => {
         if (lastVCBtn.textContent === languageManager.currentLang.showVoltageBtn) {
             // Open voltage/current explanation
             lastVCBtn.textContent = languageManager.currentLang.hideVoltageBtn;
@@ -512,7 +759,7 @@ function setupVCBtnFunctionality(vcText, contentCol, stepCalculationText) {
                 lastStepCalcBtn.textContent = languageManager.currentLang.showCalculationBtn;
                 contentCol.removeChild(stepCalculationText);
             }
-            MathJax.typeset();
+            await MathJax.typesetPromise();
             pushCircuitEventMatomo(circuitActions.ViewVcExplanation)
         } else {
             // Close voltage/current explanation
@@ -528,7 +775,7 @@ function setupCalcBtnFunctionality(stepCalculationText, contentCol, vcText) {
     let lastVCBtn;
     lastVCBtn = document.getElementById(`vcBtn${state.pictureCounter - 1}`);
 
-    lastStepCalcBtn.addEventListener("click", () => {
+    lastStepCalcBtn.addEventListener("click", async () => {
         if (lastStepCalcBtn.textContent === languageManager.currentLang.showCalculationBtn) {
             // Open calculation explanation
             lastStepCalcBtn.textContent = languageManager.currentLang.hideCalculationBtn;
@@ -539,7 +786,7 @@ function setupCalcBtnFunctionality(stepCalculationText, contentCol, vcText) {
             }
             // Add explanation text after container
             explContainer.insertAdjacentElement("afterend", stepCalculationText);
-            MathJax.typeset();
+            await MathJax.typesetPromise();
             pushCircuitEventMatomo(circuitActions.ViewZExplanation);
         } else {
             // Close calculation explanation
@@ -592,13 +839,7 @@ function generateTexts(stepObject) {
 }
 
 function finishCircuit(contentCol) {
-    confetti({
-        particleCount: 150,
-        angle: 90,
-        spread: 60,
-        scalar: 0.8,
-        origin: { x: 0.5, y: 1}
-    });
+    showVariableConfetti();
     enableVoltageCurrentBtns();
     showArrows(contentCol);
     pushCircuitEventMatomo(circuitActions.Finished);
@@ -609,11 +850,31 @@ function setupStepButtonsFunctionality(div) {
         // Can only be after step 1 because the first step can't be reset, so no need to check
         pushCircuitEventMatomo(circuitActions.Reset, state.pictureCounter);
         resetSimplifierPage(true);
+        if (state.gamification) {
+            // Reset speed mode
+            stopSpeedModeTimer();
+            let speedModeBar = document.getElementById("speedModeBar");
+            if (speedModeBar) {
+                speedModeBar.remove();
+            }
+        }
     });
     // Check btn clicked, set spinner inside and simplify next step
     document.getElementById("check-btn").addEventListener('click', async () => {
-        document.getElementById("check-btn").innerHTML = "<span class='spinner-border spinner-border-sm'></span>";
-        checkAndSimplifyNext(div);
+        if (state.checkBtnAlreadyClicked) return;
+        state.checkBtnAlreadyClicked = true;
+
+        const btn = document.getElementById("check-btn");
+        btn.classList.add("disabled");
+        btn.innerHTML = "<span class='spinner-border spinner-border-sm'></span>";
+
+        try {
+            await checkAndSimplifyNext(div);
+        } finally {
+            state.checkBtnAlreadyClicked = false;
+            btn.classList.remove("disabled");
+            btn.innerHTML = "check";
+        }
     });
 }
 
@@ -638,7 +899,7 @@ function setupExplanationButtons() {
     return {newCalcBtn, newVCBtn};
 }
 
-function checkIfStillNotFinishedAndMakeClickable(electricalElements, nextElementsContainer) {
+function makeElementsClickable(electricalElements, nextElementsContainer) {
     if (elementsLeftToBeSimplified(electricalElements)) {
         getAllElementsAndMakeClickable(nextElementsContainer, electricalElements);
     }
@@ -649,8 +910,20 @@ function congratsAndVCDisplayIfFinished(electricalElements, contentCol, stepObje
         addFirstVCExplanation(stepObject);
         addSolutionsButton();
         finishCircuit(contentCol);
-        let nextCircuitBtn = createNextCircuitButton();
-        contentCol.appendChild(nextCircuitBtn);
+        if (!state.currentCircuitFromQrScan && !state.currentCircuitFromUserZip) {
+            // Only add a "next circuit" button if not from QR scan
+            let nextCircuitBtn = createNextCircuitButton();
+            contentCol.appendChild(nextCircuitBtn);
+            // Add finished circuit to localStorage
+            saveFinishedCircuitAndUpdateSelectorCounters();
+        }
+        // Finish speedmode
+        if (state.gamification) {
+            stopSpeedModeTimer();
+            let speedModeBar = document.getElementById("speedModeBar");
+            speedModeBar?.remove();
+        }
+
     }
 }
 
@@ -684,12 +957,16 @@ function cloneAndAdaptStep0Svg() {
         clonedSvgData = originalStep0Svg.cloneNode(true);
     }
     clonedSvgData.id = "clonedOverviewSvg";
-    // Adapt svg data, remove info and toggle btn
+    // Adapt svg data, remove info, toggle btn and generalize btn
     clonedSvgData.removeChild(clonedSvgData.querySelector("#open-info-gif-btn"));
     let toggleBtnClone = clonedSvgData.querySelector("#toggle-view-1");
     if (toggleBtnClone !== null) {
         // Can be null for symbolic circuits
         clonedSvgData.removeChild(toggleBtnClone);
+    }
+    let generalizeSwitch = clonedSvgData.querySelector("#generalizeSwitchDiv1");
+    if (generalizeSwitch !== null) {
+        clonedSvgData.removeChild(generalizeSwitch);
     }
     let bboxes = clonedSvgData.getElementsByClassName("bounding-box");
     for (let bbox of bboxes) {
@@ -718,12 +995,12 @@ function addSolutionsButton() {
     div.classList.add("circuit-container", "row", "justify-content-center");
     div.appendChild(clonedSvgData);
 
-    solBtn.addEventListener("click", () => {
+    solBtn.addEventListener("click", async () => {
         if (solBtn.textContent === languageManager.currentLang.solutionsBtn) {
             // Open explanation
             solBtn.textContent = languageManager.currentLang.hideVoltageBtn;
             solBtnContainer.appendChild(div);
-            MathJax.typeset();
+            await MathJax.typesetPromise();
             pushCircuitEventMatomo(circuitActions.ViewSolutions);
         } else {
             // Close explanation
@@ -739,12 +1016,12 @@ function addFirstVCExplanation(stepObject) {
     addBtnToContainer(totalCurrentContainer, totalCurrentBtn);
     let text = generateTextElement(stepObject);
 
-    totalCurrentBtn.addEventListener("click", () => {
+    totalCurrentBtn.addEventListener("click", async () => {
         if (totalCurrentBtn.textContent === languageManager.currentLang.firstVCStepBtn) {
             // Open explanation
             totalCurrentBtn.textContent = languageManager.currentLang.hideVoltageBtn;
             totalCurrentContainer.appendChild(text);
-            MathJax.typeset();
+            await MathJax.typesetPromise();
             pushCircuitEventMatomo(circuitActions.ViewTotalExplanation);
         } else {
             // Close explanation
@@ -799,10 +1076,10 @@ function createRLCTable(vMap, helperValueRegex, tableData, color, zMap, zPMap, u
         let zKey = `Z_{${key}}`;
         tableData += `<tr>
             <td style="color: ${color}">$$${key} = ${value}$$</td>
-            <td style="color: ${color}">$$\\mathbf{${zKey}} = ${zMap.get(zKey)}$$</td>
-            <td style="color: ${color}">$$\\mathbf{${zKey}} = ${zPMap.get(zKey)}$$</td>
-            <td style="color: ${color}">$$\\mathbf{${uKey}} = ${uMap.get(uKey)}$$</td>
-            <td style="color: ${color}">$$\\mathbf{${iKey}} = ${iMap.get(iKey)}$$</td>
+            <td style="color: ${color}">$$\\underline{${zKey}} = ${zMap.get(zKey)}$$</td>
+            <td style="color: ${color}">$$\\underline{${zKey}} = ${zPMap.get(zKey)}$$</td>
+            <td style="color: ${color}">$$\\underline{${uKey}} = ${uMap.get(uKey)}$$</td>
+            <td style="color: ${color}">$$\\underline{${iKey}} = ${iMap.get(iKey)}$$</td>
             </tr>`;
     }
     if (state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.kirchhoff) {
@@ -815,10 +1092,10 @@ function createRLCTable(vMap, helperValueRegex, tableData, color, zMap, zPMap, u
     let zTot = `Z${languageManager.currentLang.totalSuffix}`;
     tableData += `<tr>
         <td style="color: ${color}">-</td>
-        <td style="color: ${color}">$$\\mathbf{Z_${languageManager.currentLang.totalSuffix}} = ${zMap.get(zTot)}$$</td>
-        <td style="color: ${color}">$$\\mathbf{Z_${languageManager.currentLang.totalSuffix}} = ${zPMap.get(zTot)}$$</td>
-        <td style="color: ${color}">$$\\mathbf{${languageManager.currentLang.voltageSymbol}_${languageManager.currentLang.totalSuffix}} = ${uMap.get(uTot)}$$</td>
-        <td style="color: ${color}">$$\\mathbf{I_${languageManager.currentLang.totalSuffix}} = ${iMap.get(iTot)}$$</td>
+        <td style="color: ${color}">$$\\underline{Z_{${languageManager.currentLang.totalSuffix}}} = ${zMap.get(zTot)}$$</td>
+        <td style="color: ${color}">$$\\underline{Z_{${languageManager.currentLang.totalSuffix}}} = ${zPMap.get(zTot)}$$</td>
+        <td style="color: ${color}">$$\\underline{${languageManager.currentLang.voltageSymbol}_{${languageManager.currentLang.totalSuffix}}} = ${uMap.get(uTot)}$$</td>
+        <td style="color: ${color}">$$\\underline{I_{${languageManager.currentLang.totalSuffix}}} = ${iMap.get(iTot)}$$</td>
         </tr>`;
     return tableData;
 }

@@ -17,6 +17,8 @@ class HardcodedStepSolverAPI {
         let langSuffix;
         if (languageManager.currentLang === english) {
             langSuffix = "en";
+        } else if (languageManager.currentLang === french) {
+            langSuffix = "de"; // Use german file
         } else {
             langSuffix = "de";
         }
