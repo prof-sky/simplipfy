@@ -17,12 +17,6 @@
   - pip install Pyodide/Packages/$simplipfyPkgName
   - pip install -e Pyodide/Scripts/
 
-.release_cli: &release_cli
-  - apk add --no-cache curl
-  - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/api/v4/projects/gitlab-org%2Frelease-cli/packages/generic/release-cli/latest/release-cli-linux-amd64"
-  - chmod +x /usr/local/bin/release-cli
-  - release-cli -v
-
 .make_scripts_executable: &make_scripts_executable
   - echo "skipped, no scripts to make executable"
 
