@@ -4,8 +4,10 @@ import warnings
 from simplipfy.Tools.forceDrawing import forceDrawing
 from simplipfy.Tools.printColored import cPrint
 from simplipfy.Tools.validateCircuitFile import ValidateCircuitFile
-
+from pathlib import Path
 curFile: str = ""
+project_root = Path(__file__).parents[3]
+circuitFiles = project_root/"Pyodide"/"Circuits"
 
 class SVGFileGenerator:
     """
@@ -13,12 +15,16 @@ class SVGFileGenerator:
     This class validates the folder structure to assert it works with simplify frontend.
     If you only want to generate a svg file use simpliPFyAPI.forceDrawing instead.
     """
-    allowedFolders = {"capacitor", "inductor", "kirchhoff", "mixed", "quickstart", "resistor", "symbolic", "wheatstone"}
+    allowedFolders = {"capacitor", "inductor", "kirchhoff", "mixed", "quickstart",
+                      "resistor", "symbolic", "wheatstone", "magnetic"}
 
-    def __init__(self, folderPath: str):
+    def __init__(self, folderPath: str | Path):
         """
         :param folderPath: path to the folder containing the circuit files
         """
+        if isinstance(folderPath, Path):
+            folderPath = str(folderPath)
+
         self.folderPath = folderPath
         self.failedFiles = []
         self.progress = 0
@@ -109,13 +115,13 @@ class SVGFileGenerator:
 
     def generateAllFiles(self, raiseEx:bool = True) -> int:
         """
-        :param raiseEx: if True, raise an RuntimeError if the svg file generation fails.
-        If False, return the number of failed files.
-        :returns: None
-        :raises: RuntimeError if raiseEx is True and the svg file generation fails for one file.
-
         Remove all svg files in the folder specified by self.folderPath and generate new svg files for each circuit file
         (.txt or .sch) in the folder.
+
+        :param raiseEx: if True, raise an RuntimeError if the svg file generation fails.
+            If False, return the number of failed files.
+        :returns: None
+        :raises RuntimeError: if raiseEx is True and the svg file generation fails for one file.
         """
         self.removeSVGFiles()
         failedFiles = 0
@@ -127,24 +133,3 @@ class SVGFileGenerator:
                 else:
                     failedFiles += 1
         return failedFiles
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="-path provides the p")
-    parser.add_argument(
-        '-path',
-        type=str,
-        required=False,
-        help="The path to the circuit files"
-    )
-
-    args = parser.parse_args()
-    if args.path:
-        input_path = args.path
-    else:
-        print("No path provided, using simpliPFy circuits folder")
-        input_path = os.path.join(os.getcwd().split("simplipfy")[0], "Circuits")
-    abs_path = os.path.abspath(os.path.normpath(input_path))
-    print(f"The provided path is: {abs_path}")
-
-    generator = SVGFileGenerator(abs_path).generateAllFiles()

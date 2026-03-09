@@ -1,4 +1,4 @@
-window.newsEnTexts = {
+newsEnTexts = {
     newsHeading: "News",
     newsList: [
         {

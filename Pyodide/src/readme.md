@@ -1,19 +1,10 @@
-# SimpliPFy Frontend Documentation
+# SimpliPFy Frontend API Documentation
 
-## How to generate the documentation
-Inside the ```Pyodide/src``` directory is this readme file and a ```jsdoc.json``` file.
-To generate the documentation, run the following command in the terminal:
+Welcome to the API Documentation of the js-Code from simpliPFy.
+Here you can find the Classes in use and their methods and functions. The documentation is build with
+js doc and based on the js-doc-strings in the code therefore the same information fonud here is also
+displayed in an IDE that uses js-doc stings to gather information like [WebStorm](https://www.jetbrains.com/webstorm/)
+from JetBrains.
 
-```bash
-npx jsdoc -c jsdoc.json
-```
-
-The generated files are stored in the specified directory (see jsdoc.json).
-
-## Tutorials
-
-Inside the ```Pyodide/src/tutorials``` directory, you can find various tutorials that explain how to use the SimpliPFy frontend.
-Please update these tutorials whenever you make changes to the frontend code or add new features.
-All files inside the directory will be included into the documentation.
-
-For any more help on jsdoc see the jsdoc documentation on [github](https://github.com/jsdoc/jsdoc).
+For information on how to build the Documentation see the general simpliPFy documentation at:
+[docs.simplipfy.org](https://docs.simplipfy.org/)

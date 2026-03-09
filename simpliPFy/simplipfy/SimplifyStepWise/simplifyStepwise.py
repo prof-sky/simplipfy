@@ -4,6 +4,7 @@ from lcapyInskale import Circuit
 from simplipfy.Helpers.impedanceConverter import FileToImpedance
 from simplipfy.Helpers.langSymbols import LangSymbols
 from simplipfy.Helpers.solution import Solution
+from simplipfy.Svg.drawingConfig import drawing_config_instance
 
 
 def solve(filename: str, filePath="Circuits/", savePath="Solutions/", langSymbols: dict = {}):
@@ -16,8 +17,9 @@ def solve(filename: str, filePath="Circuits/", savePath="Solutions/", langSymbol
     langSym = LangSymbols(langSymbols)
 
     cct = Circuit(FileToImpedance(os.path.join(filePath, filename)))
+    isGeneralized = drawing_config_instance.generalize
     cct.namer.reset()
     steps = cct.simplify_stepwise()
-    sol = Solution(steps, langSymbols=langSym)
+    sol = Solution(steps, langSym, isGeneralized)
     sol.draw(path=savePath, filename=filename)
     sol.exportAsJsonFiles(path=savePath, filename=filename)

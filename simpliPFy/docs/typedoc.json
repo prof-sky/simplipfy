@@ -1,0 +1,20 @@
+{
+  "entryPoints": [
+    "../../Pyodide/src/scripts",
+    "../../Pyodide/src/pages"
+  ],
+  "entryPointStrategy": "expand",
+  "tsconfig": "tsconfig.json",
+  "exclude": [
+    "../../Pyodide/src/scripts/extern/**/*"
+  ],
+  "out": "../../Pyodide/src/docs",
+  "includeVersion": false,
+  "readme": "../../Pyodide/src/readme.md",
+  "name": "simpliPFy JS Frontend Documentation",
+  "externalSymbolLinkMappings": {
+    "typescript": {
+      "Element.id": "https://developer.mozilla.org/en-US/docs/Web/API/Element/id"
+    }
+  }
+}

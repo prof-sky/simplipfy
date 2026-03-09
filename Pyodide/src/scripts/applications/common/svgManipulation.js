@@ -1,76 +1,116 @@
-function setSvgWidthTo(svgData, width) {
-    // Search the string: width="dd.ddddpt"
-    let match = svgData.match(/width="(\d*.\d*pt)"/);
-    let foundWidth = match[1];   // dd.dddd
-    return svgData.replace(foundWidth, width);   // replace dd.ddd with width
-}
-
 function showArrows(svgDiv) {
     // Show arrows and symbol labels
     let arrows = svgDiv.querySelectorAll(".arrow");
     for (let arrow of arrows) {
         arrow.style.display = "block";
-        if (colors.currentForeground === colors.keyDark) {
+        if (colors.current.foreground === colors.definitions.keyDark) {
             arrow.style.opacity = "1"; // to make them more visible
         }
     }
 }
 
-function hideVoltageArrows(svgDiv) {
-    let voltageArrows = svgDiv.querySelectorAll(".arrow.voltage-label");
-    for (let arrow of voltageArrows) {
-        arrow.style.display = "none";
+class SimplifierPageSVG {
+    /** @type {HTMLDivElement} */
+    div
+    /** @type {SvgMagician} */
+    svg
+
+    /** @param svg {string} the svg as a string
+     * @param id {string} may be empty, id is build like this: svgDiv${idIdentifier}${state.pictureCounter}
+     */
+    constructor(svg, id) {
+        this.svg = new SvgMagician(svg);
+
+        /** @type {HTMLDivElement} */
+        this.div = document.createElement('div');
+
+        this.div.id = id;
+
+        this.div.classList.add("svg-container", "p-2", "user-select-none");
+        this.div.style.border = `1px solid ${colors.current.foreground}`;
+        this.div.style.borderRadius = "6px";
+        this.div.style.width = "350px";
+        this.div.style.maxWidth = "350px;";
+        this.div.style.position = "relative";
+
+        this.div.appendChild(this.svg.element);
     }
 }
 
-function hideItotArrow(svgDiv) {
-    let itotArrow = svgDiv.querySelectorAll(`.current-label.arrow.I${languageManager.currentLang.totalSuffix}`);
-    for (let arrow of itotArrow) {
-        arrow.style.display = "none";
+class KirchhoffPageSvgDiv extends SimplifierPageSVG{
+    fontSize = 20;
+
+    constructor(svg, selector, id) {
+        super(svg, id);
+        this.prepareSvg(selector);
+    }
+
+    prepareSvg(selector){
+        this.svg.setLabelFontSize(this.fontSize);
+        this.svg.hideElementLabels();
+        this.svg.setColor("gray")
+        this.svg.colorArrows();
+        this.svg.lightHighlightElement(selector);
     }
 }
 
-function showVoltageArrows(svgDiv) {
-    let voltageArrows = svgDiv.querySelectorAll(".arrow.voltage-label");
-    for (let arrow of voltageArrows) {
-        arrow.style.display = "block";
+class WheatstonePageSvgDiv extends SimplifierPageSVG {
+
+    constructor(svg) {
+        super(svg, `svgDiv${state.pictureCounter}`);
+        this.svg.setLabelFontSize(this.fontSize);
+        this.prepareSvg();
+    }
+
+    prepareSvg(){
+        this.svg.hideVoltageArrows();
+        this.svg.hideCurrentArrows();
+
+        adaptVoltmeter(this.svg.element);
+        adaptV1Label(this.svg.element);
+
+        // Add value over element labels
+        addValueLabels(this.svg.element);
+        updateValueLabels(this.svg.element);
+
+        // SVG Data written, now add eventListeners, only afterward because they would be removed on rewrite of svgData
+        //addWheatstoneCircuitNavigator(this.div);
+        addWheatstoneInfoHelpButton(this.div);
     }
 }
 
-function hideCurrentArrows(svgDiv) {
-    let currentArrows = svgDiv.querySelectorAll(".arrow.current-label");
-    for (let arrow of currentArrows) {
-        arrow.style.display = "none";
-    }
-}
+class StepwisePageSvgDiv extends SimplifierPageSVG {
+    elementsContainer
 
-function showCurrentArrows(svgDiv) {
-    let currentArrows = svgDiv.querySelectorAll(".arrow.current-label");
-    for (let arrow of currentArrows) {
-        arrow.style.display = "block";
+    constructor(svg) {
+        super(svg, `svgDiv${state.pictureCounter}`);
+        this.prepareSvg();
+        this.elementsContainer = document.getElementById("next-elements-list");
     }
-}
 
-function hideSourceLabel(svgDiv, toHide=["V1"]) {
-    for (let label of toHide){
-        let sourceLabel = svgDiv.querySelector(`.element-label.${label}`);
-        if (sourceLabel !== null) {
-            sourceLabel.style.display = "none";
+    prepareSvg(){
+        let sourceNames = [];
+        for (let source of state.step0Data.sources){
+            sourceNames.push(source.Z.name);
         }
+        this.svg.hideSpecificLabels(sourceNames);
+
+        this.svg.hideCurrentArrows();
+        this.svg.hideVoltageArrows();
+        this.svg.hideItotArrow();
+
+        this.svg.colorArrowsColorful();
+        return this
+
     }
-}
 
-function hideElementLabels(svgDiv) {
-    let labels = svgDiv.querySelectorAll(".element-label");
-    labels.forEach(label => label.style.display = "none");
-}
-
-function hideLabels(svgDiv) {
-    let labels = svgDiv.querySelectorAll(".element-label");
-    labels.forEach(label => label.style.display = "none");
-}
-
-function hideSvgArrows(circuitDiv) {
-    let arrows = circuitDiv.getElementsByClassName("arrow");
-    for (let arrow of arrows) arrow.style.display = "none";
+    makeElementsClickable(){
+        if (!this.elementsContainer) this.elementsContainer = document.getElementById("next-elements-list");
+        let elems = getElementsFromSvgContainer(this.div);
+        elems = removeSourceFromElements(elems);
+        elems.forEach(elem => {
+            elem.addEventListener("click", () => chooseElement(elem, this.elementsContainer));
+            elem.style.cursor = "pointer";
+        })
+    }
 }

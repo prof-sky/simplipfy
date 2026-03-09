@@ -1,4 +1,4 @@
-goodEmojis = [
+window.definitions.goodEmojis = [
         "💪",
         "😁",
         "😄",
@@ -25,7 +25,7 @@ goodEmojis = [
         "🤓",
 ];
 
-badEmojis = [
+window.definitions.badEmojis = [
         "😵‍💫",
         "😢",
         "😓",
@@ -52,7 +52,7 @@ badEmojis = [
         "🤯",
 ];
 
-onlyChoose2Emojis = [
+window.definitions.onlyChoose2Emojis = [
         "🤭",
         "😬",
         "🤪",

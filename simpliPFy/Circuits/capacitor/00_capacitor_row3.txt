@@ -1,4 +1,4 @@
-# --generalize-true --shownodes-true
+# --generalize-true --shownodes-true --optimize-mobile
 V1 2 0 ac {10} {0} {100}; down
 W 2 3; up
 W 3 4; right

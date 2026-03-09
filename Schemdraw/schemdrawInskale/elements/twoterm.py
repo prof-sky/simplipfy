@@ -627,6 +627,68 @@ class VoltageMirror(Element2Term):
         self.anchors['common'] = (0.5, math.sqrt(1 - 0.2**2/0.3**2)*0.15)
 
 
+class MagnetCore(Element):
+    def __init__(self, width=0.25, **kwargs):
+        super().__init__()
+        #width = 0.25
+        width = 0.25
+        length = 3
+        self.segments.append(Segment([(0, -width), (0, width), (length, width), (length, -width), (0, -width)],fill="gray", color="gray", userparams=self._userparams))
+
+        '''
+        Segment(
+            [(0, 0), (0.5*reswidth, resheight), (1.5*reswidth, -resheight),
+             (2.5*reswidth, resheight), (3.5*reswidth, -resheight),
+             (4.5*reswidth, resheight), (5.5*reswidth, -resheight), (6*reswidth, 0)], userparams=self._userparams))
+        '''
+
+class AirGap(Element):
+    def __init__(self, **kwargs):
+        super().__init__()
+        width = 0.25
+        gap = 1.5
+        length = 3 - gap
+        self.segments.append(Segment([(0, -width), (0, width), (length/2, width), (length/2, -width), (0, -width)], fill="gray", color="gray", userparams=self._userparams))
+        self.segments.append(Segment([(length/2+gap, -width), (length/2+gap, width), (length+gap, width), (length+gap, -width), (length/2+gap, -width)], fill="gray", color="gray", userparams=self._userparams))
+
+class MagneticSource(Element):
+    def __init__(self, **kwargs):
+        super().__init__()
+        radius = 0.4
+        width = 0.25
+        length = 3
+        spacing = width + radius/2
+        arrowLength = 0.6
+        arcRadius = 0.25
+        # circle for source
+        self.segments.append(SegmentCircle((length/2, -spacing), radius, color="black", userparams=self._userparams))
+        # arrow in source
+        self.segments.append(Segment([(length/2+arrowLength/2, -spacing), (length/2-arrowLength/2, -spacing)], arrow='->', color="black", userparams=self._userparams))
+        # core beside source
+        self.segments.append(Segment([(0, -width+spacing), (0, width+spacing), (length, width+spacing), (length, -width+spacing), (0, -width+spacing)],fill="gray", color="gray", userparams=self._userparams))
+        # top wire to arc
+        self.segments.append(Segment([(length/2-radius, -spacing), (length/2-radius-arcRadius, -spacing), (length/2-radius-arcRadius, -spacing+1.2)], color="black", userparams=self._userparams))
+
+        arcsStartpoint = length / 2 - radius
+
+        # segments on top of core next to source
+        self.segments.append(Segment([(arcsStartpoint+arcRadius, -spacing+0.6), (length/2-radius+arcRadius, -spacing+1.2)], color="black", userparams=self._userparams))
+        self.segments.append(Segment([(arcsStartpoint+arcRadius*3, -spacing+0.6), (length/2-radius+arcRadius*3, -spacing+1.2)], color="black", userparams=self._userparams))
+        #self.segments.append(Segment([(arcsStartpoint+arcRadius*5, -spacing+0.6), (length/2-radius+arcRadius*5, -spacing+1.2)], color="black", userparams=self._userparams))
+
+        # arcs on the right side
+        self.segments.append(SegmentArc((arcsStartpoint-arcRadius/2, -spacing+1.2), arcRadius, arcRadius, 0 ,180, color="black"))
+        self.segments.append(SegmentArc((arcsStartpoint+arcRadius/2+arcRadius, -spacing+1.2), arcRadius, arcRadius, 0 ,180, color="black"))
+        self.segments.append(SegmentArc((arcsStartpoint+arcRadius/2+arcRadius*3, -spacing+1.2), arcRadius, arcRadius, 0 ,180, color="black"))
+
+        #arcs on the left side
+        self.segments.append(SegmentArc((arcsStartpoint+arcRadius/2, -spacing+0.6), arcRadius, arcRadius, 180, 360, color="black"))
+        self.segments.append(SegmentArc((arcsStartpoint+arcRadius/2+arcRadius*2, -spacing+0.6), arcRadius, arcRadius, 180, 360, color="black"))
+        #self.segments.append(SegmentArc((arcsStartpoint+arcRadius/2+arcRadius*4, -spacing+0.6), arcRadius, arcRadius, 180, 360, color="black"))
+
+        self.segments.append(Segment([(arcsStartpoint+arcRadius*4, -spacing+0.6), (arcsStartpoint+arcRadius*4, -spacing), (arcsStartpoint+arcRadius*4-0.2, -spacing)], color="black", userparams=self._userparams))
+
+
 # default to IEC style
 Resistor = ResistorIEC
 ResistorVar = ResistorVarIEC

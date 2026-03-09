@@ -6,12 +6,12 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'SimpliPFy'
+project = 'SimpliPFy.org'
 copyright = '2025, Prof. Dr. Stefan Kray'
 author = 'Prof. Dr. Stefan Kray'
 
-from simplipfy.__version__ import __version__
-release = __version__
+version = "V5.0"
+release = version
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -33,3 +33,6 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 html_favicon = '_static/icon_docu.svg'
+html_css_files = [
+    'custom.css',
+]

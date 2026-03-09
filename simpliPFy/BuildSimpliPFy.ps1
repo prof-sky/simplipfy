@@ -25,15 +25,6 @@ function adjustAndMoveSolvePy{
     Write-Output "Copied simplipfyAPI.py to: ..\Pyodide\"
 }
 
-function adjustAndMoveGenerateSVGFilesPy{
-    $content = Get-Content -Path "simplipfy/tools/generateSVGFiles.py"
-
-    $versionLine = [string]::Concat("# for simplipfy version: ", $version, "`r`n")
-    $content = $versionLine + ($content -join "`r`n")
-    Set-Content -Path "..\Pyodide\Scripts\generateSVGFiles.py" -Value $content
-
-    Write-Output "Copied generateSVGFiles.py to: ..\Pyodide\Scripts"
-}
 
 $output = [string]::Concat("executing with: ", (Get-Alias pythonPath).Definition, "`npython refers to the standard python installation or the current aktiv venv")
 Write-Output $output
@@ -63,16 +54,6 @@ try{
 }
 catch{
     Write-Host "An error occured while handling simplipfyAPI.py" -ForegroundColor Red
-    Write-Host $_.Exception.Message -ForegroundColor Red
-    Set-Location $startDir
-    return
-}
-
-try{
-    adjustAndMoveGenerateSVGFilesPy
-}
-catch{
-    Write-Host "An error occured while handling GenerateSVGFiles.py" -ForegroundColor Red
     Write-Host $_.Exception.Message -ForegroundColor Red
     Set-Location $startDir
     return

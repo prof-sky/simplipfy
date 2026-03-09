@@ -1,4 +1,6 @@
-
+/**
+ * Manages the import and installation of the needed python packages that are installed into the pyodide instance
+ */
 class PackageManager {
     constructor() {
         if (PackageManager.instance) {
@@ -19,22 +21,17 @@ class PackageManager {
         this.fetchDirectoryListing = this.isGitHubPage ? this.#fetchGitHubDirectoryContents : this.#fetchDirectoryListing
     }
 
-    async doLoadsAndImports() {
+    async setupPyodideInterpreter() {
         try {
-            state.loadingProgress = 30;
-            updateStartBtnLoadingPgr(state.loadingProgress);
             await this.importPyodidePackages();
             await this.importSolverModule();
-            state.loadingProgress = 100;
-            updateStartBtnLoadingPgr(state.loadingProgress);
             state.pyodideReady = true;
-            enableBlockedStuff();
-            selectorBuilder.enableStartBtns();
 
             let endTime = new Date().getTime();
             let loadTime = endTime - startTime;
             console.log("Loading time: " + loadTime + "ms");
         } catch (error) {
+            console.trace(error)
             console.error("Error loading packages: " + error);
             setTimeout(() => {
                 showMessage(error, "error", false);
@@ -52,9 +49,9 @@ class PackageManager {
     }
 
     async importSolverModule() {
-        let content = await (await fetch(conf.sourceSolvePath)).text();
-        await state.pyodideAPI.writeFile(conf.pyodideSolvePath, content);
-        await state.pyodideAPI.loadSolver();
+        let content = await (await fetch(conf.server.paths.simplipfyAPI)).text();
+        await state.apis.pyodide.writeFile(conf.pyodide.paths.simplipfyAPI, content);
+        await state.apis.pyodide.loadSolver();
         state.solverLoaded = true;
     }
 
@@ -65,7 +62,7 @@ class PackageManager {
         let stepSize = Math.floor(50 / len);
 
         for(const packageName of packages){
-            await state.pyodideAPI.importPackage(packageName);
+            await state.apis.pyodide.importPackage(packageName);
             state.loadingProgress += stepSize;
             updateStartBtnLoadingPgr(state.loadingProgress);
         }
@@ -73,7 +70,7 @@ class PackageManager {
     }
 
     async load_packages(optAddNames) {
-        let packageAddress = conf.sourcePackageDir;
+        let packageAddress = conf.server.paths.packages;
         let packages = await this.fetchDirectoryListing(packageAddress, ".whl");
 
         if(Array.isArray(optAddNames)){
@@ -89,9 +86,9 @@ class PackageManager {
         let stepSize = 20 / len;
         let packagePromises = packages.map(async function (packageName) {
             // Fetch package with dirname + package.whl
-            let pkgArrBuff = await (await fetch(conf.sourcePackageDir + packageName)).arrayBuffer();
+            let pkgArrBuff = await (await fetch(conf.server.paths.packages + packageName)).arrayBuffer();
             let packageExtension = packageName.slice(packageName.lastIndexOf("."), packageName.length);
-            await state.pyodideAPI.unpackArchive(pkgArrBuff, packageExtension);
+            await state.apis.pyodide.unpackArchive(pkgArrBuff, packageExtension);
             console.log("Loading: " + packageName);
             state.loadingProgress += stepSize;
             updateStartBtnLoadingPgr(state.loadingProgress);

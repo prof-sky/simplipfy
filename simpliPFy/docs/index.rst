@@ -10,17 +10,25 @@ Welcome to the SimpliPFy documentation!
 .. include:: source/handWritten/about.rst
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+    :maxdepth: 1
+    :caption: Contents:
 
-   source/handWritten/about
-   source/handWritten/gettingStarted
-   source/handWritten/host
-   source/handWritten/circuits
-   source/handWritten/netlists
-   modules
-   source/handWritten/buildTheDocs
-   source/handWritten/commonIssuesAndFixes
-   source/handWritten/usedLibraries
-   source/handWritten/license
-   source/handWritten/frontend
+    source/general/about.rst
+    source/general/whatWeCanDo.rst
+    source/general/projectOverview.rst
+    source/general/gettingStarted.rst
+    source/general/host.rst
+    source/general/circuits.rst
+    source/general/netlists.rst
+    source/general/buildTheDocs.rst
+    source/general/server.rst
+    source/general/conf.rst
+    source/general/CLIScripts.rst
+    source/frontend/frontend.rst
+    source/backend/backend.rst
+    source/general/updatePyodide.rst
+    source/general/cicd.rst
+    source/general/usedLibraries.rst
+    source/general/license.rst
+    source/general/commonIssuesAndFixes.rst
+    modules

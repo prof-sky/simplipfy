@@ -11,6 +11,8 @@ from simplipfy.Svg.drawingInfo import DrawingInfo
 
 
 class Source(DrawingElement):
+    vaOfst = {"up": -1.15, "down": 0.15, "left": 0.15, "right": -1.15}
+
     def __init__(self, vec: Vector2D, di: DrawingInfo, omega_0, multipleSources: bool, formatter: DictExportBase,
                  ls: LangSymbols, scaling=3.0):
         DrawingElement.__init__(self, vec, di, omega_0, multipleSources, formatter, ls, scaling=3.0)

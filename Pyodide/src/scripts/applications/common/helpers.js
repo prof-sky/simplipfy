@@ -1,14 +1,8 @@
 function showWaitingNote() {
     const note = document.getElementById("progress-bar-note");
-    note.style.color = colors.currentForeground;
-    note.innerHTML = languageManager.currentLang.selectorWaitingNote;
+    note.style.color = colors.current.foreground;
+    note.innerHTML = languageManager.currentLang.selector.selectorWaitingNote;
     return note;
-}
-
-function enableStartBtnAndSimplifierLink() {
-    document.getElementById("nav-select").classList.remove("disabled");
-    document.getElementById("start-button").classList.remove("disabled");
-    document.getElementById("start-button").style.animation = "pulse 2s infinite";
 }
 
 function disableStartBtnAndSimplifierLink() {
@@ -20,8 +14,8 @@ function disableStartBtnAndSimplifierLink() {
 /**
  * Get all elements (V1, R1, C2, L3, Z4, ...) from the SVG container
  * These elements will get an event listener to be clickable
- * @param svgContainer
- * @returns {unknown[]}
+ * @param svgContainer {HTMLDivElement}
+ * @returns {Array<SVGElement>}
  */
 function getElementsFromSvgContainer(svgContainer) {
     const pathElements = svgContainer.querySelectorAll('path');
@@ -32,57 +26,17 @@ function getElementsFromSvgContainer(svgContainer) {
         && (!path.getAttribute('class').includes("arrow")));
 }
 
-function sanitizeSelector(selector) {
-    return selector.replace(/[^\w-]/g, '_');
-}
-
-function hideAllSelectors() {
-    for (const circuitSet of circuitMapper.circuitSets) {
-        const carousel = document.getElementById(`${circuitSet.identifier}-carousel`);
-        const heading = document.getElementById(`${circuitSet.identifier}-heading`);
-        carousel.hidden = true;
-        heading.hidden = true;
-    }
-}
-
-function hideQuickstart() {
-    document.getElementById("quick-carousel").hidden = true;
-    document.getElementById("quick-heading").hidden = true;
-}
-
-function hideAccordion() {
-    document.getElementById("selector-accordion").hidden = true;
-}
-
-function showQuickstart() {
-    document.getElementById("quick-carousel").hidden = false;
-    document.getElementById("quick-heading").hidden = false;
-}
-
-function showAccordion() {
-    document.getElementById("selector-accordion").hidden = false;
-}
-
-function showAllSelectors() {
-    for (const circuitSet of circuitMapper.circuitSets) {
-        const carousel = document.getElementById(`${circuitSet.identifier}-carousel`);
-        const heading = document.getElementById(`${circuitSet.identifier}-heading`);
-        carousel.hidden = false;
-        heading.hidden = false;
-    }
-}
-
 function getClassAndEmoji(prio) {
     let bootstrapAlert;
     let emoji;
     if (prio === "only2") {
-        emoji = onlyChoose2Emojis[Math.floor(Math.random() * onlyChoose2Emojis.length)];
+        emoji = window.definitions.onlyChoose2Emojis[Math.floor(Math.random() * window.definitions.onlyChoose2Emojis.length)];
         bootstrapAlert = "warning";
     } else if (prio === "warning") {
-        emoji = badEmojis[Math.floor(Math.random() * badEmojis.length)];
+        emoji = window.definitions.badEmojis[Math.floor(Math.random() * window.definitions.badEmojis.length)];
         bootstrapAlert = "warning";
     } else if (prio === "success") {
-        emoji = goodEmojis[Math.floor(Math.random() * goodEmojis.length)];
+        emoji = window.definitions.goodEmojis[Math.floor(Math.random() * window.definitions.goodEmojis.length)];
         bootstrapAlert = "success";
     } else if (prio === "info") {
         emoji = "";
@@ -109,6 +63,8 @@ function createAlert(bootstrapAlert, id = "alert-msg") {
     msg.style.width = "90%";
     msg.style.maxWidth = "400px";
     msg.style.textAlign = "center";
+    msg.style.maxHeight = "80vh";
+    msg.style.overflow = "auto";
     return msg;
 }
 
@@ -120,12 +76,20 @@ function removeMsgHandler() {
     }
 }
 
+/**
+ * @param message {string} message to display
+ * @param prio {"warning" | "danger" | "error" | "info"} priority, severity
+ * @param autoHide {boolean} true by default, if false message has to be discarded by the user
+ * @param id {string} id of the element to use, default is alert-msg
+ * */
 function showMessage(message, prio = "warning", autoHide = true, id = "alert-msg") {
     let body = document.getElementsByTagName("body")[0];
     let {bootstrapAlert, emoji} = getClassAndEmoji(prio);
     let msg = createAlert(bootstrapAlert, id);
 
+
     if (emoji !== "") {
+        /** @type {HTMLSpanElement} */
         let emojiSpan = document.createElement('span');
         emojiSpan.style.fontSize = '1.66em';
         emojiSpan.innerHTML = emoji;
@@ -133,9 +97,10 @@ function showMessage(message, prio = "warning", autoHide = true, id = "alert-msg
         msg.appendChild(document.createElement('br'));
     }
 
+    /** @type {HTMLSpanElement} */
     let msgSpan = document.createElement('span');
     if (prio === "error" || prio === "danger") {
-        msgSpan.innerHTML = languageManager.currentLang.alertError + message;
+        msgSpan.innerHTML = languageManager.currentLang.alerts.error + message;
     } else {
         msgSpan.innerHTML = message;
     }
@@ -169,23 +134,6 @@ function setPgrBarTo(percent) {
     progressBar.style.width = `${percent}%`;
 }
 
-function clearSimplifierPageContainer() {
-    const contentCol = document.getElementById("content-col");
-    contentCol.innerHTML = '';
-
-    const landingPage = document.getElementById("landing-page-container");
-    const simplifierPage = document.getElementById("simplifier-page-container");
-    const uploadPage = document.getElementById("upload-page-container");
-    const selectorPage = document.getElementById("select-page-container");
-    const toolPage = document.getElementById("tool-page-container");
-    landingPage.classList.remove("slide-in-right");
-    simplifierPage.classList.remove("slide-in-right");
-    uploadPage.classList.remove("slide-in-right");
-    toolPage.classList.remove("slide-in-right");
-    selectorPage.classList.remove("slide-out-left");
-    selectorPage.style.opacity = "1";
-}
-
 function scrollBodyToTop() {
     window.scrollTo(0,0);
 }
@@ -194,15 +142,16 @@ async function clearSolutionsDir() {
     if (state.pyodideReady) {
         try {
             //An array of file names representing the solution files in the Solutions directory.
-            //let solutionFiles = await state.pyodide.FS.readdir(`${conf.pyodideSolutionsPath}`);
-            let [status, solutionFiles] = await state.pyodideAPI.readDir(conf.pyodideSolutionsPath);
+            //let solutionFiles = await state.pyodide.FS.readdir(`${conf.pyodide.paths.solutions}`);
+            let [status, solutionFiles] = await state.apis.pyodide.readDir(conf.pyodide.paths.solutions);
             solutionFiles.forEach(file => {
                 if (file !== "." && file !== "..") {
-                    worker.postMessage({action: "unlink", data: {path: `${conf.pyodideSolutionsPath}/${file}`}});
-                    //state.pyodide.FS.unlink(`${conf.pyodideSolutionsPath}/${file}`);
+                    worker.postMessage({action: "unlink", data: {path: `${conf.pyodide.paths.solutions}/${file}`}});
+                    //state.pyodide.FS.unlink(`${conf.pyodide.paths.solutions}/${file}`);
                 }
             });
         } catch (error) {
+            console.trace(error)
             console.log("%cSolutions directory not found or already cleared", "color: gray;");
         }
     }
@@ -225,8 +174,9 @@ function resetHighlightedBoundingBoxes(svgDiv) {
     }
 }
 
+/** @param circuitSet {CircuitSet} */
 function moreThanOneCircuitInSet(circuitSet) {
-    return circuitSet.set.length > 1;
+    return circuitSet.circuitMaps.length > 1;
 }
 
 function simplifierPageCurrentlyVisible() {
@@ -245,8 +195,10 @@ function removeLivesAndShowLogo() {
 function checkIfSimplifierPageNeedsReset() {
     if (simplifierPageCurrentlyVisible()) {
         // Reset applications
-        resetSimplifierPage();
-        resetKirchhoffPage();
+        pageManager.pages.stepwisePage.reset();
+        pageManager.pages.kirchhoffPage.reset();
+        pageManager.pages.wheatstonePage.reset();
+        pageManager.pages.magneticPage.reset();
 
         // Hide dropdown and lives if gamification is enabled
         /*if (state.gamification) {
@@ -269,15 +221,6 @@ function checkIfSimplifierPageNeedsReset() {
 
 }
 
-function closeNavbar() {
-    const navbarToggler = document.getElementById("nav-toggler");
-    navbarToggler.classList.add("collapsed");
-    const navDropdown = document.getElementById("navbarSupportedContent");
-    navDropdown.classList.remove("show");
-
-    pageManager.updatePagesOpacity();
-}
-
 function resetNextElements(svgDiv, nextElementsContainer) {
     resetHighlightedBoundingBoxes(svgDiv);
     resetNextElementsTextAndList(nextElementsContainer);
@@ -294,40 +237,6 @@ function whenAvailable(name, callback) {
     }, interval);
 }
 
-function setLanguageAndScheme() {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const darkModeSwitch = document.getElementById("darkmode-switch");
-    darkModeSwitch.checked = true;
-    if (!prefersDark) {
-        changeToLightMode();
-        darkModeSwitch.checked = false;
-    } else {
-        changeToDarkMode(); // This is set by default, but it's a good idea for testing purposes to do it anyway
-    }
-
-    // Check if a language is cached
-    const cachedLang = localStorage.getItem("language");
-    if (cachedLang === null) {
-        // Use browser language
-        var userLang = navigator.language;
-        if (userLang === "de-DE" || userLang === "de-AT" || userLang === "de-CH" || userLang === "de") {
-            languageManager.currentLang = german;
-        } else {
-            languageManager.currentLang = english;
-        }
-    } else {
-        // Use cached language
-        if (cachedLang === germanShortSymbol) {
-            languageManager.currentLang = german;
-        } else if (cachedLang === frenchShortSymbol) {
-            languageManager.currentLang = french;
-        } else {
-            console.warn("Cached language not recognized, using default (English)");
-            languageManager.currentLang = english;
-        }
-    }
-}
-
 function modalConfig() {
     // This is to prevent the focus from staying on the modal when it is closed
     document.addEventListener('hide.bs.modal', function (event) {
@@ -338,14 +247,7 @@ function modalConfig() {
 }
 
 function currentCircuitIsSymbolic() {
-    return state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.symbolic;
-}
-
-function setBodyPaddingForFixedTopNavbar() {
-    const navBar = document.getElementById("navbar");
-    let height = navBar.offsetHeight;
-    const body = document.getElementsByTagName("body")[0];
-    body.style.paddingTop = height + "px";
+    return state.currentCircuitMap.selectorGroup === window.definitions.selectorIDs.symbolic;
 }
 
 // TODO, currently only the first source is used!
@@ -382,48 +284,6 @@ function updateStartBtnLoadingPgr(newValue) {
     }
 }
 
-function finishStartBtns() {
-    let startBtns = document.getElementsByClassName("circuitStartBtn");
-    for (let btn of startBtns) {
-        btn.style.backgroundColor = colors.keyYellow;
-        let fillLayer = btn.querySelector(".fill-layer");
-        if (fillLayer) {
-            fillLayer.remove();
-        }
-        let stripeOverlay = btn.querySelector(".progress-stripes");
-        if (stripeOverlay) {
-            stripeOverlay.remove();
-        }
-        // For upload button and scanned start btn
-        if (btn.classList.contains("disabled")) {
-            btn.classList.remove("disabled");
-        }
-    }
-}
-
-function enableNetlistEditor() {
-    // Netlist progress bar
-    let div = document.getElementById("drawing-field-div");
-    if (div) {
-        div.innerHTML = languageManager.currentLang.startTyping; // Replace pgr bar with text
-    }
-    let editor = document.getElementsByClassName("CodeMirror")[0];
-    if (editor) {
-        editor.style.backgroundColor = "white";
-        editor.CodeMirror.setOption("readOnly", false);
-    }
-    // Enable checkboxes
-    let checkboxes = document.querySelectorAll(".form-check-input.netlist-comment");
-    checkboxes.forEach(checkbox => {
-        checkbox.disabled = false;
-    });
-}
-
-function enableBlockedStuff() {
-    finishStartBtns(); // including all progress bars for pyodide
-    enableNetlistEditor();
-}
-
 function showSpinnerLoadingCircuit() {
     let contentCol = document.getElementById("content-col");
     let spinner = document.createElement("div");
@@ -452,79 +312,14 @@ function scrollContainerToTop(div) {
     }, 100);
 }
 
-function createNextCircuitButton() {
-    let nextCircuitBtn = document.createElement("button");
-    nextCircuitBtn.id = "nextCircuitBtn";
-    nextCircuitBtn.classList.add("btn", "btn-primary", "mt-3", "mx-auto");
-    nextCircuitBtn.style.backgroundColor = colors.keyYellow;
-    nextCircuitBtn.style.border = "none";
-    nextCircuitBtn.style.color = colors.keyDark;
-    nextCircuitBtn.style.width = "fit-content";
-    nextCircuitBtn.innerHTML = languageManager.currentLang.nextCircuit;
-
-    nextCircuitBtn.addEventListener("click", () => {
-
-        circuitMapper.setNextCircuitMap(state.currentCircuitMap);
-
-        if (state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.kirchhoff) {
-            resetKirchhoffPage();
-            startKirchhoff();
-        } else {
-            resetSimplifierPage();
-            startSimplifier();
-        }
-    });
-    return nextCircuitBtn;
-}
-
-// Old, remove if surely not needed anymore
-function checkDownloadLinkAndShowNote() {
-    let downloadLink = window.location.hash.substring(1); // remove #
-
-    if (downloadLink !== "" && downloadLink !== undefined) {
-        if (!isValidLink(downloadLink)) {
-            setTimeout(() => {
-                showMessage(languageManager.currentLang.alertNoValidLinkCheck, "info", false);
-            });
-            return;
-        }
-        setTimeout(() => {
-            // Show download note, _blank target for new tab
-            showMessage(`<h3>Download zip</h3><br><p class="mb-0" style="word-wrap: break-word">${languageManager.currentLang.downloadInfoMsg}(${downloadLink})</p>
-            <div class='container d-flex justify-content-center' style="gap: 15px;">
-                <btn class='btn btn-secondary' id='noDownload' style='color:white'>${languageManager.currentLang.no}</btn>
-                <a class='btn btn-warning' id='download' style='color:#222' href='${downloadLink}' target='_blank'>${languageManager.currentLang.yes}</a>
-            </div>`, "info", false, "download-note");
-
-            // Yes clicked, remove note, set isLinkedZip to true, show upload page
-            document.getElementById("download").addEventListener("click", () => {
-                document.getElementById("download-note")?.remove();
-                state.isLinkedZip = true;
-                setTimeout(() => {
-                    pageManager.showUploadPage()
-                }, 1000);
-                // Let landing page start button link to upload page instead of selector page
-                let startBtn = document.getElementById("start-button");
-                startBtn.addEventListener("click", async () => {
-                    pageManager.showUploadPage();
-                });
-            });
-            // No clicked, remove note, set isLinkedZip to false
-            document.getElementById("noDownload").addEventListener("click", () => {
-                document.getElementById("download-note")?.remove();
-                state.isLinkedZip = false;
-            });
-
-            // Remove hash from url
-            history.replaceState(null, null, window.location.pathname + window.location.search);
-        });
-    }
-}
-
+/** @typedef {"volt" | "total"} ParamMapKeys */
+/** @typedef {Map<ParamMapKeys, string>} ParamMap */
+/** @returns {ParamMap} */
 function createParamMap() {
+    /** @type {ParamMap} */
     let paramMap = new Map();
-    paramMap.set("volt", languageManager.currentLang.voltageSymbol);
-    paramMap.set("total", languageManager.currentLang.totalSuffix);
+    paramMap.set("volt", languageManager.currentLang.simplifier.voltageSymbol);
+    paramMap.set("total", languageManager.currentLang.simplifier.totalSuffix);
     return paramMap;
 }
 
@@ -550,131 +345,54 @@ function isValidLink(str) {
     return !!pattern.test(str);
 }
 
-async function parseHashAndStartCircuit(hash) {
+/** @param {string} netlist */
+async function startFromEditor(netlist){
+    console.log(netlist)
+    state.currentSelector = externalSelector;
+    state.currentCircuitMap = await (new ExternalCircuitMap().initForEditor(netlist))
+}
+
+async function startFromQrCode(qrInfo) {
+
+
     // hash is something like #sel=selector&net=......
-    const cleanHash = hash.startsWith("#") ? hash.slice(1) : hash;
-    const params = new URLSearchParams(cleanHash);
-    const sessionId = params.get("id") || null;
-    const selector = params.get("sel") || null;
-    const compressed = params.get("net") || null;
-
-    if (sessionId) {
-        console.log("Found session ID: " + sessionId);
-        state.sessionId = sessionId;
-        sendEventToDB(`Scanned QR Code with session ID: ${sessionId}`);
-    }
-
-    if (selector === null || compressed === null) {
-        console.error("No selector or netlist found in hash");
-        showMessage(languageManager.currentLang.selOrNetNull, "error", false);
-        return;
-    }
+    console.log("Found session ID: " + qrInfo.id);
+    state.sessionId = qrInfo.id;
+    sendEventToDB(`Scanned QR Code with session ID: ${qrInfo.id}`);
 
     // Remove hash
     history.replaceState(null, null, window.location.pathname + window.location.search);
 
     // Decompress netlist
-    const netlist = LZString.decompressFromEncodedURIComponent(compressed);
+    const netlist = LZString.decompressFromEncodedURIComponent(qrInfo.net);
 
-    setTimeout(() => {showMessage(languageManager.currentLang.QRloadingNote,
-        "info", false, "waiting-note-backend")}, 1000);
-
-    // Show loading page, add pyodide progress bar
-    clearSimplifierPageContainer();
-    let contentCol = document.getElementById("content-col");
-    contentCol.innerHTML =
-        `<div class="circuitStartBtn mx-auto" style="height: 10px;">
-            <div class="fill-layer"></div>
-            <div class="progress-stripes"></div>
-        </div>`;
-    pageManager.showSimplifierPage();
-
-    // Disable burger navigation
-    let btn = document.getElementById("nav-toggler");
-    if (btn) {
-        btn.disabled = true;
-    }
-    // Remove event listener from logo by cloning it
-    let logo = document.getElementById("nav-logo");
-    if (logo) {
-        let newLogo = logo.cloneNode(true);
-        logo.parentNode.replaceChild(newLogo, logo);
-        logo = newLogo; // Update logo variable to the new logo
-    }
-
-    // Wait for pyodide to be ready before continuing
-    while (!state.pyodideReady) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-
-    // Close Message
-    let msg = document.getElementById("waiting-note-backend");
-    if (msg) {
-        msg.remove();
-    }
+    pageManager.pages.navigation.disable();
+    /** @type {LoadingPyodideNote} */
+    let note = pageManager.pages.loadingPyodidePage.content.note
+    note.setContent(() => languageManager.currentLang.toolsPage.QRloadingNote)
+    pageManager.changePage(pageManager.pages.loadingPyodidePage);
 
     // write fileContent to a default file in pyodide
-    let defaultFileName = "scannedNetlist.txt";
-    await state.pyodideAPI.writeFile(`/home/pyodide/${defaultFileName}`, netlist);
-    state.currentCircuitMap = {
-        circuitDivID: `scanned-circuit-div`,
-        btn: `scanned-circuit-btn`,
-        btnOverlay: `scanned-circuit-overlay`,
-        circuitFile: defaultFileName,
-        sourceDir: "",
-        svgFile: "",
-        selectorGroup: "",
-        overViewSvgFile: "",
-        voltage: "",
-        frequency: ""
-    };
+    state.currentSelector = externalSelector;
+    state.currentCircuitMap = await (new ExternalCircuitMap()).initForScan(netlist);
 
-    if (selector === simplifierQRSelector) {
-        state.currentCircuitMap.selectorGroup = circuitMapper.selectorIds.simplifier;
-    } else if (selector === kirchhoffQRSelector) {
-        state.currentCircuitMap.selectorGroup = circuitMapper.selectorIds.kirchhoff;
+    if (qrInfo.sel === window.definitions.qrCodeSelectorIDs.stepwise) {
+        state.currentCircuitMap.selectorGroup = window.definitions.selectorGroup.simplifier;
+    } else if (qrInfo.sel === window.definitions.qrCodeSelectorIDs.kirchhoff) {
+        state.currentCircuitMap.selectorGroup = window.definitions.selectorGroup.kirchhoff;
+    } else if(qrInfo.sel === window.definitions.qrCodeSelectorIDs.symbolic)  {
+        state.currentCircuitMap.selectorGroup = window.definitions.selectorIDs.symbolic;
     } else {
-        console.error("Unknown selector: " + selector);
+        console.error("Unknown selector: " + qrInfo.sel);
     }
 
-    await selectorBuilder.circuitSelectorStartButtonPressed(state.currentCircuitMap, true);
-    // Enable burger navigation again
-    btn.disabled = false;
-    // Add event listener to logo again
-    logo.addEventListener("click", () => {
-        checkIfSimplifierPageNeedsReset();
-        closeNavbar();
-        pageManager.showLandingPage();
-    })
-}
-
-function saveFinishedCircuitAndUpdateSelectorCounters() {
-    let identifier = state.currentCircuitMap.selectorGroup;
-
-    // Handling wheatstone options
-    if (state.currentCircuitMap.selectorGroup === circuitMapper.selectorIds.wheatstone) {
-        // Add option to storage doneCircuits-wheat
-        // Option name = option_{state.currentOption}
-        let doneCircuits = JSON.parse(localStorage.getItem(`doneCircuits-${identifier}`)) || [];
-        let optionName = `option_${state.currentOption}`;
-        if (doneCircuits.includes(optionName)) {
-            return; // already finished once
+    await awaitVal(
+        () => {return state.pyodideReady && state.solvers.stepwise instanceof StepSolverAPI},
+        async () => {
+            StepwisePage.showSimplifierPage(state.currentCircuitMap);
+            pageManager.pages.navigation.enable();
         }
-        doneCircuits.push(optionName);
-        localStorage.setItem(`doneCircuits-${identifier}`, JSON.stringify(doneCircuits));
-    } else {
-        // Rest of selector groups if not quickstart
-        if (state.currentCircuitMap.selectorGroup !== circuitMapper.selectorIds.quick) {
-            // Add circuitfilename to storage doneCircuits-identifier
-            let doneCircuits = JSON.parse(localStorage.getItem(`doneCircuits-${identifier}`)) || [];
-            if (doneCircuits.includes(state.currentCircuitMap.circuitFile)) {
-                return; // already finished once
-            }
-            doneCircuits.push(state.currentCircuitMap.circuitFile);
-            localStorage.setItem(`doneCircuits-${identifier}`, JSON.stringify(doneCircuits));
-        }
-    }
-    selectorBuilder.updateSelectorCounters();
+    );
 }
 
 function printHello() {
@@ -684,4 +402,53 @@ function printHello() {
             \\___ \\| || |\\/| | |_) | |    | || |_) | |_   \\ V / 
              ___) | || |  | |  __/| |___ | ||  __/|  _|   | |  
             |____/___|_|  |_|_|   |_____|___|_|   |_|     |_|  `);
+}
+
+async function loadFile(src){
+    return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src;
+        s.defer = true; // prevents blocking
+        s.onload = () => resolve(src);
+        s.onerror = () => reject(new Error(`Failed to load ${src}`));
+        document.head.appendChild(s);
+    });
+}
+
+function extractCommentsAndNetlist(netlist) {
+    // options start with a #, should always be in line 1 and be only one line
+    let lines = netlist.split("\n");
+    let optionsString = "";
+    if (lines[0].trim().startsWith("#")) {
+        optionsString = lines[0].trim();
+        lines.shift(); // remove first line
+    }
+    let rawNetlist = lines.join("\n").trim().replaceAll("\r", "");
+    return [optionsString, rawNetlist];
+}
+
+/**
+ * executes a function when a value changes to true
+ * @param val {function | boolean} wait until val is true
+ * @param fn {function} function to execute when val turns true
+ * @param interval {int} checking interval in ms, default = 100
+ */
+function awaitVal(val, fn, interval = 100) {
+    return new Promise((resolve, reject) => {
+        const timer = setInterval(async () => {
+            try {
+                const condition = typeof val === "function" ? val() : val;
+
+                if (await condition) { // works with promises & functions
+                    clearInterval(timer);
+
+                    const result = fn ? await fn() : undefined;
+                    resolve(result);
+                }
+            } catch (err) {
+                clearInterval(timer);
+                reject(err);
+            }
+        }, interval);
+    });
 }

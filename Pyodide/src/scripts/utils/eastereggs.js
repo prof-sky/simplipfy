@@ -109,12 +109,6 @@ function setupShakeAnimation() {
     window.addEventListener('devicemotion', handleMotion);
 }
 
-function setupSelectPageEasterEggs() {
-    addResHeadingEasterEgg();
-    addCapHeadingEasterEgg();
-    addIndHeadingEasterEgg();
-}
-
 function fetchEasterEggImages() {
     // Preload images before they are shown
     return new Promise((resolve, reject) => {
@@ -143,12 +137,6 @@ function fetchEasterEggImages() {
             };
         });
     });
-}
-
-function setupLandingPageEasterEggs() {
-    setupMascotEasterEgg();
-    setupMemeViewer();
-    setupSmoothStarsEasterEgg();
 }
 
 function setupMascotEasterEgg() {
@@ -455,67 +443,6 @@ function resetLandingPageContainers() {
     setupMemeViewer();
 }
 
-function setupCheatSheetEasterEggs() {
-    addIDeclareMeme();
-}
-
-function addResHeadingEasterEgg() {
-    const resHeading = document.getElementById("res-acc-btn");
-    if (!resHeading) return;
-    let resCounter = 0;
-    let resTimer = null;
-    resHeading.addEventListener("click", () => {
-        if (resTimer) clearTimeout(resTimer);
-        resCounter++;
-        if (resCounter >= clickLimit) {
-            resCounter = 0;
-            ragingThor("./src/resources/eastereggs/resisthor.png");
-        } else {
-            resTimer = setTimeout(() => {
-                resCounter = 0;
-            }, 300); // time between clicks needs to be less than 300ms
-        }
-    });
-}
-
-function addCapHeadingEasterEgg() {
-    const capHeading = document.getElementById("cap-acc-btn");
-    if (!capHeading) return;
-    let capCounter = 0;
-    let capTimer = null;
-    capHeading.addEventListener("click", () => {
-        if (capTimer) clearTimeout(capTimer);
-        capCounter++;
-        if (capCounter >= clickLimit) {
-            capCounter = 0;
-            ragingThor("./src/resources/eastereggs/capacithor.png");
-        } else {
-            capTimer = setTimeout(() => {
-                capCounter = 0;
-            }, 300); // time between clicks needs to be less than 300ms
-        }
-    });
-}
-
-function addIndHeadingEasterEgg() {
-    const indHeading = document.getElementById("ind-acc-btn");
-    if (!indHeading) return;
-    let indCounter = 0;
-    let indTimer = null;
-    indHeading.addEventListener("click", () => {
-        if (indTimer) clearTimeout(indTimer);
-        indCounter++;
-        if (indCounter >= clickLimit) {
-            indCounter = 0;
-            ragingThor("./src/resources/eastereggs/inducthor.png");
-        } else {
-            indTimer = setTimeout(() => {
-                indCounter = 0;
-            }, 300); // time between clicks needs to be less than 300ms
-        }
-    });
-}
-
 function addIDeclareMeme() {
     const complexFormula = document.getElementById("pRX");
     if (!complexFormula) return;
@@ -801,7 +728,7 @@ function setupSmoothStarsEasterEgg() {
         clickCounter++;
         if (clickCounter >= clickLimit) {
             clickCounter = 0;
-            selectorBuilder.addSmoothStarsOverLogo();
+            SelectorAnimations.addSmoothStarsOverLogo();
         } else {
             clickTimer = setTimeout(() => {
                 clickCounter = 0;

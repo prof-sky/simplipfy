@@ -1,11 +1,15 @@
 {
-  "sourceCircuitPath": "Circuits.zip",
-  "pyodideCircuitPath": "Circuits",
-  "userDirName": "localUserCircuits",
-  "userSvgDirName": "localUserSVGs",
-  "pyodideUserCircuitBasePath": "/home/pyodide",
-  "sourceSolvePath": "simplipfyAPI.py",
-  "sourcePackageDir": "Packages/",
-  "pyodideSolutionsPath": "Solutions",
-  "pyodideSolvePath": "home/pyodide/simplipfyAPI.py"
+  "pyodide.paths.workingDir": "/home/pyodide",
+  "pyodide.names.solutions": "Solutions",
+  "server.names.circuits": "Circuits.zip",
+  "server.names.packages": "Packages",
+  "server.names.simplipfyAPI": "simplipfyAPI.py",
+  "wheatstone.names.optionsExtension": "_options.json",
+  "tools.customCircuits.names.dir": "localUserCircuits",
+  "tools.svgGen.names.dir": "localUserSVGs",
+  "tools.svgScan.paths.dir": "",
+  "tools.svgScan.names.file": "scannedNetlist.txt",
+  "editor.names.dir": "",
+  "editor.names.file": "editorNetlist.txt",
+  "page.values.timeout": 20e3
 }

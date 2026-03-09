@@ -51,10 +51,10 @@ def generate_for_folder_structure(folderPath: str, saveFolder ="CircuitGraphs"):
     """
     :param folderPath: path to the folder to generate for, only generates for files with extension .txt, .sch
     :param saveFolder: name of the folder where the graph.png files are saved. This is created at the same level as the
-    source folder lives. Therefore, source folder and save folder cant have the same name.
+        source folder lives. Therefore, source folder and save folder cant have the same name.
     :return: None
     :Note:
-    The save folder is removed and recreated.
+        The save folder is removed and recreated.
     """
     saveToFolder = os.path.join(os.path.split(folderPath)[0], saveFolder)
     if folderPath == saveToFolder:
@@ -85,7 +85,6 @@ def generate_for_folder_structure(folderPath: str, saveFolder ="CircuitGraphs"):
         cct = Circuit(os.path.join(path, fName) + ext)
         generate_graph_from_circuit(cct, fName, savePath)
 
-    pass
 
 if __name__ == "__main__":
     netlist = """V1 1 0 dc {10}; down

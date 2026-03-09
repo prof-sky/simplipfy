@@ -9,6 +9,7 @@ from lcapyInskale.componentnamer import ComponentNamer
 from simplipfy.Helpers.impedanceConverter import FileToImpedance, ValueToComponent, getOmegaFromCircuit
 from simplipfy.Helpers.langSymbols import LangSymbols
 from simplipfy.Helpers.solution import Solution
+from simplipfy.Svg.drawingConfig import drawing_config_instance
 
 
 class TestSimplifyStepwise:
@@ -24,7 +25,8 @@ class TestSimplifyStepwise:
         orgVal2 = Solution.getElementSpecificValue(orgCct[compType + '2'])
 
         cct = Circuit(FileToImpedance(join(path, filename)))
-        sol = Solution(cct.simplify_stepwise(), LangSymbols())
+        isGeneralized = drawing_config_instance.generalize
+        sol = Solution(cct.simplify_stepwise(), LangSymbols(), isGeneralized)
 
         val1 = sol['step1'].lastStep.circuit.Z1.Z
         val2 = sol['step1'].lastStep.circuit.Z2.Z
@@ -56,7 +58,8 @@ class TestSimplifyStepwise:
                         path: str = "./Schematics"):
         ComponentNamer().reset()
         cct = Circuit(FileToImpedance(join(path, filename)))
-        sol = Solution(cct.simplify_stepwise(), LangSymbols())
+        isGeneralized = drawing_config_instance.generalize
+        sol = Solution(cct.simplify_stepwise(), LangSymbols(), isGeneralized)
 
         val1 = sol['step1'].lastStep.circuit.Z1.Z
         val2 = sol['step1'].lastStep.circuit.Z2.Z
@@ -124,3 +127,13 @@ class TestSimplifyStepwise:
         # test for ac
         self.assertResultImp("CL_series_ac", None, False)
         self.assertResultImp("CL_parallel_ac", None, True)
+
+    def assertIsimplified(self):
+        folder = "resistor"
+        filePath = f"Circuits/{folder}"
+        filename = "R_series_ac.txt"
+        cct = Circuit(FileToImpedance(join(filePath, filename)))
+
+        assert cct.isSimplified() == False
+        cct_simple = cct.simplifyNCpts(["R1", "R2"])
+        assert cct_simple._isSimplified() == True

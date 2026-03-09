@@ -1,4 +1,4 @@
-# for simplipfy version: 0.1.74
+# for simplipfy version: 0.2.4
 import warnings
 warnings.filterwarnings('ignore')
 # this py File is imported into pyodide and enables the use of the simpliPFy library in the web app without the need
@@ -9,10 +9,8 @@ solveStepwise = ssw
 from simplipfy.SimplifyInUserOrder.solvInUserOrder import SolveInUserOrder as siuo
 SolveInUserOrder = siuo
 
-
 from simplipfy.KirchhoffSolver.kirchhofSolver import KirchhoffSolver as khs
 KirchhoffSolver = khs
-
 
 from simplipfy.WheatstoneBridge.solver import equationIsValid as wss
 WheatstoneBridgeSolver = wss

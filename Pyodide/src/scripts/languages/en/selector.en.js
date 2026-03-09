@@ -1,16 +1,17 @@
-window.selectorEnTexts = {
+selectorEnTexts = {
     selectorWaitingNote:
         "Loading circuits...",
     selectorHeadings:
         {
-            "quick": "TUTORIAL",
-            "res":  "RESISTORS",
-            "cap": "CAPACITORS",
-            "ind": "INDUCTORS",
-            "mixed": "MIXED CIRCUITS",
-            "sym": "SYMBOLIC CALCULATION",
-            "kirch": "KIRCHHOFF",
-            "wheat": "WHEATSTONE",
+            [window.definitions.selectorIDs.quickstart] : "TUTORIAL",
+            [window.definitions.selectorIDs.resistor] :  "RESISTORS",
+            [window.definitions.selectorIDs.capacitor] : "CAPACITORS",
+            [window.definitions.selectorIDs.inductor] : "INDUCTORS",
+            [window.definitions.selectorIDs.mixed] : "MIXED CIRCUITS",
+            [window.definitions.selectorIDs.symbolic] : "SYMBOLIC CALCULATION",
+            [window.definitions.selectorIDs.kirchhoff] : "KIRCHHOFF",
+            [window.definitions.selectorIDs.wheatstone] : "WHEATSTONE",
+            [window.definitions.selectorIDs.magnetic] : "MAGNETIC",
         },
     overviewModalBtn:
         "Overview",
@@ -26,4 +27,8 @@ window.selectorEnTexts = {
         ],
     overviewDropdown:
         "OVERVIEW",
+    loadingContent:
+        "Downloading Circuits ...",
+    taskStandardName:
+        "Task",
 }

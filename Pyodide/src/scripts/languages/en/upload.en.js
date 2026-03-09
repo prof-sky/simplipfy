@@ -1,4 +1,5 @@
-window.uploadEnTexts = {
+uploadEnTexts = {
+    //ToDo remove or move to tools
     uploadHelpBtn:
         "Help",
     uploadBtn:
@@ -8,7 +9,7 @@ window.uploadEnTexts = {
     uploadModalText:
         "Upload a zip file with your circuits (nothing gets uploaded, all your file stay on your " +
         "local machine). The zip file must have the following structure:<br><br>" +
-        "<p style='text-align: left'>" +
+        "<p style='text-align: left; width: fit-content; margin-left: auto; margin-right: auto'>" +
         "MyCircuits.zip<br>" +
         "-- MyCircuits<br>" +
         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- resistor<br>" +

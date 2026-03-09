@@ -1,4 +1,4 @@
-window.simplifierEnTexts = {
+simplifierEnTexts = {
     closeBtn:
         "Close",
     infoGifHeading:
@@ -7,16 +7,13 @@ window.simplifierEnTexts = {
         "Click the elements you want to simplify and check your selection " +
         "with the 'check' button. " +
         "If the elements can be simplified, you will see the next step and can " +
-        "choose the next elements there. Use the switch to toggle between a generalized " +
+        "choose the next elements there. " +
+        "Use the switch to toggle between a generalized " +
         "and the original representation. The representations show the " +
         "same circuit, but the generalized view can help to recognize " +
         "series and parallel elements.",
     nextElementsHeading:
         "Chosen elements",
-    nextElementsVoltLawHeading:
-        "Next elements for loop",
-    nextElementsCurrentHeading:
-        "Next elements for current equation",
     showCalculationBtn:
         "Calculation",
     hideCalculationBtn:
@@ -71,4 +68,22 @@ window.simplifierEnTexts = {
         "Only imaginary part, back to ",
     nextCircuit:
         "Next circuit",
+    checkBtnParallel:
+        "Parallel",
+    checkBtnSeries:
+        "In series",
+    StepwiseHeading:
+        "Simplify the circuit by choosing at least two elements in series or parallel",
+    missingExplanation:
+        "It seems like we don't have an explanation for this step yet, sorry! 😥",
+    generalizeBtnOn:
+        "Change circuit layout",
+    generalizeBtnOff:
+        "Show original layout",
+    explanationHeading:
+        "What does this button do?",
+    explanationValue:
+        "Use this button to see the element values, to calculate the equivalent resistance.",
+    explanationGeneralized:
+        "Use this button to display a different circuit layout, if you need a hint for solving.",
 }

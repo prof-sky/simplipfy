@@ -25,6 +25,7 @@ class Resistor(DrawingElement):
 
 
 class Capacitor(DrawingElement):
+    caOfst = {"up": 0.3, "down": 0.3, "left": 0.3, "right": 0.3}
     def __init__(self, vec: Vector2D, di: DrawingInfo, omega_0, multipleSources: bool, formatter: DictExportBase,
                  ls: LangSymbols, scaling=3.0):
         DrawingElement.__init__(self, vec, di, omega_0, multipleSources, formatter, ls, scaling=3.0)
@@ -45,6 +46,13 @@ class Capacitor(DrawingElement):
         newElm.anchors = element_anchors
         return newElm
 
+    def curLabel(self, drawing: Drawing, at: elm.Element, ofst=0, ofstLabel=(-0.1, 0), reverse=False):
+        dirVec: Vector2D = self.direction()
+        d = self.directionToText(dirVec)
+        ofst = self.caOfst[d]
+        labelPos = self.startPos + dirVec * Vector2D(1.5, 1.5)
+        super().curLabel(drawing, at=labelPos.asTuple, ofst=ofst, ofstLabel=self.clOfst[d], reverse=reverse)
+
     def schemdrawElement(self) -> elm.Capacitor:
         label = '#E#.### ##'
         id_ = self.di.label
@@ -57,10 +65,7 @@ class Capacitor(DrawingElement):
 
 
 class Inductor(DrawingElement):
-    vaOfst = {"up": -0.4, "down": 0.4, "left": 0.4, "right": -0.4}
-    elOfst = {"up": (0.4, 0.1), "down": (-0.4, -0.1), "left": (0, -0.5), "right": (0, 0.5)}
-    clOfst = {"up": (0.15, 0), "down": (-0.15, 0), "left": (-0.1, -0.15), "right": (-0.1, 0.15)}
-    vlOfst = {"up": (-0.2, 0.1), "down": (0.2, -0.1), "left": (-0.4, -0.25), "right": (0, 0.25)}
+    vaOfst = {"up": -0.25, "down": 0.3, "left": 0.3, "right": -0.25}
 
     def __init__(self, vec: Vector2D, di: DrawingInfo, omega_0, multipleSources: bool, formatter: DictExportBase,
                  ls: LangSymbols, scaling=3.0):

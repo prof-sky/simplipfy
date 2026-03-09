@@ -1,0 +1,1 @@
+import earcut from"earcut";import{createTopology,collapseTopology}from"./topology.js";export default function(o,t){return collapseTopology(createTopology(cut(o),o),t)}function cut(o){var e=earcut(o.reduce((o,t)=>[...o,t[0],t[1]],[])),r=[];for(let o=0,t=e.length;o<t;o+=3)r.push([[e[o],e[o+1]],[e[o+1],e[o+2]],[e[o+2],e[o]]]);return r}export{cut};

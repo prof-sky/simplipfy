@@ -1,4 +1,6 @@
-window.landingDeTexts = {
+landingDeTexts = {
+    startBtn:
+        "START",
     landingPageGreeting:
         "Ein kostenloses Browsertool um<br>" +
         "zu lernen wie Schaltungsnetze vereinfacht werden",
@@ -17,5 +19,14 @@ window.landingDeTexts = {
     landingPageExplanation1:
         "simplipfy wurde für eine Nutzung am Smartphone und Tablet optimiert, kann aber auch auf dem Desktop " +
         "genutzt werden. Neben vorgegeben Schaltungen kannst du auch eigene Kreise erstellen und hochladen.",
-
+    modalOk:
+        "Startseite ändern",
+    modalAbort:
+        "Abbrechen",
+    modalRemindMeLater:
+        "Später",
+    modalTitle:
+        "Startseite ändern",
+    modalBody:
+        "Möchten sie die Startseite zur Auswahlseite ändern? Sie können dies jederzeit in den Einstellungen anpassen."
 }

@@ -9,16 +9,17 @@ from simplipfy.Export.dictExportSimpStep import DictExportSimpStep
 from simplipfy.Helpers.impedanceConverter import ImpedanceToComponent
 from simplipfy.Helpers.unitWorkAround import UnitWorkAround as uwa
 from simplipfy.Svg.drawWithSchemdraw import DrawWithSchemdraw
+from simplipfy.Export.DataStructures.exportDict import ErrorExportDict
 
 if TYPE_CHECKING:
-    from simplipfy.Export.DataStructures.exportDict import ExportDictBase
+    from simplipfy.Export.DataStructures.exportDict import ExportDictBase, ErrorExportDict
     from simplipfy.Export.DataStructures.exportDict import Step0ExportDict
     from lcapyInskale import ConstantDomainExpression
     from lcapyInskale.solutionStep import SolutionStep
     from simplipfy.Helpers.langSymbols import LangSymbols
 
 class Solution:
-    def __init__(self, steps: list['SolutionStep'], langSymbols: 'LangSymbols'):
+    def __init__(self, steps: list['SolutionStep'], langSymbols: 'LangSymbols', isGeneralized: bool):
         """
         :param steps: List of SolutionSteps, lcapy.SolutionStep Object created by SimplifyStepWise and
          SimplifyInUserOrder Modules
@@ -44,6 +45,7 @@ class Solution:
         self.__setitem__("step0", solSteps[0])
         self.circuitType = self._getCircuitType()
         self.isSymbolic = self._isSymbolic()
+        self.isGeneralized = isGeneralized
 
         if len(solSteps) >= 2:
             self["step0"].nextStep = solSteps[1]
@@ -209,11 +211,14 @@ class Solution:
 
         return os.path.join(path, filename + f"_{step}.svg")
 
-    def exportCircuitInfo(self, step) -> 'Step0ExportDict':
+    def exportCircuitInfo(self, step) -> Union['Step0ExportDict', 'ErrorExportDict']:
         """
         :returns the circuit information of step0 as a dictionary
         """
-        return DictExportCircuitInfo(self.langSymbols, self.circuitType, self.isSymbolic).getDictForStep(step, self)
+        try:
+            return DictExportCircuitInfo(self.langSymbols, self.circuitType, self.isSymbolic).getDictForStep(step, self)
+        except ValueError as e:
+            return ErrorExportDict(str(e))
 
     def exportStepAsDict(self, step) -> 'ExportDictBase':
         """

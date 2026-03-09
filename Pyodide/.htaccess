@@ -77,7 +77,7 @@ RewriteCond %{HTTPS} off
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # passwords and usernames used on server
-SetEnv API_SECRET YourSuperSecretKeyHere
-SetEnv DB_NAME ReplaceWithDBName
-SetEnv DB_USER ReplaceWithDBUser
-SetEnv DB_PASSWORD ReplaceWithDBPassword
+SetEnv API_SECRET someSecret
+SetEnv DB_NAME someName
+SetEnv DB_USER someUser
+SetEnv DB_PASSWORD somePass

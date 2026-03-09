@@ -2,11 +2,7 @@
 // ########################## Wheatstone API Class #####################################
 // #####################################################################################
 
-class WheatstoneSolverAPI {
-    constructor(worker) {
-        this.worker = worker;
-    }
-
+class WheatstoneSolverAPI extends SolverInterface{
     equationIsValid(v) {
         return requestResponse(this.worker, {
             action: "equationIsValid",

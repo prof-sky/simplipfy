@@ -1,5 +1,3 @@
-image: inskale
-
 .git_config: &git_config
   - git config --global user.email "yannick.wieland@hs-pforzheim.de"
   - git config --global user.name "gitlab-ci-runner"
@@ -13,10 +11,11 @@ image: inskale
   - "echo \"schemdrawPkgName: $schemdrawPkgName\""
   - "echo \"simplipfyPkgName: $simplipfyPkgName\""
   - "echo \"genDrawPkgName: $genDrawPkgName\""
-  - pip3 install Pyodide/Packages/$lcapyPkgName
-  - pip3 install Pyodide/Packages/$schemdrawPkgName
-  - pip3 install Pyodide/Packages/$genDrawPkgName
-  - pip3 install Pyodide/Packages/$simplipfyPkgName
+  - pip install Pyodide/Packages/$lcapyPkgName
+  - pip install Pyodide/Packages/$schemdrawPkgName
+  - pip install Pyodide/Packages/$genDrawPkgName
+  - pip install Pyodide/Packages/$simplipfyPkgName
+  - pip install -e Pyodide/Scripts/
 
 .release_cli: &release_cli
   - apk add --no-cache curl
@@ -25,12 +24,8 @@ image: inskale
   - release-cli -v
 
 .make_scripts_executable: &make_scripts_executable
-  - chmod +x ./Pyodide/Scripts/clearFTPServer.sh
-  - chmod +x ./Pyodide/Scripts/clearFTPServerDev.sh
-  - chmod +x ./Pyodide/Scripts/copyFiles.sh
-  - chmod +x ./Pyodide/Scripts/createDevRedirectIndex.sh
-  - chmod +x ./Pyodide/Scripts/createRedirectIndex.sh
-  - chmod +x ./Pyodide/Scripts/updateSecretOnServer.sh
+  - echo "skipped, no scripts to make executable"
+
 
 .echo_branch_and_commitMsg: &echo_branch_and_commitMsg
   - commitMsg=$(git log -1 --pretty=%B)
@@ -47,6 +42,7 @@ image: inskale
   - cd $CI_PROJECT_DIR
   - cd ./Pyodide
 
+image: inskale
 stages:
   - pre_check
   - deploy
@@ -59,7 +55,7 @@ check_pipeline_blocked:
     - |
       if [ "$EXEC_PIPELINES" != "true" ]; then
         echo "⚠️  Pipeline execution blocked in GitLab. Set EXEC_PIPELINES=true to enable."
-        exit 0
+        exit 1
       fi
   rules:
     - when: always
@@ -69,47 +65,30 @@ deploy-develop:
 
   before_script:
     - *git_config
-    - *make_scripts_executable
     - *install_packages
-    - *release_cli
 
   script:
     - *echo_branch_and_commitMsg
-    - ls -la  # List files from the tag's commit
-    - ./Pyodide/Scripts/clearFTPServerDev.sh
-    - cp ./Pyodide/Scripts/UpdateInProgress.html ./index.html
-    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER_DEV ./index.html
-    - ./Pyodide/Scripts/createDevRedirectIndex.sh
-    - *navigate_into_pyodide
-    - ./Scripts/updateSecretOnServer.sh
-    - ls -a
-    - *generate_svg_files
-    # remove files that should not be on simplipfy.org
-    - *navigate_into_pyodide
-    - rm -rf .idea/
-    - rm -rf .gitignore
-    - rm -rf GzipSimplePythonHttpServer.py
-    - rm -rf Scripts/
-    # upload all files to ftp server
-    - ncftpput -u $FTP_USER -p $FTP_PASS -m -R $FTP_SERVER $FTP_FOLDER_DEV/$CI_COMMIT_SHA/ ./
-    # upload simpliPFy index.html (override maintenance index.html)
-    - cd ..
-    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER_DEV ./index.html
+    - python ./Pyodide/Scripts/cli/release.py --target dev
+
+  resource_group: ftp-server
 
   rules:
-    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"'
       when: never
     - if: '$EXEC_PIPELINES == "true"'
       when: always
     - when: never
 
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    GIT_SUBMODULE_DEPTH: 1
 
 deploy-profSky:
   stage: deploy
 
   before_script:
   - *git_config
-  - *make_scripts_executable
   - *install_packages
 
   script:
@@ -126,8 +105,7 @@ deploy-profSky:
     - git checkout $(git rev-list --tags --max-count=1)
     - cd ..
     - git commit . -m "created files for release"
-    - git branch
-    - git branch -D temp
+    - git branch -D temp || true
     - git fetch https://github.com/prof-sky/simplipfy.git main:temp
     - git checkout temp
     - git rm -rf lcapy-inskale/
@@ -139,13 +117,17 @@ deploy-profSky:
     - git checkout $(git rev-list --tags --max-count=1)
     - cd ..
     - git commit --amend -m "${commitMsg}"
-    - git push https://${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
+    - git push https://thehowland:${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
 
 
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" && $EXEC_PIPELINES == "true"'
       when: always
     - when: never
+
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    GIT_SUBMODULE_DEPTH: 1
 
 
 deploy-release:
@@ -155,46 +137,17 @@ deploy-release:
 
   before_script:
     - *git_config
-    - *make_scripts_executable
     - *install_packages
-    - *release_cli
-    - export FTP_SERVER_FULL_PATH="ftp://${FTP_SERVER}${FTP_FOLDER}"
-    - export versionPath=$FTP_SERVER$FTP_FOLDER/$CI_COMMIT_TAG
-    - apk add uglify-js
 
   script:
-    - versionPath=$FTP_SERVER$FTP_FOLDER/$CI_COMMIT_TAG
     - echo "Checking out tag $CI_COMMIT_TAG..."
     - git fetch --tags  # Fetch tags to ensure they are available
     - git checkout $CI_COMMIT_TAG  # Checkout the tag
-    - ls -la  # List files from the tag's commit
-    - ./Pyodide/Scripts/createRedirectIndex.sh
-    - cd Pyodide/
-    - ls -a
-    - ./Scripts/updateSecretOnServer.sh
-    # generate svg files for circuit selector
-    - *generate_svg_files
-    # remove files that should not be on simplipfy.org
-    - *navigate_into_pyodide
-    - rm -rf .idea/
-    - rm -rf .gitignore
-    - rm -rf GzipSimplePythonHttpServer.py
-    - rm -rf Scripts/
-    - |
-      # Rekursiv durch alle .js-Dateien im src/ Verzeichnis iterieren
-      find src/ -type f -name "*.js" | while read file; do
-      # Zieldatei mit .min.js Endung
-      min_file="${file%.js}.min.js"
-      # Minifizieren und die Datei mit der .min.js-Endung speichern
-      uglifyjs "$file" -o "$file" -c -m
-      done
-    # upload all files to ftp server
-    - sed -i /setSiteId/s/'2'/'1'/ ./src/scripts/utils/matomoHelper.js
-    - ncftpput -u $FTP_USER -p $FTP_PASS -m -R $FTP_SERVER $FTP_FOLDER/$CI_COMMIT_TAG/ ./
-    # upload simpliPFy index.html (override maintenance index.html)
-    - cd ..
-    - ncftpput -u $FTP_USER -p $FTP_PASS -S .tmp $FTP_SERVER $FTP_FOLDER ./index.html
+    - python ./Pyodide/Scripts/cli/release.py --target simplipfy
 
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    GIT_SUBMODULE_DEPTH: 1
 
   artifacts:
     paths:

@@ -1,5 +1,5 @@
 import os
-from typing import Union
+from typing import Any
 from warnings import warn
 
 from generalizeNetlistDrawing.backends.positions import Positions
@@ -149,7 +149,7 @@ class DrawWithSchemdraw:
         else:
             posCount[pos] = newPosCount
 
-    def add_connection_dots(self, drawingElements: list[DrawingElement], addToList = True) -> Union[list[DrawingElement], None]:
+    def add_connection_dots(self, drawingElements: list[DrawingElement], addToList = True) -> list[DrawingElement]:
         """
         finds positions that occur more than 2 times and adds a dot at this position
         :param drawingElements: the start and end positions of those elements are checked
@@ -169,12 +169,11 @@ class DrawWithSchemdraw:
 
         if addToList:
             drawingElements.extend(dots)
-            return None
-        else:
-            return dots
+
+        return dots
 
 
-    def getElementPositionsFromObjects(self) -> list[DrawingElement]:
+    def getElementPositionsFromObjects(self) -> tuple[list[DrawingElement], dict[Any, list[Vector2D]]]:
         """
         get the positions required to draw a cricuti from generalizeNetlistDrawing.elements.element
         """
@@ -194,7 +193,7 @@ class DrawWithSchemdraw:
 
 
         if dc.generalize:
-            np: dict[any, list[Vector2D]]
+            np: dict[Any, list[Vector2D]]
             drawingElements, np = self.getElementPositionsFromObjects()
             for node in np.keys():
                 for vec in np[node]:
@@ -208,7 +207,6 @@ class DrawWithSchemdraw:
 
 
         if dc.showNodes:
-
             drawingElements.extend(dots)
         else:
             self.add_connection_dots(drawingElements)

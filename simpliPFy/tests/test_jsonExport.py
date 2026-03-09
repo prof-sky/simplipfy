@@ -9,6 +9,7 @@ from lcapyInskale import Circuit
 from simplipfy.Helpers.impedanceConverter import FileToImpedance
 from simplipfy.Helpers.langSymbols import LangSymbols
 from simplipfy.Helpers.solution import Solution
+from simplipfy.Svg.drawingConfig import drawing_config_instance
 
 
 #not multithread save
@@ -61,9 +62,10 @@ class TestJsonExport:
 
     def helperJsonExport(self, fileName: str, filePath: str, savePath: str):
         cct = Circuit(FileToImpedance(os.path.join(filePath, fileName)))
+        isGeneralized = drawing_config_instance.generalize
         cct.namer.reset()
         steps = cct.simplify_stepwise()
-        sol = Solution(steps, LangSymbols())
+        sol = Solution(steps, LangSymbols(), isGeneralized)
 
         for step in sol.available_steps[1::]:
             jsonFileName = sol.exportStepAsJson(step, path=savePath, filename=fileName)

@@ -32,7 +32,7 @@ class DictExportCircuitInfo(DictExportBase):
 
     def getDictForStep(self, step, solution: 'Solution') -> Step0ExportDict:
         """
-        :returns: ExportDictBase with the circuit information for step 0
+        :returns: Step0ExportDict with the circuit information for step 0
         """
         sources = [solution[step].circuit[src] for src in solution[step].circuit.sources]
         ms = len(solution[step].circuit.sources) > 1
@@ -66,4 +66,5 @@ class DictExportCircuitInfo(DictExportBase):
                                       prefAndUnit=(not self.isSymbolic))
             allCpts.append(vcElm.toCptDict())
 
-        return Step0ExportDict(step, sourcesDictList, allCpts, self.cirType, solution[step].getImageData(self.ls))
+        return Step0ExportDict(step, sourcesDictList, allCpts, self.cirType, solution[step].getImageData(self.ls),
+        solution[step].generalizedImageData(self.ls), solution.isGeneralized)

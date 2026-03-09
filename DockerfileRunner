@@ -1,0 +1,15 @@
+FROM python:3.13-slim
+
+COPY requirements.txt /usr/local/bin/requirements.txt
+
+RUN apt-get update && \
+    apt-get install -y git && \
+    apt-get install -y nodejs && \
+    apt-get install -y npm && \
+    python -m venv /usr/local/simplipfyVenv && \
+    pip install -r /usr/local/bin/requirements.txt
+
+CMD ["bash"]
+
+# docker build -t "inskale-runner:0.1" -f .\DockerfileRunner .\
+# docker run -it -v "./:/src" inskale-runner:0.1

@@ -1,0 +1,19 @@
+Vb 1 0 {120}; down
+Va 2 1 {120}; down
+W 2 3; right
+W 3 4; right
+W 4 11; right
+W 11 5; right
+W 1 6; right
+W 6 7; right
+W 7 12; right
+W 12 8; right
+R0 3 6 {10}; down
+R1 11 12 {4}; down
+R2 5 8 {8}; down
+R3 8 9 {12};down
+W 9 10; left
+W 10 13; left
+W 13 14; left
+W 14 0; left
+R4 7 13 {6}; down

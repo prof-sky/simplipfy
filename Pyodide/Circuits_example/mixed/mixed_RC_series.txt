@@ -1,0 +1,7 @@
+# --generalize
+V1 1 0 ac {10} {0} {2*pi*100}; down
+W 1 2; right
+R1 2 3 {100}; down
+C2 3 4 {0.000000100}; down
+W 4 5; left
+W 5 0; up

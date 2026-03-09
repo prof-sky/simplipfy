@@ -16,6 +16,8 @@ def save_netlist(netlist, filename, index, save: bool=True):
 
 #  clear Solutions directory
 clearPath = "./Solutions"
+if not os.path.exists(clearPath):
+    os.makedirs(clearPath)
 files = os.listdir(clearPath)
 for file in files:
     os.remove(os.path.join(clearPath, file))
@@ -23,9 +25,9 @@ for file in files:
 fixFile = True
 saveNetlist = False
 if fixFile:
-    folder = "capacitor"
+    folder = "resistor"
     filePath = f"Circuits/{folder}"
-    filename = "00_capacitor_row3.txt"
+    filename = "00_Resistor_Hetznecker.txt"
 else:
     from tkinter import filedialog
     curPath = os.getcwd()
@@ -55,7 +57,10 @@ ExportDictBase.set_paths("Solutions", a.filename)
 a.createInitialStep().toFiles()
 
 for line in open(f"StepsToSolve/{folder}/{filename}").readlines():
-    cpts = line.replace(" ", "").replace("\n", "").split(",")
+    parts = line.replace(" ", "").replace("\n", "").split(";")
+    cpts = parts[0].split(",")
+    rel = parts[1].strip('"') if len(parts) > 1 else None
+
     a.simplifyNCpts(cpts).toFiles()
     save_netlist(
         a.steps[-1].circuit.netlist(),
@@ -64,5 +69,8 @@ for line in open(f"StepsToSolve/{folder}/{filename}").readlines():
         saveNetlist
     )
 et = time.time()
+
+x = a.getStep("step0")
+y = a.getStep("step1")
 
 print(f"Execution time was: {et-st:.2f} s, DateTime: {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}")

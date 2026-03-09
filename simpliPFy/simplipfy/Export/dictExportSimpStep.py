@@ -6,6 +6,7 @@ from simplipfy.Export.DataStructures.exportElement import ExportElement
 from simplipfy.Export.dictExportBase import DictExportBase
 from simplipfy.Helpers.impedanceConverter import getOmegaFromCircuit
 from simplipfy.Helpers.langSymbols import LangSymbols
+from simplipfy.SimplifyInUserOrder.simplifierStates import SimplifierStates
 
 if TYPE_CHECKING:
     from simplipfy.Helpers.solution import Solution
@@ -69,6 +70,7 @@ class DictExportSimpStep(DictExportBase):
         self.simpCircuit: Circuit = None
         self.omega_0 = 0
         self.imageData = None
+        self.gImageData = None
 
         self.simpElements: SimpStepElements = None
         self.allVcElements: list[ExportElement] = []
@@ -79,6 +81,7 @@ class DictExportSimpStep(DictExportBase):
         self.simpCircuit: Circuit  = solution[step].circuit  # circuit with less elements (n elements)
         self.omega_0 = getOmegaFromCircuit(self.simpCircuit)
         self.imageData = solution[step].getImageData(langSymbols=self.ls)
+        self.gImageData = solution[step].generalizedImageData(langSymbols=self.ls)
 
         if not self._isInitialStep():
             self.circuit: Circuit = solution[step].lastStep.circuit  # circuit with more elements (n+m elements)
@@ -131,7 +134,7 @@ class DictExportSimpStep(DictExportBase):
         Uges = lastStep.circuit[lastCptName].V(t)
         pass
 
-    def getDictForStep(self, step: str, solution: 'Solution') -> ExportDict:
+    def getDictForStep(self, step: str, solution: 'Solution', ) -> ExportDict:
         """
         :param step: step to export
         :param solution: solution object to get the data from
@@ -145,10 +148,11 @@ class DictExportSimpStep(DictExportBase):
             stepData = ExportDict(
                 step, True,
                 self.simpElements.resElem.toCptDict(),
-                self.relation, self.imageData, cpts, allCpts
+                self.relation, SimplifierStates.fromCptRelation(self.relation), self.imageData, self.gImageData,
+                cpts, allCpts
             )
 
             return stepData
 
         else:
-            return EmptyExportDict()
+            return EmptyExportDict(SimplifierStates.undefined)

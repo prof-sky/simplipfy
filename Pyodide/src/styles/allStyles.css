@@ -215,7 +215,6 @@ key-yellow: #FFC107
 
 body, html {
     overflow-x: hidden;
-    overscroll-behavior-y: none;  /* prevent reloading the page when scrolling up */
     width: 100%;
     position: relative;
 }
@@ -288,37 +287,24 @@ th, td {
 /* Container opacities */
 #bootstrap-overrides #landing-page-container {
     background-color: white;
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out;
 }
 
-#bootstrap-overrides #cheat-sheet-container {
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out;
+.slide {
+
 }
 
-#bootstrap-overrides #select-page-container {
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out, transform 0.5s ease-in-out;
-    width: 100%;
-    left: 0;
-    top: 0;
-}
-
-#bootstrap-overrides #simplifier-page-container {
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out, transform 1s ease-in-out;
-    width: 100%;
-    left: 0;
-    top: 0;
-}
-
-.slide-out-left {
+.out-left {
     transform: translateX(-100%);
+    transition-duration: 200ms;
+    transition-property: transform, opacity;
+    transition-timing-function: ease-in-out;
 }
 
-.slide-in-right {
-    transform: translateX(0);
+.in-right {
+    transform: translateX(0%);
+    transition-duration: 200ms;
+    transition-property: transform, opacity;
+    transition-timing-function: ease-in-out;
 }
 
 /* Landing page shadows*/
@@ -358,7 +344,8 @@ th, td {
     cursor: grabbing;
 }
 #bootstrap-overrides .feature-container.slide-out {
-    transform: translateX(-100%) !important;
+    transform: translateX(100%) !important;
+    transition: all 2s ease-in-out;
 }
 #bootstrap-overrides .feature-container.reset {
     transform: translateX(0%);
@@ -502,10 +489,14 @@ th, td {
 
 
 #bootstrap-overrides .accordion-button {
-    /*background-color: #212529;
-    color: #ffc107;*/
+    /*background-color: #212529;*/
+	/*color: #ffc107;*/
     font-size: 24px;
     font-family: 'Roboto Condensed', sans-serif;
+}
+
+#bootstrap-overrides .accordion-button::after {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffc107' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");;
 }
 
 #bootstrap-overrides .accordion-body {
@@ -527,6 +518,9 @@ th, td {
     z-index: 10;
 }
 
+#bootstrap-overrides .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffc107' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
 
 #bootstrap-overrides .big-heading {
     color: #FFC107;
@@ -536,7 +530,7 @@ th, td {
 
 #bootstrap-overrides .svg-selector {
     z-index: 2;
-    border: 1px solid white;
+    border: 1px solid #FFC107;
     border-radius: 10px;
     position: relative;
     max-width: 350px;
@@ -554,10 +548,9 @@ th, td {
 }
 
 #bootstrap-overrides .volt-freq-overlay {
-    z-index: 2;
     position: absolute;
+    top: 10px;
     right: 10px;
-    text-align: center;
 }
 
 #bootstrap-overrides .img-overlay:before {
@@ -834,3 +827,80 @@ th, td {
     0% { transform: scale(1.3) rotate(0deg); }
     100% { transform: scale(1.3) rotate(-360deg); }
 }
+
+/* --- Editor --- */
+
+/* center editor */
+#editor-page-editor > div > table {
+    margin: 0 auto;
+}
+
+/* hide sidebar tools */
+#editor-page-editor > div > table > tr > td > table > tr:not(:nth-child(7)) > td:last-child,
+#editor-page-editor > div > table > tr > td > table > tr:nth-child(2) > td:first-child,
+#editor-page-editor > div > table > tr > td > table > tr:nth-child(4) > td:first-child,
+#editor-page-editor > div > table > tr > td > table > tr:nth-child(8) > td:first-child,
+/* hide menu entries */
+#editor-page-editor > div > table > tr:first-child > td > span.fa-link,
+#editor-page-editor > div > table > tr:first-child > td > span.fa-cut,
+#editor-page-editor > div > table > tr:first-child > td > span.fa-copy,
+#editor-page-editor > div > table > tr:first-child > td > span.fa-paste,
+#editor-page-editor > div > table > tr:first-child > td > span.fa-times,
+#editor-page-editor > div > table > tr:first-child > td > span.fa-redo {
+    display: none;
+}
+
+#editor-page-editor > div > table > tr > td > table,
+#editor-page-editor > div > table > tr > td > table > tr {
+    display: block;
+}
+
+#editor-page-editor > div > table > tr > td > table > tr > td {
+  display: inline-block;
+}
+
+#editor-page-editor > div > table > tr:first-child > td > span {
+    margin: 0 1px !important;
+}
+
+#editor-page-editor > div > table > tr:first-child > td > span:nth-child(8) {
+    background-color: #FFC107;
+    color: rgb(53, 53, 53) !important;
+    border-radius: 10px;
+    margin-left: 5px;
+    padding: 2px 6px !important;
+}
+
+#editor-page-editor > div > table > tr:first-child > td > span {
+    cursor: pointer !important;
+}
+
+#editor-page-editor > div > table > tr > td > table > tr > td > canvas {
+    cursor: grab !important;
+}
+
+.inheritColor {
+    color: inherit !important;
+}
+
+.inheritBackground {
+    background-color: inherit !important;
+}
+
+.inheritColors {
+    color: inherit !important;
+    background-color: inherit !important;
+}
+
+.carousel-indicators .indicatorBtn.done {
+    background-color: #44a832;
+}
+
+.wheatstoneBtn {
+    opacity: 0.5;
+}
+
+.wheatstoneBtn.active{
+    opacity: 1;
+}
+

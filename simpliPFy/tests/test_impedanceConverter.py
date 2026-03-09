@@ -5,6 +5,7 @@ from lcapyInskale.componentnamer import ComponentNamer
 from simplipfy.Helpers.impedanceConverter import FileToImpedance, ValueToComponent
 from simplipfy.Helpers.langSymbols import LangSymbols
 from simplipfy.Helpers.solution import Solution
+from simplipfy.Svg.drawingConfig import drawing_config_instance
 
 
 class TestImpedanceConverter:
@@ -24,14 +25,16 @@ class TestImpedanceConverter:
     def assertType(filename: str, compType: str, path: str = "./Schematics"):
         ComponentNamer().reset()
         cct = Circuit(FileToImpedance(join(path, filename)))
-        sol = Solution(cct.simplify_stepwise(), LangSymbols())
+        isGeneralized = drawing_config_instance.generalize
+        sol = Solution(cct.simplify_stepwise(), LangSymbols(), isGeneralized)
         assert TestImpedanceConverter.getCompTypeSolStep1(sol) == compType
 
     @staticmethod
     def assert2Types(filename: str, compType1: str, compType2: str, path: str = "./Schematics"):
         ComponentNamer().reset()
         cct = Circuit(FileToImpedance(join(path, filename)))
-        sol = Solution(cct.simplify_stepwise(), LangSymbols())
+        isGeneralized = drawing_config_instance.generalize
+        sol = Solution(cct.simplify_stepwise(), LangSymbols(), isGeneralized)
         gotType = TestImpedanceConverter.getCompTypeSolStep1(sol)
         assert gotType == compType1 or gotType == compType2
 

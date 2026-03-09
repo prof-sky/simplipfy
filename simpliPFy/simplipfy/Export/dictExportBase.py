@@ -32,6 +32,7 @@ class DictExportBase:
         self.prefixer = SIUnitPrefixer()
         self.ls = langSymbol
         self.isSymbolic = isSymbolic
+        self.error = False
 
     def _latexRealNumber(self, value: Union[Mul, Expr], prec=None, addPrefix: bool = True) -> str:
         if prec is None:

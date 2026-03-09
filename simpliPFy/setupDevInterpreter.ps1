@@ -30,6 +30,12 @@ if (-not $existsPython) {
     pip install -e ..\lcapy-inskale\
     pip install -e ..\Schemdraw\
 
+    pip install sphinx
+    pip install sphinx-rtd-theme
+
+    pip install dotenv
+    pip install rjsmin
+
 } else {
     Write-Host "Checking existing .venv" -ForegroundColor Green
     .\.venv\Scripts\Activate.ps1

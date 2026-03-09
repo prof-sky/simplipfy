@@ -2,19 +2,18 @@
 // ########################## Kirchhoff API Class ######################################
 // #####################################################################################
 
-class KirchhoffSolverAPI {
-    constructor(worker) {
-        this.worker = worker;
-    }
-
-    initKirchhoffSolver(circuitFile, circuitPath, paramMap) {
+class KirchhoffSolverAPI extends SolverInterface {
+    /**
+     * @param {CircuitMap} circuitMap
+     * */
+    init(circuitMap) {
         return requestResponse(this.worker, {
             action: "initKirchhoffSolver",
-            data: { circuitFile: circuitFile, circuitPath: circuitPath, paramMap: paramMap }
+            data: { circuitFile: circuitMap.circuitFile, circuitPath: circuitMap.circuitPath, paramMap: circuitMap.paramMap },
         });
     }
 
-    resetKirchhoffSolver() {
+    reset() {
         return requestResponse(this.worker, {
             action: "resetKirchhoffSolver",
             data: {}
@@ -43,7 +42,7 @@ class KirchhoffSolverAPI {
     }
 
     async foundAllEquations() {
-        let eqs = await state.kirchhoffSolverAPI.equations();
+        let eqs = await state.solvers.kirchhoff.equations();
         // filter "-" out of the list
         let filteredEqs = eqs.filter(eq => eq !== "-");
         // get number of cpts from step0 data
@@ -64,6 +63,30 @@ class KirchhoffSolverAPI {
     equations() {
         return requestResponse(this.worker, {
             action: "equations",
+            data: {}
+        });
+    }
+
+    /**
+     * Returns the equations from equations() but U is replaced with R*I
+     */
+    equationsURI() {
+        return requestResponse(this.worker, {
+            action: "equationsURI",
+            data: {}
+        });
+    }
+
+    currEquations(){
+        return requestResponse(this.worker, {
+            action: "currEquations",
+            data: {}
+        });
+    }
+
+    voltEquationsURI(){
+        return requestResponse(this.worker, {
+            action: "voltEquationsURI",
             data: {}
         });
     }

@@ -2,10 +2,12 @@ import os
 
 import simplipfy.KirchhoffSolver.solver as khf
 from lcapyInskale import Circuit
+from lcapyInskale import CircuitGraph
 from simplipfy.Helpers.langSymbols import LangSymbols
 from .direction import Direction
 from .kirchhoffStates import KirchhoffStates
 from sympy import Matrix
+import re
 from .solver import basicLoopsOfCircuit, makeCurrentEquation
 
 
@@ -23,6 +25,7 @@ class KirchhoffSolver:
         self.fileName = circuitFileName
         self.path = path
         self.circuit = Circuit(os.path.join(path, circuitFileName))
+        self.flipped: list[str] | None = None
         self.ms = True if len(self.circuit.sources) > 1 else False
         elementNames = self.circuit.branch_list
         self.numUnknownElements = len([elm for elm in elementNames if elm[0] != "V"]) # voltages of sources are known
@@ -34,11 +37,39 @@ class KirchhoffSolver:
         self.loops, self.numVoltEq = khf.loopsOfCircuit(self.circuit, self.eqNodeMap)
 
     @property
+    def voltEqsURI(self):
+        return [self.replaceURI(eq) for eq in self._voltEquations]
+
+    @property
+    def currEqs(self):
+        return self._currEquations
+
+    @property
     def foundEq(self) -> int:
         """
         :returns: The number of equations found
         """
         return len(self._voltEquations) + len(self._currEquations)
+
+    def find_flipped(self)->list[str]:
+        """Compute flipped components once and cache the result."""
+        if self.flipped is not None:
+            return self.flipped  # already computed
+        self.flipped = []
+
+        currents = self.circuit.branch_currents()
+        names = self.circuit.branch_current_names()
+        t = list(currents[0].keys())[0]  # symbol
+
+        for name, expr in zip(names, currents):
+            orig_name = name[1:] if name.startswith('i') else name
+            if name.startswith('iR') or name.startswith('iI'):
+                if expr[t] < 0:
+                    self.flipped.append(orig_name)
+            elif name.startswith('iV'):
+                if expr[t] > 0:
+                    self.flipped.append(orig_name)
+        return self.flipped
 
     def foundAllEquations(self) -> bool:
         """
@@ -75,6 +106,14 @@ class KirchhoffSolver:
 
         return eqs
 
+    def equationsURI(self):
+        """
+        :returns: The equations found in the circuit
+        """
+        eqs = self.voltEqURI.copy()
+        eqs.extend(self._currEquations)
+        return eqs
+
     @staticmethod
     def setEquation(value, cptNames, eqList, foundSets, eqMatrix) -> KirchhoffStates:
         """
@@ -95,7 +134,13 @@ class KirchhoffSolver:
         foundSets.append(nameSet)
         return KirchhoffStates.isNewEquation
 
-    def setVoltEq(self, eq: tuple[str,list], cptNames: list[str]) -> KirchhoffStates:
+    def replaceURI(self, eq: str) -> str:
+        u = self.language.volt
+        pattern = rf"{u}_{{(?P<index>[^}}]+)}}"
+        eqURI = re.sub(pattern, r"R_{\g<index>} I_{\g<index>}", eq)
+        return eqURI
+
+    def setVoltEq(self, eq: tuple[str| list[int]], cptNames: list[str]) -> KirchhoffStates:
         """
         :returns: KirchhoffStates
 
@@ -103,7 +148,7 @@ class KirchhoffSolver:
         """
         return self.setEquation(eq, cptNames, self._voltEquations, self.elementSetsOfVoltEqs, self.voltMatrix)
 
-    def setCurrEq(self, eq: str, cptNames: list[str]) -> KirchhoffStates:
+    def setCurrEq(self, eq: list[str| list[int]], cptNames: list[str]) -> KirchhoffStates:
         """
         :returns: KirchhoffStates
 
@@ -141,6 +186,7 @@ class KirchhoffSolver:
         Check if the given component names are at a junction and could potentially make a current equation.
         """
         direction = Direction(direction)
+        flipped = self.find_flipped()
         implicitCommonNode = khf.isImplicitCurrentEquation(self.circuit, cptNames)
         commonNode = khf.isCurrentEquation(self.circuit, cptNames, self.eqNodeMap)
         if implicitCommonNode:
@@ -148,15 +194,45 @@ class KirchhoffSolver:
             state = self.setCurrEq(eq[0], cptNames)
             return state.value, eq[1]
         elif all(cptName in self.circuit.in_series(cptNames[0]) for cptName in cptNames[1:]):
-            eq = "", "", ""
-            state = KirchhoffStates.toManyJunctions
+            eq_list = []
+            for cptName in cptNames[1:]:
+                single_eq = khf.makeIdenticalCurrentEq(self.circuit,[cptNames[0],cptName],flipped,self.language, self.ms )
+                state = self.setCurrEq(single_eq, [cptNames[0],cptName])
+                eq_list.append(single_eq[0])
+            ver2_eg = ",".join(eq_list)
+            eq = khf.makeAllIdenticalCurrentEq(self.circuit, cptNames,flipped, self.language, self.ms)
+            #state = KirchhoffStates.toManyJunctions
             return state.value, eq
+            #return KirchhoffStates.addMultipleEquations.value, eq
+            # -> eigentlich das, aber wie übergebe ich wie viele es sind? e.g iii) - v) anzeigen
+            # rausfinden wie der die Nummer sonst anzeigt!
+            # Sarah?
         elif commonNode and len(cptNames) > 2:
             eq = khf.makeCurrentEquation(self.circuit, cptNames, commonNode,direction, self.language, self.ms)
+            #print(eq)
             state = self.setCurrEq(eq[0], cptNames)
             return state.value, eq[1]
         else:
             return KirchhoffStates.notAValidEquation.value, ("", "", "")
+
+
+    def checkVoltageByEq(self,cptWithSigns: list[tuple[str,int]]) -> (int,str):
+        cptNames  = [cpt[0] for cpt in cptWithSigns]
+        VoltEq = khf.checkVoltageEq(self.circuit, cptWithSigns, self.eqNodeMap)
+        if VoltEq:
+            eqStr = "0 ="
+            signs = {cpt: val for cpt, val in cptWithSigns}
+            eqVect = [signs.get(cpt, 0) for cpt in self.circuit.branch_list]
+            for cpt in cptWithSigns:
+                sign = " + " if cpt[1] == 1 else " - "
+                voltage = f"{sign}U_" + "{" + f"{cpt[0][1:]}" + "}"
+                eqStr += voltage
+            eq = (eqStr, eqVect)
+            if self.foundAllVoltEquations():
+                return KirchhoffStates.duplicateEquation.value, eq
+            return self.setVoltEq(eq, cptNames).value, eq[0]
+        else:
+            return KirchhoffStates.notAValidEquation.value, ""
 
     def checkJunctionByEq(self, cptWithSigns: list[tuple[str,int]], direction: int = 1) -> (int,str):
         """
@@ -164,16 +240,16 @@ class KirchhoffSolver:
         Check if the given components together with signs make a valid junction equation.
         """
         CurrentEq = khf.checkCurrentEq(self.circuit, cptWithSigns, self.eqNodeMap)
-        cptNames =  [cpt[0] for cpt in cptWithSigns]
-        eqStr = "0 ="
-        signs = {cpt: val for cpt, val in cptWithSigns}
-        eqVect = [signs.get(cpt, 0) for cpt in self.circuit.branch_list]
-        for cpt in cptWithSigns:
-            sign = " + " if cpt[1] == 1 else " - "
-            current = f"{sign}I_" + "{" + f"{cpt[0][1:]}" + "}"
-            eqStr += current
-        eq = [eqStr, eqVect]
         if CurrentEq:
+            cptNames = [cpt[0] for cpt in cptWithSigns]
+            eqStr = "0 ="
+            signs = {cpt: val for cpt, val in cptWithSigns}
+            eqVect = [signs.get(cpt, 0) for cpt in self.circuit.branch_list]
+            for cpt in cptWithSigns:
+                sign = " + " if cpt[1] == 1 else " - "
+                current = f"{sign}I_" + "{" + f"{cpt[0][1:]}" + "}"
+                eqStr += current
+            eq = (eqStr, eqVect)
             state = self.setCurrEq(eq, cptNames)
             return state.value, eq[0]
         else:

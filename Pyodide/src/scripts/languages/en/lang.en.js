@@ -1,19 +1,25 @@
 // Remember to add the .js files in index.html if new files are added
 window.english = {
-    ...window.landingEnTexts,
-    ...window.selectorEnTexts,
-    ...window.alertsEnTexts,
-    ...window.simplifierEnTexts,
-    ...window.kirchhoffEnTexts,
-    ...window.cheatsheetEnTexts,
-    ...window.dataLegalAboutEnTexts,
-    ...window.extraLiveQuestionsEn,
-    ...window.navigationEnTexts,
-    ...window.wheatstoneEnTexts,
-    ...window.uploadEnTexts,
-    ...window.newsEnTexts,
-    ...window.toolsEnTexts,
-    ...window.settingsEnTexts,
+    landingPage: landingEnTexts,
+    selector: selectorEnTexts,
+    alerts: alertsEnTexts,
+    simplifier: simplifierEnTexts,
+    kirchhoff: kirchhoffEnTexts,
+    cheatSheetPage: cheatsheetEnTexts,
+    dataLegal: dataLegalAboutEnTexts,
+    extraLiveQuestions: extraLiveQuestionsEn,
+    navigation: navigationEnTexts,
+    wheatstone: wheatstoneEnTexts,
+    uploadPage: uploadEnTexts,
+    newsPage: newsEnTexts,
+    toolsPage: toolsEnTexts,
+    settingsPage: settingsEnTexts,
+    loadingPage: loadingPageEnTexts,
+    loadingPyodidePage: loadingPageEnTexts,
+    editorPage: editorEnTexts,
+    dataPrivacyPage: dataPrivacyEnTexts,
 }
 
-window.englishShortSymbol = "en";
+/**
+* @typedef {typeof english} EnglishLang
+* */

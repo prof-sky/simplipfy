@@ -4,7 +4,7 @@ import lcapyInskale.state
 import sympy.core
 from sympy import Mul
 from sympy.physics.units.prefixes import PREFIXES, Prefix
-
+from math import floor
 
 class SIUnitPrefixer:
     def __init__(self):
@@ -74,7 +74,16 @@ class SIUnitPrefixer:
         :param exponent: exponent to get the prefix for
         :returns: the sympy.prefix for the given exponent
         """
-        return self.prefixes[min(self.prefixes.keys(), key=lambda x: abs(x-exponent))]
+        #if exponent >= 0:
+            # find the closest prefix
+        #    return self.prefixes[min(self.prefixes.keys(), key=lambda x: abs(x-exponent))]
+        #else:
+            # find a prefix with the best precision without surpassing three digits before decimal
+        key = floor(exponent/3)*3
+        if key == 0:
+            return self.prefixes[1]
+        else:
+            return self.prefixes[key]
 
     def getSIPrefix(self, value: Union[float, int, Mul, lcapyInskale.Expr]) -> Prefix:
         """

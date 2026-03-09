@@ -1,4 +1,4 @@
-window.extraLiveQuestionsDe = {
+extraLiveQuestionsDe = {
     q1: {
         q: "Wie vereinfacht man zwei Widerstände in Reihe?",
         a: [["Rges = R1 + R2", 1], ["Rges = R2 - R1", 0], ["1/Rges = 1/(R1+R2)", 0], ["Rges = R1/R2", 0]],

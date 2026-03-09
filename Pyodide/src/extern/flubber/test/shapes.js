@@ -1,0 +1,1 @@
+function triangle1(){return[[5,0],[10,100],[0,100]]}function triangle2(){return[[10,100],[6,1e3],[0,100]]}function square1(){return[[0,0],[100,0],[100,100],[0,100]]}function square2(){return[[100,0],[200,0],[200,100],[100,100]]}function rect(){return[[0,0],[1,0],[1,100],[0,100]]}export{triangle1,triangle2,square1,square2,rect};

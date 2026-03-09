@@ -1,6 +1,6 @@
-window.dataLegalAboutEnTexts = {
-    dataPrivacyBackBtn:
-        "Back to Homepage",
+dataLegalAboutEnTexts = {
+    backBtn:
+        "Back to main page",
     dataPrivacyHeading:
         "Data Privacy",
     dataPrivacyText:

@@ -1,0 +1,1 @@
+import{distance}from"./math.js";export default function(c,t){let i=c.length,e=1/0,l,o,n;for(let n=0;n<i;n++)o=0,t.forEach(function(t,e){e=distance(c[(n+e)%i],t);o+=e*e}),o<e&&(e=o,l=n);l&&(n=c.splice(0,l),c.splice(c.length,0,...n))}

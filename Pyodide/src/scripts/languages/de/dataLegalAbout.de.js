@@ -1,6 +1,6 @@
-window.dataLegalAboutDeTexts = {
-    dataPrivacyBackBtn:
-        "Zur&uumlck zur Homepage",
+dataLegalAboutDeTexts = {
+    backBtn:
+        "Zur&uumlck zur Hauptseite",
     dataPrivacyHeading:
         "Datenschutz",
     dataPrivacyText:
@@ -8,7 +8,7 @@ window.dataLegalAboutDeTexts = {
     legalNoticeHeading:
         "Impressum",
     aboutText:
-        "<br><br>simplipfy wird von der Hochschule Pforzheim betrieben.<br>" +
+        "simplipfy wird von der Hochschule Pforzheim betrieben.<br>" +
         "Die Software wird unter der Leitung von Prof.Dr. Stefan Kray entwickelt " +
         "und von der Stiftung Innovation in der Hochschullehre gef&oumlrdert.<br>" +
         "Das Tool soll Studierenden und Schülern beim Erlernen von " +

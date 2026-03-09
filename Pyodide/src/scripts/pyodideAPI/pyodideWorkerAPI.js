@@ -2,7 +2,21 @@
 // #####################################################################################
 // ########################## Functions for API Calls ##################################
 // #####################################################################################
+/**
+ * A deferred object containing a Promise and its external resolve function.
+ *
+ * @template T
+ * @typedef {Object} Deferred
+ * @property {Promise<T>} promise - The promise that can be externally resolved.
+ * @property {function((T|PromiseLike<T>)): void} resolve - Function to resolve the promise.
+ */
 
+/**
+ * Creates a deferred object with a Promise and its resolve function.
+ *
+ * @template T
+ * @returns {Deferred<T>}
+ */
 function getPromiseAndResolve() {
     let resolve;
     let promise = new Promise((res) => {
@@ -32,6 +46,10 @@ function getResolve(msg, resolve, event) {
             resolve(event.data.module);
         } else if (msg.action === "readFile") {
             resolve(event.data.file);
+        } else if (msg.action === "exists") {
+            resolve(event.data.exists);
+        } else if (msg.action === "rename"){
+                resolve(event.data.success);
         } else if (msg.action === "runPython") {
             resolve(event.data.result);
         } else if (msg.action === "isValidCircuitFile") {
@@ -46,9 +64,14 @@ function getResolve(msg, resolve, event) {
         // ###################### Simplifier API ########################
         // Only for functions which require a specific return value
         else if (msg.action === "createStep0") {
-            resolve(event.data.step0);
+            resolve(new StepObject(event.data.step0));
+        } else if (msg.action === "getStep") {
+                resolve(event.data.step);
         } else if (msg.action === "simplifyNCpts") {
             resolve(event.data.simplifiedStep);
+        }
+        else if (msg.action === "canSimplipfyCpts"){
+            resolve(event.data.canSimplifyCpts)
         }
         // ###################### Drawing Config API ###################
         else if (msg.action === "isLocked") {
@@ -66,6 +89,14 @@ function getResolve(msg, resolve, event) {
             resolve(event.data.foundAll);
         } else if (msg.action === "equations") {
             resolve(event.data.equations);
+        } else if (msg.action === "equationsURI") {
+            resolve(event.data.equationsURI);
+        }
+        else if (msg.action ==="currEquations"){
+            resolve(event.data.currEqs);
+        }
+        else if (msg.action ==="voltEquationsURI"){
+            resolve(event.data.voltEqsURI);
         }
         // ###################### WheatstoneSolver API ###################
         //  -
@@ -79,6 +110,7 @@ function getResolve(msg, resolve, event) {
             resolve(data);
         }
     } catch (error) {
+        console.trace(error)
         console.error("Error in getResolve: ", error);
         showMessage(error, "error", false);
         pushErrorEventMatomo(errorActions.workerAPIError, error);
@@ -86,6 +118,7 @@ function getResolve(msg, resolve, event) {
 }
 
 // Common response for pyodide backend, uses promises and resolves
+/** @returns {Promise} */
 function requestResponse(worker, msg) {
     try {
         const {promise, resolve} = getPromiseAndResolve();
@@ -105,6 +138,7 @@ function requestResponse(worker, msg) {
                 worker.removeEventListener("message", listener);
                 getResolve(msg, resolve, event);
             } catch (error) {
+                console.trace(error)
                 console.error("Error in requestResponse: ", error);
                 showMessage(error, "error", false);
                 pushErrorEventMatomo(errorActions.workerAPIError, "Request Response Error: " + error);
@@ -113,6 +147,7 @@ function requestResponse(worker, msg) {
         worker.postMessage({id: idWorker, ...msg});
         return promise;
     } catch (error) {
+        console.trace(error)
         console.error("Error in requestResponse: ", error);
         showMessage(error, "error", false);
         pushErrorEventMatomo(errorActions.workerAPIError, "Request Response Error: " + error);

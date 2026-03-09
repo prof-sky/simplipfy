@@ -8,6 +8,7 @@ class KirchhoffStates(Enum):
     isNewEquation = 0
     duplicateEquation = 1
     notAValidEquation = 2
-    toManyJunctions = 3
+    toManyJunctions = 3 # Wird mit state 6 obsolet
     notAValidLoopOrder = 4
     dependentEquation = 5
+    addMultipleEquations = 6

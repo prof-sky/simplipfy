@@ -1,4 +1,4 @@
-window.simplifierDeTexts = {
+simplifierDeTexts = {
     closeBtn:
         "Schlie&szligen",
     infoGifHeading:
@@ -14,10 +14,6 @@ window.simplifierDeTexts = {
         "Reihen- und Parallelschaltungen zu erkennen.",
     nextElementsHeading:
         "Ausgew&aumlhlte Elemente",
-    nextElementsVoltLawHeading:
-        "N&aumlchste Elemente f&uumlr Masche",
-    nextElementsCurrentHeading:
-        "N&aumlchste Elemente f&uumlr Stromgleichung",
     showCalculationBtn:
         "Rechnung",
     hideCalculationBtn:
@@ -31,11 +27,9 @@ window.simplifierDeTexts = {
     solutionsBtn:
         "Ergebnisse",
     msgVoltAndCurrentAvailable:
-        "Du kannst nun zur&uumlckscrollen und schauen wie die Spannungen " +
-        "und Str&oumlme berechnet werden k&oumlnnen",
+        "Du kannst nun zur&uumlckscrollen und schauen wie die Spannungen und Str&oumlme berechnet werden k&oumlnnen",
     msgShowVoltage:
-        "Probiere selbst die Spannungen und Str&oumlme auszurechnen, mit " +
-        "der Annahme, dass",
+        "Probiere selbst die Spannungen und Str&oumlme auszurechnen, mit der Annahme, dass",
     msgCongratsFinishedCircuit:
         "Bravo, du hast die Schaltung vereinfacht",
     relationTextParallel:
@@ -74,5 +68,22 @@ window.simplifierDeTexts = {
         "Rein imagin&aumlr, zur&uumlck zu ",
     nextCircuit:
         "N&aumlchste Schaltung",
-
+    checkBtnParallel:
+        "Parallel",
+    checkBtnSeries:
+        "In Reihe",
+    StepwiseHeading:
+        "Vereinfache die Schaltung, indem du mindestens zwei Elemente in Reihe oder parallel ausw&aumlhlst.",
+    missingExplanation:
+        "Sieht so aus, als h&aumltten wir für diesen Schritt noch keine Erkl&aumlrung, sorry! 😥",
+    generalizeBtnOn:
+        "Schaltungslayout ver&aumlndern",
+    generalizeBtnOff:
+        "Ursprüngliche Ansicht",
+    explanationHeading:
+        "Was macht dieser Knopf?",
+    explanationValue:
+        "Verwende diesen Knopf, um die Werte der Elemente einzublenden, damit die Ersatzwiderst&aumlnde berechnet werden k&oumlnnen.",
+    explanationGeneralized:
+        "Verwende diesen Knopf, um das Schaltungslayout zu ver&aumlndern, wenn du einen Hinweis für die Vereinfachung brauchst.",
 }

@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "target": "ES6",
+    "module": "ESNext"
+  },
+  "include": [
+    "../../Pyodide/src/scripts/**/*",
+    "../../Pyodide/src/pages/**/*"
+  ],
+  "exclude": [
+    "../../Pyodide/src/scripts/extern/**/*"
+  ]
+}

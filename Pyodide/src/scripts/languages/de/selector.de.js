@@ -1,16 +1,17 @@
-window.selectorDeTexts = {
+selectorDeTexts = {
     selectorWaitingNote:
         "Schaltungen werden geladen...",
     selectorHeadings:
         {
-            "quick": "TUTORIAL",
-            "res":  "WIDERSTÄNDE",  // use the ä character because &auml is not rendered correctly here
-            "cap": "KONDENSATOREN",
-            "ind": "SPULEN",
-            "mixed": "GEMISCHTE SCHALTUNGEN",
-            "sym": "SYMBOLISCHE RECHNUNG",
-            "kirch": "KIRCHHOFF",
-            "wheat": "WHEATSTONE",
+            [window.definitions.selectorIDs.quickstart] : "TUTORIAL",
+            [window.definitions.selectorIDs.resistor] :  "WIDERSTÄNDE",  // use the ä character because &auml is not rendered correctly here
+            [window.definitions.selectorIDs.capacitor] : "KONDENSATOREN",
+            [window.definitions.selectorIDs.inductor] : "SPULEN",
+            [window.definitions.selectorIDs.mixed] : "GEMISCHTE SCHALTUNGEN",
+            [window.definitions.selectorIDs.symbolic] : "SYMBOLISCHE RECHNUNG",
+            [window.definitions.selectorIDs.kirchhoff] : "KIRCHHOFF",
+            [window.definitions.selectorIDs.wheatstone] : "WHEATSTONE",
+            [window.definitions.selectorIDs.magnetic] : "MAGNETIC",
         },
     overviewModalBtn:
         "Übersicht",
@@ -27,4 +28,8 @@ window.selectorDeTexts = {
         ],
     overviewDropdown:
         "ÜBERSICHT",
+    loadingContent:
+        "Schaltkreise werden heruntergeladen ...",
+    taskStandardName:
+        "Aufgabe",
 }

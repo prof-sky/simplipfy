@@ -16,9 +16,9 @@ class DrawingElement(Element):
     Treat this class as an abstract class.
     """
     vaOfst = {"up": -0.65, "down": 0.15, "left": 0.15, "right": -0.65}
-    elOfst = {"up": (0.4, 0.1), "down": (-0.4, -0.1), "left": (0, -0.5), "right": (0, 0.5)}
-    clOfst = {"up": (0.1, 0), "down": (-0.15, 0), "left": (-0.1, -0.15), "right": (-0.1, 0.15)}
-    vlOfst = {"up": (-0.2, 0.1), "down": (0.2, -0.1), "left": (-0.4, -0.25), "right": (0.15, -0.05)}
+    elOfst = {"up": (0.35, 0.1), "down": (-0.35, -0.1), "left": (0, -0.25), "right": (0, 0.25)}
+    clOfst = {"up": (0.15, -0.15), "down": (-0.15, 0.15), "left": (-0.1, -0.05), "right": (-0.1, 0.05)}
+    vlOfst = {"up": (0, 0.15), "down": (0, -0.15), "left": (0, -0.15), "right": (0, 0.15)}
 
     def __init__(self, vec: Vector2D, di: 'DrawingInfo', omega_0, multipleSources: bool, formatter: DictExportBase,
                  ls: LangSymbols, scaling=3.0):
@@ -60,7 +60,8 @@ class DrawingElement(Element):
         )
 
     def curLabel(self, drawing: Drawing, at: elm.Element, ofst=0.7, ofstLabel=None, reverse=False, suffix=None):
-        ofstLabel = self.clOfst[self.di.drawParam] if ofstLabel is None else ofstLabel
+        drawParam = self.di.drawParam
+        ofstLabel = self.clOfst[drawParam] if ofstLabel is None else ofstLabel
 
         suffix = self.di.typeSuffix if suffix is None else suffix
         drawing.add(elm.CurrentLabelInline(

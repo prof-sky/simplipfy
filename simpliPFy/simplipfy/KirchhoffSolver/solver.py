@@ -8,9 +8,12 @@ from generalizeNetlistDrawing.circuitToGraph import CircuitToGraph
 from networkx import cycle_basis, simple_cycles
 
 from lcapyInskale import Circuit
+from lcapyInskale.mnacpts import V, I
 from simplipfy.Helpers.langSymbols import LangSymbols
 from simplipfy.Helpers.netlistLine import NetlistLine
 from .direction import Direction
+import collections
+import random
 
 
 def createDispNames(cptNames: list[str], language: LangSymbols, ms: bool) -> dict[str, str]:
@@ -18,9 +21,9 @@ def createDispNames(cptNames: list[str], language: LangSymbols, ms: bool) -> dic
     :param cptNames: list of component names
     :param language: defines some language-specific symbols used in text, equations and labels
     :param ms: multiple sources, true if there are multiple sources in the circuit, false otherwise
-    :returns: a dictionary with the cptNames as keys and the names that shall be displayed in the equations in the frontend
-    as values.
+    :returns: a dictionary with the cptNames as keys and the names that shall be displayed in the equations in the frontend as values.
     """
+
     dispNames = {}
 
     for name in cptNames:
@@ -36,7 +39,9 @@ def loopsOfCircuit(cct: Circuit, eqNodeMap: Union[None, dict[str,str]]) -> tuple
     :returns: a list of list. Each list contains nodes that make up a loop. Wires are removed from the loops. The
      nodes are not adjusted and therefore not connected, because the wires are removed. See makeNodeMap() to find connected
      nodes/ components.
+
     """
+
     if not eqNodeMap:
         eqNodeMap = makeNodeMap(cct)
     graph = CircuitToGraph(cct, networkx.MultiGraph, eqNodeMap=eqNodeMap).Graph
@@ -103,6 +108,7 @@ def makePairsFromList(loop: list) -> list[tuple[str, str]]:
     :param loop: list of nodes
     :returns: a list of tuples. Each tuple contains two nodes that make up a pair. The last pair is (loop[-1], loop[0]).
     """
+
     loop = [str(node) for node in loop]
     return list(zip(loop, loop[1:] + loop[:1]))
 
@@ -172,7 +178,9 @@ def makeVoltageEquations(cct: Circuit, cptNames: list[str], language: LangSymbol
     eqVect = [sign.get(name,0) for name in cct.branch_list]
     return eq,eqVect
 
-def isValidVoltageLoop(cct: Circuit, cptNames: list[str], loops: list, eqNodeMap: dict[str, str]) -> list:
+
+
+def isValidVoltageLoop(cct: Circuit, cptNames: list[str], loops: list, eqNodeMap: dict[str, str]) -> bool:
     """
     :param cct: circuit in witch cptNames are included
     :param cptNames: list of component names
@@ -180,30 +188,40 @@ def isValidVoltageLoop(cct: Circuit, cptNames: list[str], loops: list, eqNodeMap
     :param eqNodeMap: dictionary with node names as keys and master node names as values, see makeNodeMap()
     :returns: a list of nodes that make up the loop or an empty list if there is no loop
 
-    Check if the nodes of cptNames are part of a valid loop in the graph.
+    Check if the nodes of cptNames are part of a valid MESH in the graph.
+    1. meshes = minimal loops -> no node is passed more than once - check: node appears exactly twice
+    2. meshes/loops are connected components - check: are all nodes reachable from one starting node (with DFS)
     """
-    elmNodeList = []
+
+    adj = collections.defaultdict(list)
     for element in cptNames:
-        node0, node1 = cct[element].node_names
-        elmNodeList.append(eqNodeMap[node0])
-        elmNodeList.append(eqNodeMap[node1])
+        n0, n1 = cct[element].node_names
+        adj[eqNodeMap[n0]].append(eqNodeMap[n1])
+        adj[eqNodeMap[n1]].append(eqNodeMap[n0])
 
-    elmNodeSet = set(elmNodeList)
-    for uniqueVal in elmNodeSet:
-        if elmNodeList.count(uniqueVal) != 2:
-            return []
+    if not all(len(neighbors) == 2 for neighbors in adj.values()):
+        return False
 
-    loopSet = lambda loop : set([str(node) for node in loop])
+    nodes = list(adj.keys())
 
-    for loop in loops:
-        if loopSet(loop) == elmNodeSet:
-            return loop
-    return []
+    visited = set()
+    def dfs(node):
+        if node in visited:
+            return
+        visited.add(node)
+        for neighbor in adj[node]:
+            dfs(neighbor)
+    dfs(nodes[0])
+
+    return visited == set(nodes)
+
+
 
 def draw_graph(graph):
     """
     Draws a graph using matplotlib and networkx.
     """
+
     # Visualize the graph
     pos = nx.spring_layout(graph)
     nx.draw_networkx_nodes(graph, pos)
@@ -231,6 +249,7 @@ def isImplicitCurrentEquation(cct: Circuit, cptNames: list[str]) -> Union[any, b
     Checks if the components in cptNames are connected to the same node/ potential. A current equation is considered
     implicit if there are only two components involved because it always results in I1 = I2.
     """
+
     if len(cptNames) == 2:
         cptN1, cptN2 = cptNames
         if cptN2 in cct.in_series(cptN1):
@@ -298,6 +317,25 @@ def isCurrentEquation(cct: Circuit, cptNames: list[str], eqNodeMap: dict) -> Uni
         return commonNode.pop()
     return False
 
+
+def two_random_samples(CptNames: list) -> tuple[list[str], list[str]]:
+    n = len(CptNames)
+    if n < 2:
+        raise ValueError("List must have at least 2 elements")
+
+    k1 = random.randint(1, n - 1)
+    k2 = random.randint(1, n - 1)
+
+    sample1 = random.sample(CptNames, k1)
+
+    # draw until different
+    while True:
+        sample2 = random.sample(CptNames, k2)
+        if set(sample2) != set(sample1):
+            break
+
+    return sample1, sample2
+
 def makeCurrentEquation(cct: Circuit, cptNames: list[str], commonNode, direction: Direction, language: LangSymbols, ms: bool) -> tuple[tuple[str,list],tuple[str, str, str]]:
     """
     :param cptNames: list of component names
@@ -325,42 +363,106 @@ def makeCurrentEquation(cct: Circuit, cptNames: list[str], commonNode, direction
     eq = "0 ="
     decoy1 = "0 ="
     decoy2 ="0 ="
+    sample1, sample2 = two_random_samples(cptNames)
     for name in cptNames:
         dispName = dispNames[name]
-        node1, node2 = cct[name].node_names
+        if isinstance(cct[name], (V,I)):
+            node2, node1 = cct[name].node_names
+        else:
+            node1, node2 = cct[name].node_names
         if eqNodeMap[node2] == commonNode:
             eq += sign1 + "I_{" + dispName + "}"
-            decoy1 += sign2 + "I_{" + dispName + "}"
-            decoy2 += sign1 + "I_{" + dispName + "}"
+            if name in sample1:
+                decoy1 += sign2 + "I_{" + dispName + "}"
+            else:
+                decoy1 += sign1 + "I_{" + dispName + "}"
+            if name in sample2:
+                decoy2 += sign2 + "I_{" + dispName + "}"
+            else:
+                decoy2 += sign1 + "I_{" + dispName + "}"
             sign[name] = 1
         if eqNodeMap[node1] == commonNode:
             eq += sign2 + "I_{" + dispName + "}"
-            decoy1 += sign2 + "I_{" + dispName + "}"
-            decoy2 += sign1 + "I_{" + dispName + "}"
+            if name in sample1:
+                decoy1 += sign1 + "I_{" + dispName + "}"
+            else:
+                decoy1 += sign2 + "I_{" + dispName + "}"
+            if name in sample2:
+                decoy2 += sign1 + "I_{" + dispName + "}"
+            else:
+                decoy2 += sign2 + "I_{" + dispName + "}"
             sign[name] = -1
     eqVect = [sign.get(name,0) for name in cct.branch_list]
     return (eq,eqVect), (eq, decoy1, decoy2)
 
+def makeIdenticalCurrentEq(cct: Circuit, cptNames: list[str], flipped, language: LangSymbols, ms: bool):
+    dispNames = createDispNames(cptNames, language, ms)
+    eq = "0 ="
+    if len({cptNames[0], cptNames[1]} & set(flipped)) == 1: # exactly one is flipped
+        eq += " -  I_{" + dispNames[cptNames[0]] + "}" + " - I_{" + dispNames[cptNames[1]] + "}"
+        eqVect = [1 if cpt == cptNames[0] else 1 if cpt == cptNames[1] else 0 for cpt in cct.branch_list]
+    else:
+        eq += " -  I_{" + dispNames[cptNames[0]] + "}" + " + I_{" + dispNames[cptNames[1]] + "}"
+        eqVect = [1 if cpt == cptNames[0] else -1 if cpt == cptNames[1] else 0 for cpt in cct.branch_list]
+    return eq, eqVect
 
-def checkCurrentEq(cct: Circuit, cptWithSigns: list[list[str|int]], eqNodeMap: dict) -> bool:
+def makeAllIdenticalCurrentEq(cct: Circuit, cptNames: list[str], flipped, language: LangSymbols, ms: bool):
+    dispNames = createDispNames(cptNames, language, ms)
+    sample1, sample2 = two_random_samples(cptNames)
+
+    sign = {name: "-" if name in flipped else "" for name in cptNames}
+    decoy1_sign = {name: "-" if (name in flipped) ^ (name in sample1) else "" for name in cptNames}
+    decoy2_sign = {name: "-" if (name in flipped) ^ (name in sample2) else "" for name in cptNames}
+
+    dispNameList = [sign[name]+"I_{" + dispNames[name]+"}" for name in cptNames]
+    decoyNameList1 = [decoy1_sign[name]+"I_{" + dispNames[name]+"}" for name in cptNames]
+    decoyNameList2 = [decoy2_sign[name] + "I_{" + dispNames[name] + "}" for name in cptNames]
+
+    eq = "=".join(dispNameList)
+    decoy1 = "=".join(decoyNameList1)
+    decoy2 = "=".join(decoyNameList2)
+
+    return eq, decoy1, decoy2
+
+def checkVoltageEq(cct: Circuit, CptWithSigns: list[tuple[str,int]], eqNodeMap: dict) -> bool:
+    basicNodes = list(cct.equipotential_nodes.keys())
+    isBalancedEq = [0]*len(basicNodes)
+    for CptWithSign in CptWithSigns:
+        n1,n2 = cct[CptWithSign[0]].node_names
+        sgn = CptWithSign[1]
+        for i,node in enumerate(basicNodes):
+            if eqNodeMap[n1] == node:
+                isBalancedEq[i] += sgn
+            if eqNodeMap[n2] == node:
+                isBalancedEq[i] -= sgn
+    if all(x == 0 for x in isBalancedEq):
+        return True
+    else:
+        return False
+
+
+def checkCurrentEq(cct: Circuit, cptWithSigns: list[tuple[str,int]], eqNodeMap: dict) -> bool:
     basicLoops = basicLoopsOfCircuit(cct, eqNodeMap)
     isBalancedEq = [0]*(len(basicLoops)+1)
     for cptWithSign in cptWithSigns:
-        n1, n2 = cct[cptWithSign[0]].node_names
+        if isinstance(cct[cptWithSign[0]], (V,I)):
+            n2, n1 = cct[cptWithSign[0]].node_names
+        else:
+            n1, n2 = cct[cptWithSign[0]].node_names
         sgn = cptWithSign[1]
         cnt = 0
         for i,loop in enumerate(basicLoops):
             if [n1, n2] in [loop[j:j+2] for j in range(len(loop)-1)]:
-                isBalancedEq[i] +=1*sgn
+                isBalancedEq[i] += sgn
                 cnt += 1
             elif [n2, n1] in [loop[j:j+2] for j in range(len(loop)-1)]:
-                isBalancedEq[i] += -1 * sgn
+                isBalancedEq[i] -= sgn
                 cnt += 1
             elif [n1, n2] == [loop[-1], loop[0]]:
-                isBalancedEq[i] += 1 * sgn
+                isBalancedEq[i] += sgn
                 cnt += 1
             elif [n2, n1] == [loop[-1], loop[0]]:
-                isBalancedEq[i] += -1 * sgn
+                isBalancedEq[i] -= sgn
                 cnt += 1
         if cnt == 1:
             isBalancedEq[-1] += -1*sgn

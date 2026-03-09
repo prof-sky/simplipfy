@@ -3,6 +3,7 @@ from json import dump as jdump
 from typing import TYPE_CHECKING
 
 from lcapyInskale.componentRelation import ComponentRelation
+from simplipfy.SimplifyInUserOrder.simplifierStates import SimplifierStates
 
 if TYPE_CHECKING:
     pass
@@ -19,6 +20,11 @@ class ExportDictBase(dict):
         * ExportDict is a modified Dictionary to hold data
         * DictExport is the class that populates an ExportDict with data for the frontend
     """
+
+    def __init__(self):
+        super().__init__()
+        self["error"] = False
+
     @classmethod
     def set_paths(cls, savePath, fileName):
         cls.save_path = savePath
@@ -42,10 +48,14 @@ class ExportDictBase(dict):
 
         step = self["step"]
         fileName = os.path.splitext(fileName)[0]
+
         svgFilePath = os.path.join(savePath, fileName) + "_" + step + ".svg"
-        svgFile = open(svgFilePath, "w", encoding="utf8")
-        svgFile.write(self["svgData"])
-        svgFile.close()
+        with open(svgFilePath, "w", encoding="utf8") as svg:
+            svg.write(self["svgData"])
+
+        gSvgFilePath = os.path.join(savePath, fileName) + "_" + step + "_gen.svg"
+        with open(gSvgFilePath, "w", encoding="utf8") as gSvg:
+            gSvg.write(self["gSvgData"])
 
         return svgFilePath
 
@@ -109,34 +119,48 @@ class Step0ExportDict(ExportDictBase):
     Export dict that holds the data of step0 and is used in DictExport class
     """
     def __init__(self, step, sources: list[Step0ExportDictSource], allCpts: list['DictExportElement'],
-                 circuitType: str, svgData: str):
+                 circuitType: str, svgData: str, gSvgData: str, isGeneralized: bool):
         super().__init__()
         self["step"] = step
         self["sources"] = sources
         self["allComponents"] = allCpts
         self["componentTypes"] = circuitType
         self["svgData"] = svgData
+        self["gSvgData"] = gSvgData
+        self["isGeneralized"] = isGeneralized
 
 class ExportDict(ExportDictBase):
     """
     Export dict that holds the data of step<n> where n>0 and is used in DictExport class
     """
     def __init__(self, step: str, canBeSimplified: bool, simplifiedTo: dict,
-                   componentsRelation: ComponentRelation, svgData: str,
-                   cpts: list[CptExportDict], allCpts: list[CptExportDict]):
+                   componentsRelation: ComponentRelation,
+                   simplifierState: SimplifierStates,
+                   svgData: str, gSvgData: str, cpts: list[CptExportDict], allCpts: list[CptExportDict]):
         super().__init__()
         self["step"] = step
         self["canBeSimplified"] = canBeSimplified
         self["simplifiedTo"] = simplifiedTo
         self["componentsRelation"] = componentsRelation.to_string()
+        self["simplifierState"] = simplifierState.value
         self["components"] = cpts
         self["allComponents"] = allCpts
         self["svgData"] = svgData
+        self["gSvgData"] = gSvgData
 
 class EmptyExportDict(ExportDict):
     """
     Export dict that holds the data of an empty step<n> where n>0, and is used in DictExport class
     """
-    def __init__(self):
-        super().__init__(None, False, EmptyCptExportDict(), ComponentRelation.none, None,
-                         [], [])
+    def __init__(self, simplifierState: SimplifierStates):
+        super().__init__(None, False, EmptyCptExportDict(), ComponentRelation.none, simplifierState,
+                         None, None,[], [])
+
+class ErrorExportDict(ExportDictBase):
+    """
+    Export dict that holds the data of an error during simplification, and is used in DictExport class
+    """
+    def __init__(self, errorMessage: str):
+        super().__init__()
+        self["error"] = True
+        self["errorMessage"] = errorMessage

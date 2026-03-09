@@ -3,6 +3,8 @@ const circuitActions = {
     Aborted: "Abgebrochen",
     Reset: "Reset",
     ErrCanNotSimpl: "Kann nicht vereinfacht werden",
+    ErrIsNotParallel: "Ist nicht parallel",
+    ErrIsNotSeries: "Ist nicht in Reihe",
     ViewVcExplanation: "VC Rechnung angeschaut",
     ViewZExplanation: "Z Rechnung angeschaut",
     ViewTotalExplanation: "Gesamtrechnung angeschaut",
@@ -45,9 +47,9 @@ const configDarkModeValues = {
 }
 
 const configLanguageValues = {
-    German: "Deutsch",
-    English: "Englisch",
-    French: "Französisch"
+    de: "Deutsch",
+    en: "Englisch",
+    fr: "Französisch"
 }
 
 const errorActions = {
@@ -79,13 +81,13 @@ function pushPageViewMatomo(title="") {
 }
 
 function pushCircuitEventMatomo(action, value=-1) {
-    // Possible categories: see circuitMapper.selectorIds
+    // Possible categories: see window.definitions.selectorIDs
     let category = state.currentCircuitMap.selectorGroup;
     let circuitName = state.currentCircuitMap.circuitFile;
     let mappedCategory = mapCategory(category);
     if (mappedCategory === null) return;
     // Add a suffix to the circuit name in order to be able to see if voltage was shown or not
-    if (category === circuitMapper.selectorIds.symbolic) circuitName += eventCategories._SymIdx;
+    if (category === window.definitions.selectorIDs.symbolic) circuitName += eventCategories._SymIdx;
     if (!allowedCircuitAction(action)) return;
     pushEventToMatomo(mappedCategory, action, circuitName, value);
 
@@ -196,6 +198,7 @@ function pushErrorEventMatomo(action, error) {
     try {
         pushEventToMatomo(eventCategories.Errors, action, error.stack);
     } catch (e) {
+        console.trace(error)
         // If stack is not supported
         pushEventToMatomo(eventCategories.Errors, action, error);
     }

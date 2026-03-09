@@ -6,7 +6,8 @@ from .twoterm import (Resistor, ResistorIEEE, ResistorIEC, ResistorVar, Resistor
                       DiodeShockley, Zener, Varactor, LED, LED2, Photodiode, Potentiometer, PotentiometerIEEE,
                       PotentiometerIEC, Diac, Triac, SCR, Memristor, Memristor2, Josephson, Fuse, FuseUS, FuseIEEE,
                       FuseIEC, InductorIEC, Inductor2, Crystal, Breaker, CPE, SparkGap, RBox, RBoxVar,
-                      PotBox, PhotoresistorBox, Nullator, Norator, CurrentMirror, VoltageMirror)
+                      PotBox, PhotoresistorBox, Nullator, Norator, CurrentMirror, VoltageMirror, MagnetCore, AirGap,
+                      MagneticSource)
 from .oneterm import Ground, GroundSignal, GroundChassis, Antenna, AntennaLoop, AntennaLoop2, Vss, Vdd, NoConnect
 from .opamp import Opamp
 from .sources import (Source, SourceV, SourceI, SourceSin, SourcePulse, SourceSquare, SourceTriangle, SourceRamp,

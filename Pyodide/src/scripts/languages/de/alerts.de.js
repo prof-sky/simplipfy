@@ -1,75 +1,91 @@
-window.alertsDeTexts = {
-    alertCanNotSimplify:
+alertsDeTexts = {
+    canNotSimplify:
         "Diese Elemente k&oumlnnen nicht vereinfacht werden",
-    alertChooseAtLeastTwoElements:
+    isNotParallel:
+        "Diese Elemente sind nicht parallel",
+    isNotSeries:
+        "Diese Elemente sind nicht in Reihe",
+    chooseAtLeastTwoElements:
         "W&aumlhle mindestens zwei Elemente",
-    alertNotToggleable:
+    notToggleable:
         "Komplexe Elemente k&oumlnnen hier nicht dargestellt werden, siehe Rechnungen",
-    alertInvalidVoltageLoop:
+    invalidVoltageLoop:
         "Ung&uumlltige Spannungsmasche",
-    alertLoopAlreadyExists:
+    loopAlreadyExists:
         "Spannungsmasche existiert bereits in Gleichungen",
-    alertInvalidJunction:
+    invalidJunction:
         "Ung&uumlltiger Stromknoten",
-    alertJunctionAlreadyExists:
+    junctionAlreadyExists:
         "Stromknoten existiert bereits in Gleichungen",
-    alertTooManyJunctionNodes:
+    tooManyJunctionNodes:
         "Auswahl enth&aumllt mehr als einen Knoten",
-    alertErrorInit:
+    errorInit:
         "Fehler beim Initialisieren der Schaltung<br>Bitte lade die Seite neu<br>",
-    alertError:
+    error:
         "Fehler<br>",
-    alertMappingCircuitsError:
+    mappingCircuitsError:
         "Fehler beim Mappen der Schaltungen<br>",
-    alertWrongAnswer:
+    wrongAnswer:
         "Falsche Antwort",
-    alertGameOver:
+    gameOver:
         "Keine Leben mehr",
-    alertInvalidLoopOrder:
+    invalidLoopOrder:
         "Ung&uumlltige Reihenfolge der Spannungen",
-    alertDependentEquation:
+    dependentEquation:
         "Die Gleich ist linear abh&aumlngig zu einer bereits hinzugefügten Gleichung",
-    alertSomethingIsWrong:
+    somethingIsWrong:
         "Etwas lief falsch",
-    alertNotAllVoltLoopsFound:
+    notAllVoltLoopsFound:
         "Du hast noch nicht alle Spannungsmaschen gefunden",
-    alertNotAllEquationsFound:
+    notAllEquationsFound:
         "Es fehlen noch Gleichungen um die Schaltung zu l&oumlsen",
-    alertInvalidNumber:
+    invalidNumber:
         "Ung&uumltige Zahl",
-    alertNegativeNumber:
+    negativeNumber:
         "Die Zahl muss gr&oumlsser als 0 sein",
-    alertNoDirSelected:
+    noDirSelected:
         "Keine Zip-Datei gewählt",
-    alertErrorSettingUpOwnCircuits:
+    errorSettingUpOwnCircuits:
         "Fehler beim Einrichten eigener Schaltungen...",
-    alertUnkownDir:
+    unknownDir:
         "Unbekannter Ordner, benutze nur die folgenden Ordner:<br>" +
         "resistor, capacitor, inductor, symbolic, mixed, kirchhoff, wheatstone<br>" +
         "Unbekannter Ordner: ",
-    alertUnkownFileType:
+    unknownFileType:
         "Unbekannter Dateityp, benutze nur die folgenden Dateitypen:<br>" +
         "txt, json, svg<br>" +
         "Unbekannte Datei: ",
-    alertInvalidCircuitFile:
+    invalidCircuitFile:
         "Ung&uumlltige Schaltungsdatei, etwas stimmt nicht mit der Netzliste (siehe Konsole)<br>",
-    alertErrorInFile:
+    errorInFile:
         "Fehler in der Datei",
-    alertNoValidLink:
+    noValidLink:
         "Bitte gib einen gültigen Link ein",
-    alertNoValidLinkCheck:
+    noValidLinkCheck:
         "Der angehängte Link scheint kein korrekter Link zu sein",
-    alertMaybeConflictingNames:
+    maybeConflictingNames:
         "Der zip-Ordner konnte nicht gelesen werden obwohl er geladen wurde. Prüfe einmal ob der Name des gezippten Ordners der selbe ist wie der Name des Ordners innerhalb des zip-Ordners. "+
         "Ansonsten probiere den Ordner neu zu zippen und versuche es noch einmal<br>Name des gezippten Ordners: ",
     speedModeTooSlow:
         "Du warst zu langsam!",
-    alertCanNotGeneralize:
+    canNotGeneralize:
         "Beim Generalisieren des Kreises treten Probleme auf...",
-    alertPleaseEnterValidID:
+    pleaseEnterValidID:
         "Bitte gib eine gültige ID ein",
-    alertPleaseEnterKey:
+    pleaseEnterKey:
         "Bitte gib einen key ein",
-    alertKeyIsNotCorrect:
+    keyIsNotCorrect:
         "Der eingegebene key ist nicht korrekt",
+    forbiddenDir:
+        "Das folgende Verzeichnis ist nicht erlaubt: ",
+    generalizeDisabled:
+        "Dieses Layout soll nicht ver&aumlndert werden",
+    pageLoadingTimeOut:
+        "Entschuldige, es ist ein Problem beim Laden der Seite aufgetreten (Zeitüberschreitung)<br>(╯°□°）╯︵ ┻━┻",
+    invalidNetlist:
+        'Es wurde keine valide Netzliste erkannt.',
+    alertNotANumber:
+        "Die Eingabe ist keine gültige Zahl",
+    finishedLastCircuit:
+        'Die letze Aufgabe dieser Kategorie wurde gelöst. Die nächste Aufgaben-Kategorie wird geladen.',
 }

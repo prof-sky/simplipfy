@@ -1,4 +1,4 @@
-window.uploadDeTexts = {
+uploadDeTexts = {
     uploadHelpBtn:
         "Hilfe",
     uploadBtn:
@@ -8,7 +8,7 @@ window.uploadDeTexts = {
     uploadModalText:
         "Lade hier eigene Kreise als zip-datei (hier wird nichts hochgeladen, deine Dateien bleiben " +
         "nur lokal bei dir). Die Zip-Datei muss die folgende Struktur haben:<br><br>" +
-        "<p style='text-align: left; width: fit-content; margin-left: auto; margin-right: auto;'>" +
+        "<p style='text-align: left; width: fit-content; margin-left: auto; margin-right: auto'>" +
         "MyCircuits.zip<br>" +
         "-- MyCircuits<br>" +
         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- resistor<br>" +

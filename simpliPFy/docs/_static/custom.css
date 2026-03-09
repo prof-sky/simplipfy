@@ -1,0 +1,49 @@
+/* custom.css */
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.svg-override {
+  width: 100%;
+  height: 100%;
+}
+
+.lightbox-trigger {
+  max-width: 100%;
+  height: auto;
+  cursor: zoom-in;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+/* Modal container */
+.lightbox-modal {
+  display: none; /* hidden by default */
+  position: fixed;
+  z-index: 9999;
+  padding-top: 60px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.9);
+}
+
+.lightbox-content {
+  display: block;
+  margin: auto;
+  max-width: 90%;
+  max-height: 80vh;
+}
+
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 35px;
+  color: #f1f1f1;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+}

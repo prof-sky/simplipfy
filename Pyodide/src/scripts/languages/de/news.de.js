@@ -1,4 +1,4 @@
-window.newsDeTexts = {
+newsDeTexts = {
     newsHeading: "Aktuelles",
     newsList: [
         {

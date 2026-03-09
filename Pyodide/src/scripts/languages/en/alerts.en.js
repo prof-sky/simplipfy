@@ -1,75 +1,99 @@
-window.alertsEnTexts = {
-    alertCanNotSimplify:
+alertsEnTexts = {
+    canNotSimplify:
         "Can not simplify those elements",
-    alertChooseAtLeastTwoElements:
+    isNotParallel:
+        "The chosen elements are not parallel",
+    isNotSeries:
+        "The chosen elements are not in series",
+    chooseAtLeastTwoElements:
         "Choose at least two elements",
-    alertNotToggleable:
+    notToggleable:
         "Complex elements can not be toggled here, see calculations",
-    alertInvalidVoltageLoop:
+	// already used in kirchhoff.en.js at line 43
+	invalidVoltageLoop:
         "Invalid voltage loop",
-    alertLoopAlreadyExists:
+	// already used in kirchhoff.en.js at line 41
+	loopAlreadyExists:
         "Voltage loop already exists in equations",
-    alertInvalidJunction:
+    // already used in kirchhoff.en.js at line 51
+	invalidJunction:
         "Invalid junction",
-    alertJunctionAlreadyExists:
+	// already used in kirchhoff.en.js at line 49
+	junctionAlreadyExists:
         "Junction already exists in equations",
-    alertErrorInit:
-        "Error while starting circuit<br>Please try to reload the page<br>",
-    alertError:
+    // no usage found
+	//errorInit:
+    //    "Error while starting circuit<br>Please try to reload the page<br>",
+    error:
         "Error<br>",
-    alertMappingCircuitsError:
+    mappingCircuitsError:
         "Error while mapping circuits<br>",
-    alertTooManyJunctionNodes:
+    tooManyJunctionNodes:
         "Selection contains more than one node",
-    alertWrongAnswer:
-        "Wrong answer",
-    alertGameOver:
-        "No lives left",
-    alertInvalidLoopOrder:
+    // no usage found
+	// wrongAnswer:
+    //     "Wrong answer",
+	// no usage found
+	// gameOver:
+    //     "No lives left",
+    invalidLoopOrder:
         "Invalid order of voltages",
-    alertDependentEquation:
+    dependentEquation:
         "The equation is linearly dependent on an equation that has already been added",
-    alertSomethingIsWrong:
+    somethingIsWrong:
         "Something went wrong",
-    alertNotAllVoltLoopsFound:
+    notAllVoltLoopsFound:
         "You have not found all voltage loops yet",
-    alertNotAllEquationsFound:
+    notAllEquationsFound:
         "Not enough equations are found to solve the circuit",
-    alertInvalidNumber:
+    invalidNumber:
         "Invalid number",
-    alertNegativeNumber:
+    negativeNumber:
         "The number must be greater than 0",
-    alertNoDirSelected:
+    noDirSelected:
         "No zip file selected",
-    alertErrorSettingUpOwnCircuits:
+    errorSettingUpOwnCircuits:
         "Error while setting up own circuits...",
-    alertUnkownDir:
+    unknownDir:
         "Unknown directory, only use the following directores:<br>" +
         "resistor, capacitor, inductor, symbolic, mixed, kirchhoff, wheatstone<br>" +
         "Unkown directory: ",
-    alertUnkownFileType:
+    unknownFileType:
         "Unknown file type, only use the following file types:<br>" +
         "txt, json, svg<br>" +
         "Unkown file: ",
-    alertInvalidCircuitFile:
+    invalidCircuitFile:
         "Invalid circuit file, something is wrong with the netlist (console for more info)<br>",
-    alertErrorInFile:
+    errorInFile:
         "Error in file",
-    alertNoValidLink:
-        "Please enter a valid link",
-    alertNoValidLinkCheck:
+    // no usage found
+	// noValidLink:
+    //     "Please enter a valid link",
+    // no usage found
+	noValidLinkCheck:
         "The appended link does not seem to be a valid link",
-    alertMaybeConflictingNames:
+    maybeConflictingNames:
         "The zip dir could not be read even though it was loaded. Maybe check if the name of zip dir is the same as the dir " +
         "inside the zip dir, otherwise try rezipping the directory.<br>Name of zip dir: ",
     speedModeTooSlow:
         "You were too slow!",
-    alertCanNotGeneralize:
+    canNotGeneralize:
         "Problems while generalizing the circuit...",
-    alertPleaseEnterValidID:
+    pleaseEnterValidID:
         "Please enter a valid ID",
-    alertPleaseEnterKey:
+    pleaseEnterKey:
         "Please enter a key",
-    alertKeyIsNotCorrect:
+    keyIsNotCorrect:
         "The key is not correct",
+    pageLoadingTimeOut:
+        "Sorry something went wrong while loading the page (page time out)<br>(╯°□°）╯︵ ┻━┻",
+    forbiddenDir:
+        "The following directory is not allowed: ",
+    generalizeDisabled:
+        "This layout shouldn't be changed",
+    invalidNetlist: 'No valid netlist was detected.',
+    alertNotANumber:
+        "You did not enter a valid number",
+    finishedLastCircuit:
+        'The last lesson in this category has been completed. The next set of lessons will be loaded.',
 }

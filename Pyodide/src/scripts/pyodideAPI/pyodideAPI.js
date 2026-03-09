@@ -32,6 +32,25 @@ class PyodideAPI {
         });
     }
 
+    exists(path) {
+        return requestResponse(this.worker, {
+            action: "exists",
+            data: {
+                path: path
+            }
+        });
+    }
+
+    rename(from, to){
+        return requestResponse(this.worker, {
+            action: "rename",
+            data: {
+                from: from,
+                to: to
+            }
+        });
+    }
+
     deleteFile(path) {
         return requestResponse(this.worker, {
             action: "unlink",

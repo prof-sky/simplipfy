@@ -1,7 +1,8 @@
 // Texts are displayed with uppercase letters except dataprivacy and legal
-window.navigationEnTexts = {
+navigationEnTexts = {
     "home": "Home",
     "simplifier": "Learning",
+    "editor": "Editor",
     "cheatsheet": "Cheatsheet",
     "upload": "Custom Circuits",
     "tools": "Tools",

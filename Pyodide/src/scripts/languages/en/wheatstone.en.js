@@ -1,18 +1,20 @@
-window.wheatstoneEnTexts = {
-    wheatstoneInfoGifHeading:
+wheatstoneEnTexts = {
+    infoGifHeading:
         "How to use the Wheatstone Bridge",
-    wheatstoneInfoGifText:
+    infoGifText:
         "Use the given values and the formula for the calculation of the Wheatstone bridge to calculate the missing value",
     inputPopupTitle:
         "Enter a value",
-    wheatstoneExplanationTitle:
+    explanationTitle:
         "Wheatstone Calculation",
     alertInvalidSolution:
         "The solution is not correct",
     canNotSetElement:
         "This element can not be set",
-    wheatstoneBridgeVoltage0:
+    bridgeVoltage0:
         "The voltage Vm is 0V,<br> the resistance ratios must be equal",
     rearrangeFor:
         "Rearrange for",
+    wheatstoneHeading:
+        "Enter all missing values",
 }

@@ -1,0 +1,1 @@
+import{shuffle,range}from"d3-array";import tape from"tape";import{bestOrder}from"../src/order.js";let start=range(6);tape("Best order",function(t){for(let r=0;r<3;r++){let r=start.slice(0);shuffle(r);var e=start.map(t=>r.map(r=>Math.abs(t-r))),e=bestOrder(start,r,e).map(r=>start[r]);t.deepEqual(e,r)}t.end()});

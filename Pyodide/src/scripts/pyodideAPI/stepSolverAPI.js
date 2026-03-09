@@ -3,38 +3,54 @@
 // ########################## StepSolver API Class #####################################
 // #####################################################################################
 
-class StepSolverAPI {
-    constructor(worker) {
-        this.worker = worker;
-    }
-
-    initStepSolver(circuitFile, circuitPath, paramMap) {
+class StepSolverAPI extends SolverInterface{
+    /**
+     * @param {CircuitMap} circuitMap
+     * */
+    async init(circuitMap) {
         return requestResponse(this.worker, {
             action: "initStepSolver",
-            data: { circuitFile: circuitFile, circuitPath: circuitPath, paramMap: paramMap }
+            data: { circuitFile: circuitMap.circuitFile, circuitPath: circuitMap.circuitPath, paramMap: circuitMap.paramMap }
         });
     }
 
-    resetStepSolver() {
+    async reset() {
         return requestResponse(this.worker, {
             action: "resetStepSolver",
             data: {}
         });
     }
 
-    createStep0() {
-        // Returns a Step0Object, see stepObject.js
+    /** @returns {Promise<StepObject>} */
+    async createStep0() {
         return requestResponse(this.worker, {
             action: "createStep0",
             data: {}
         });
     }
 
-    simplifyNCpts(selectedElements) {
+    async getStep(step) {
+        // Returns a StepObject, see stepObject.js
+        return requestResponse(this.worker, {
+            action: "getStep",
+            step: step,
+            data: {}
+        });
+    }
+
+    /** @returns {Promise<StepObject>} */
+    async simplifyNCpts(selectedElements, relation) {
         // Returns a StepObject, see stepObject.js
         return requestResponse(this.worker, {
             action: "simplifyNCpts",
-            selectedElements: selectedElements
+            selectedElements: selectedElements,
+            relation: relation
+        });
+    }
+
+    async canSimplifyCpts(){
+        return requestResponse(this.worker, {
+            action: "canSimplifyCpts",
         });
     }
 }

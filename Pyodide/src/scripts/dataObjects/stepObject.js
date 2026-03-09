@@ -1,11 +1,83 @@
+/**
+ * @typedef {Object} Source
+ * @property {string} Type
+ * @property {string} omega_0
+ * @property {string} frequency
+ * @property {Impedance} Z
+ * @property {Quantity} U
+ * @property {Quantity} I
+ * @property {boolean} hasConversion
+ */
+
+/**
+ * @typedef {Object} Component
+ * @property {Impedance} Z
+ * @property {Quantity} U
+ * @property {Quantity} I
+ * @property {boolean} hasConversion
+ */
+
+/**
+ * @typedef {Object} Impedance
+ * @property {string} name
+ * @property {string} impedance
+ * @property {string} cpxVal
+ * @property {string} re
+ * @property {string} im
+ * @property {string} phase
+ * @property {string} val
+ */
+
+/**
+ * @typedef {Object} Quantity
+ * @property {string} name
+ * @property {string} val
+ * @property {string} phase
+ */
+
+/** @typedef {"series" | "parallel" | "undefined"} ComponentsRelation*/
+/** @typedef {"inSeries" | "inParallel" | "notSeries" | "notParallel" | "notInRelation" | "delta" | "star" | "undefined"} SimplifierState*/
+
+/**
+ * Object represents information that is returned from a simplification step
+ */
 class StepObject {
-    step = ""
-    canBeSimplified = false
-    simplifiedTo = {}
-    componentsRelation = ""
-    components = []  // Class component
-    allComponents = []  // Class component
-    svgData = ""
+    /** @type {boolean} **/
+    error = false;
+    /** @type {string} **/
+    errorMessage = "";
+    /** @type {string} */
+    step= ""
+    /** @type {boolean} */
+    canBeSimplified = false;
+    /** @type {Component} */
+    simplifiedTo= [];
+    /** @type {ComponentsRelation} */
+    componentsRelation = "undefined"
+    /** @type {SimplifierState} */
+    simplifierState = "undefined"
+    /** @type {Array<Component>} */
+    components= []
+    /** @type {Array<Component>} */
+    allComponents= []
+    /** @type {string} */
+    svgData= "<svg></svg>"
+    /** @type {string} */
+    gSvgData= "<svg></svg>"
+    /** @type {boolean} */
+    isGeneralized= false
+
+
+    constructor(object) {
+        // this is necessary to create _templates of this class without values
+        if (!object) return this;
+
+        for (let [key, value] of Object.entries(object)) {
+            this[key] = value;
+        }
+
+        return this;
+    }
 
     getZVal(component) {
         return component.hasConversion ? component.Z.val : component.Z.impedance;
@@ -42,41 +114,21 @@ class StepObject {
             return "C"
         }
     }
-}
 
-class component {
-    Z = {
-        name: "",
-        impedance: "",
-        cpxVal: "",  // with j
-        re: "", // Real part
-        im: "", // Imaginary part
-        phase: "",
-        val: ""  // C, R or L
+    /** @returns {boolean} */
+    returnGeneralizedSvgData(){
+        return state.pictureCounter > 1 &&
+            !(state.currentCircuitMap.selectorGroup === window.definitions.selectorIDs.quickstart ||
+                state.currentCircuitMap.selectorGroup === window.definitions.selectorIDs.symbolic
+            ) && document.getElementById(`generalizeSwitch${state.pictureCounter - 1}`).checked === true
     }
-    U = {
-        name: "",
-        val: "",  // magnitude (amplitude)
-        phase: "",
-    }
-    I = {
-        name: "",
-        val: "",
-        phase: "",
-    }
-    hasConversion = false
-}
 
-class Step0Object {
-    step = ""
-    source = {}  // Class Source
-    allComponents = []  // Class component
-    componentTypes = ""
-    svgData = ""
-}
-
-class Source {
-    type = ""
-    omega_0 = ""
-    sources = {} // Class components
+    get svgOrGsvgData() {
+        if (this.returnGeneralizedSvgData()) {
+            return this.gSvgData;
+        }
+        else {
+            return this.svgData;
+        }
+    }
 }

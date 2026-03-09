@@ -6,10 +6,8 @@ solveStepwise = ssw
 from simplipfy.SimplifyInUserOrder.solvInUserOrder import SolveInUserOrder as siuo
 SolveInUserOrder = siuo
 
-
 from simplipfy.KirchhoffSolver.kirchhofSolver import KirchhoffSolver as khs
 KirchhoffSolver = khs
-
 
 from simplipfy.WheatstoneBridge.solver import equationIsValid as wss
 WheatstoneBridgeSolver = wss

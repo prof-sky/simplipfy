@@ -1,19 +1,32 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/html">
+<html xmlns="http://www.w3.org/1999/html" lang="en">
 <head>
+    <script>
+        const localOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1):[0-9]{4}$/;
+
+        let pageOrigin = window.location.origin;
+        let favIcon = document.createElement("link")
+        favIcon.type = "image/svg";
+        favIcon.rel = "icon";
+
+        //determine wich icon to show
+        if (localOriginRegex.test(pageOrigin)) {
+            favIcon.href = "src/resources/navigation/iconComputer.svg";
+        }
+        else if (pageOrigin === "https://dev.simplipfy.org"){
+            favIcon.href = "src/resources/navigation/iconHammer.svg";
+        }
+        else{
+            favIcon.href = "src/resources/navigation/icon.svg"
+        }
+        document.getElementsByTagName("head")[0].appendChild(favIcon);
+    </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/svg" href="src/resources/navigation/icon.svg"/>
     <title>simpliPFy</title>
     <link rel="canonical" href="https://simplipfy.org" />
-
-    <script src="src/scripts/pyodideAPI/workerAvailability.js"></script>
+    <script src="src/scripts/pyodideAPI/pyodideAPI.bundle.js"></script>
     <script>testForWorkerAvailability();</script>
-
-    <!-- Prefetch images -->
-    <link rel="prefetch" href="./src/resources/landingpage/Bild2.png">
-    <link rel="prefetch" href="./src/resources/mascot/smiling.svg">
-    <link rel="prefetch" href="./src/resources/landingpage/Bild26.png">
 
     <!------------------------ CodeMirror -------------- (on top to not cause stylesheet bugs?)-->
     <link rel="stylesheet" href="src/scripts/extern/codemirror5-5.65.16/lib/codemirror.css">
@@ -22,284 +35,87 @@
 
     <!------------------------ Pyodide ------------------------------->
     <script src="pyodide.js"></script>
-    <script src="src/scripts/pyodideAPI/pyodideWorker.js"></script>
-    <script src="src/scripts/pyodideAPI/pyodideWorkerAPI.js"></script>
-    <script src="src/scripts/pyodideAPI/pyodideAPI.js"></script>
-    <script src="src/scripts/pyodideAPI/stepSolverAPI.js"></script>
-    <script src="src/scripts/pyodideAPI/hardcodedStepSolverAPI.js"></script>
-    <script src="src/scripts/pyodideAPI/kirchhoffSolverAPI.js"></script>
-    <script src="src/scripts/pyodideAPI/wheatstoneSolverAPI.js"></script>
-    <script src="src/scripts/pyodideAPI/drawingConfigAPI.js"></script>
-
-    <!----------------------- Language Files ------------------------>
-    <!------------------------- German ------------------------------>
-    <script src="src/scripts/languages/de/alerts.de.js"></script>
-    <script src="src/scripts/languages/de/cheatsheet.de.js"></script>
-    <script src="src/scripts/languages/de/dataLegalAbout.de.js"></script>
-    <script src="src/scripts/languages/de/kirchhoff.de.js"></script>
-    <script src="src/scripts/languages/de/landing.de.js"></script>
-    <script src="src/scripts/languages/de/selector.de.js"></script>
-    <script src="src/scripts/languages/de/simplifier.de.js"></script>
-    <script src="src/scripts/languages/de/wheatstone.de.js"></script>
-    <script src="src/scripts/languages/de/extraLiveQuestions.de.js"></script>
-    <script src="src/scripts/languages/de/navigation.de.js"></script>
-    <script src="src/scripts/languages/de/upload.de.js"></script>
-    <script src="src/scripts/languages/de/news.de.js"></script>
-    <script src="src/scripts/languages/de/tools.de.js"></script>
-    <script src="src/scripts/languages/de/settings.de.js"></script>
-    <script src="src/scripts/languages/de/lang.de.js"></script>
-    <!------------------------- English ------------------------------>
-    <script src="src/scripts/languages/en/alerts.en.js"></script>
-    <script src="src/scripts/languages/en/cheatsheet.en.js"></script>
-    <script src="src/scripts/languages/en/dataLegalAbout.en.js"></script>
-    <script src="src/scripts/languages/en/kirchhoff.en.js"></script>
-    <script src="src/scripts/languages/en/landing.en.js"></script>
-    <script src="src/scripts/languages/en/selector.en.js"></script>
-    <script src="src/scripts/languages/en/simplifier.en.js"></script>
-    <script src="src/scripts/languages/en/wheatstone.en.js"></script>
-    <script src="src/scripts/languages/en/extraLiveQuestions.en.js"></script>
-    <script src="src/scripts/languages/en/navigation.en.js"></script>
-    <script src="src/scripts/languages/en/upload.en.js"></script>
-    <script src="src/scripts/languages/en/news.en.js"></script>
-    <script src="src/scripts/languages/en/tools.en.js"></script>
-    <script src="src/scripts/languages/en/settings.en.js"></script>
-    <script src="src/scripts/languages/en/lang.en.js"></script>
-    <!----------------------- French --------------------------------->
-    <script src="src/scripts/languages/fr/alerts.fr.js"></script>
-    <script src="src/scripts/languages/fr/cheatsheet.fr.js"></script>
-    <script src="src/scripts/languages/fr/dataLegalAbout.fr.js"></script>
-    <script src="src/scripts/languages/fr/kirchhoff.fr.js"></script>
-    <script src="src/scripts/languages/fr/landing.fr.js"></script>
-    <script src="src/scripts/languages/fr/selector.fr.js"></script>
-    <script src="src/scripts/languages/fr/simplifier.fr.js"></script>
-    <script src="src/scripts/languages/fr/wheatstone.fr.js"></script>
-    <script src="src/scripts/languages/fr/extraLiveQuestions.fr.js"></script>
-    <script src="src/scripts/languages/fr/navigation.fr.js"></script>
-    <script src="src/scripts/languages/fr/upload.fr.js"></script>
-    <script src="src/scripts/languages/fr/news.fr.js"></script>
-    <script src="src/scripts/languages/fr/tools.fr.js"></script>
-    <script src="src/scripts/languages/fr/settings.fr.js"></script>
-    <script src="src/scripts/languages/fr/lang.fr.js"></script>
+    <!----------------------- Definitions ---------------------------->
+    <script src="src/scripts/definitions/definitions.bundle.js"></script>
     <!----------------------- Language Manager ----------------------->
+    <script src="src/scripts/languages/en/en.bundle.js"></script>
     <script src="src/scripts/languages/languageManager.js"></script>
     <!----------------------- Objects -------------------------------->
-    <script src="src/scripts/dataObjects/stateObject.js"></script>
-    <script src="src/scripts/dataObjects/stepObject.js"></script>
+    <script src="src/scripts/dataObjects/dataObjects.bundle.js"></script>
+    <!----------------------- LocalStorageManagement ----------------->
+    <script src="src/scripts/localStorage/localStorage.bundle.js"></script>
     <!----------------------- Utils ---------------------------------->
-    <script src="src/scripts/utils/circuitMapper.js"></script>
-    <script src="src/scripts/utils/configurations.js"></script>
-    <script src="src/scripts/utils/packageManager.js"></script>
-    <script src="src/scripts/utils/loadFonts.js"></script>
-    <script src="src/scripts/utils/darkModeFunctions.js"></script>
-    <script src="src/scripts/utils/selectorBuilder.js"></script>
-    <script src="src/scripts/utils/pageManager.js"></script>
-    <script src="src/scripts/utils/eastereggs.js"></script>
-    <!----------------------- Definitions ---------------------------->
-    <script src="src/scripts/definitions/romanNumbersMap.js"></script>
-    <script src="src/scripts/definitions/toggleSymbolDefinition.js"></script>
-    <script src="src/scripts/definitions/allowedCircuitDirectories.js"></script>
-    <script src="src/scripts/definitions/colorDefinitions.js"></script>
-    <script src="src/scripts/definitions/emojis.js"></script>
+    <script src="src/scripts/utils/utils.bundle.js"></script>
     <!----------------------- Applications -------------------------------->
-    <!----------------------- Kirchhoff ---------------------------------->
-    <script src="src/scripts/applications/kirchhoff/kirchhoff.js"></script>
-    <script src="src/scripts/applications/kirchhoff/kirchhoffHelper.js"></script>
-    <!----------------------- Simplifier ---------------------------------->
-    <script src="src/scripts/applications/simplifier/explanationTexts.js"></script>
-    <script src="src/scripts/applications/simplifier/simplifierHelper.js"></script>
-    <script src="src/scripts/applications/simplifier/simplifier.js"></script>
-    <!----------------------- Wheatstone ---------------------------------->
-    <script src="src/scripts/applications/wheatstone/explanationTexts.js"></script>
-    <script src="src/scripts/applications/wheatstone/wheatstone.js"></script>
-    <script src="src/scripts/applications/wheatstone/wheatstoneHelper.js"></script>
-    <!----------------------- Common -------------------------------------->
-    <script src="src/scripts/applications/common/gamification.js"></script>
-    <script src="src/scripts/applications/common/helpers.js"></script>
-    <script src="src/scripts/applications/common/svgManipulation.js"></script>
-    <!----------------------- Tools --------------------------------------->
-    <script src="src/scripts/applications/tools/liveDrawing.js"></script>
-    <script src="src/scripts/applications/tools/qrGenerator.js"></script>
-    <script src="src/scripts/applications/tools/qrScanner.js"></script>
-    <script src="src/scripts/applications/tools/svgGenerator.js"></script>
-    <script src="src/scripts/applications/tools/trackViewer.js"></script>
-
-    <script src="src/scripts/main.js"></script>
+    <script src="src/scripts/applications/applications.bundle.js"></script>
 
     <!-- CSS Styles Import, Pyodide, Matomo, Extern -->
 
     <link rel="stylesheet" href="src/styles/allStyles.css">
     <link rel="stylesheet" href="src/styles/bootstrap.min.css">
     <script src="src/scripts/extern/confetti.browser.min.js"></script>
-    <script src="src/scripts/extern/mathjax/tex-chtml.js" id="MathJax-script" async></script> <!-- mathjax beta v4 -->
+    <script src="src/scripts/extern/mathjax/tex-chtml.js" id="MathJax-script"></script> <!-- mathjax beta v4 -->
     <script src="src/scripts/extern/davidshimjs-qrcodejs-04f46c6/qrcode.min.js"></script> <!-- QR Generator -->
     <script src="src/scripts/extern/html5-qrcode.min.js"></script> <!-- QR Scanner -->
     <script src="src/scripts/extern/lz-string-1.5.0/libs/lz-string.min.js"></script>
     <script src="src/scripts/extern/flubber/build/flubber.min.js"></script>
+	<script src="src/scripts/extern/editor/editor.bundle.js"></script>
     <!------------------------ Matomo ------------------------------->
-    <script src="src/scripts/utils/matomoHelper.js"></script>
     <script>loadMatomo()</script>
+    <!----------------------- Pages base classes --------------------->
+    <script src="src/pages/functionsInterface.js"></script>
+    <script src="src/pages/content.js"></script>
+    <script src="src/pages/page.js"></script>
+    <script src="src/pages/selector.js"></script>
+    <script src="src/pages/modal.js"></script>
+    <script src="src/modals/modals.bundle.js"></script>
+    <!----------------------- Pages ---------------------------------->
+    <!--- tools --->
+    <script src="src/pages/tools/tools.bundle.js"></script>
+    <!--- navigation --->
+    <script src="src/pages/navigation/navigation.bundle.js"></script>
+    <!--- navigation --->
+    <script src="src/pages/settings/settings.bundle.js"></script>
+    <!--- about --->
+    <script src="src/pages/about/about.bundle.js"></script>
+    <!--- editor --->
+    <script src="src/pages/editor/editor.bundle.js"></script>
+    <!--- cheat sheet --->
+    <script src="src/pages/cheatSheet/cheatSheet.bundle.js"></script>
+    <!--- landing --->
+    <script src="src/pages/landing/landing.bundle.js"></script>
+    <!--  select  -->
+    <script src="src/pages/select/select.bundle.js"></script>
+    <!--  loading page  -->
+    <script src="src/pages/loadingSometing/loadingSometing.bundle.js"></script>
+    <!--  simplifier  -->
+    <script src="src/pages/simplifierPage.js"></script>
+    <script src="src/pages/simplifier/simplifier.bundle.js"></script>
+    <!-- loading pyodide -->
+    <script src="src/pages/loadingPyodide/loadingPyodide.bundle.js"></script>
+
+    <script src="src/scripts/main.js"></script>
 </head>
 
 <body id="bootstrap-overrides" class="bg-dark">
-
-    <!-- Info Gif Modal for simplifier, needs to be on top level (child of body) for display purposes -->
-    <div class="modal modal-sm fade" id="infoGif" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header justify-content-center" id="info-gif-header">
-                    <h5 class="modal-title" id="info-gif-title"></h5>
-                </div>
-                <div class="modal-body" id="info-gif-body">
-                    <p id="info-gif-text" class="text-center"></p>
-                    <img loading="lazy" class="img-fluid rounded mx-auto d-block" src="./src/resources/simplifier/simplifier.gif" alt="click on two elements and then on check to simplify these two elements">
-                </div>
-                <div class="modal-footer justify-content-center" id="info-gif-footer">
-                    <button id="info-gif-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Info Gif Modal for Kirchhoff's Voltage Law, needs to be on top level (child of body) for display purposes -->
-    <div class="modal modal-sm fade" id="kirchhoffVInfoGif" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header justify-content-center" id="kirchV-info-gif-header">
-                    <h5 class="modal-title" id="kirchV-info-gif-title"></h5>
-                </div>
-                <div class="modal-body" id="kirchV-info-gif-body">
-                    <p id="kirchV-info-gif-text" class="text-center"></p>
-                    <img loading="lazy" class="img-fluid rounded mx-auto d-block" src="./src/resources/simplifier/kirchhoff_v.gif" alt="select voltages in loops">
-                </div>
-                <div class="modal-footer justify-content-center" id="kirchV-info-gif-footer">
-                    <button id="kirchV-info-gif-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Info Gif Modal for Kirchhoff's Junction Law, needs to be on top level (child of body) for display purposes -->
-    <div class="modal modal-sm fade" id="kirchhoffIInfoGif" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header justify-content-center" id="kirchI-info-gif-header">
-                    <h5 class="modal-title" id="kirchI-info-gif-title"></h5>
-                </div>
-                <div class="modal-body" id="kirchI-info-gif-body">
-                    <p id="kirchI-info-gif-text" class="text-center"></p>
-                    <img loading="lazy" class="img-fluid rounded mx-auto d-block" src="./src/resources/simplifier/kirchhoff_i.gif" alt="select currents at nodes">
-                </div>
-                <div class="modal-footer justify-content-center" id="kirchI-info-gif-footer">
-                    <button id="kirchI-info-gif-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Info Gif Modal for Wheatstone, needs to be on top level (child of body) for display purposes -->
-    <div class="modal modal-sm fade" id="wheatstoneInfoModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header justify-content-center" id="wheatstone-info-gif-header">
-                    <h5 class="modal-title" id="wheatstone-info-gif-title"></h5>
-                </div>
-                <div class="modal-body" id="wheatstone-info-gif-body">
-                    <p id="wheatstone-info-gif-text" class="text-center"></p>
-                </div>
-                <div class="modal-footer justify-content-center" id="wheatstone-info-gif-footer">
-                    <button id="wheatstone-info-gif-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Extra live modal with questions, needs to be on top level (child of body) for display purposes -->
-    <div class="modal modal-sm fade" id="extraLiveModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header justify-content-center" id="extra-live-header">
-                    <h5 class="modal-title" id="extra-live-title"></h5>
-                </div>
-                <div class="modal-body" id="extra-live-body">
-                    <p id="extra-live-text" class="text-center"></p>
-                    <img loading="lazy" id="extra-live-mascot-img" style="margin-top: -100px; transform: rotate(6deg) translate(-5px, 30px) scale(0.5)" class="img-fluid rounded mx-auto d-block" src="./src/resources/mascot/sad.svg" alt="mascot_sad">
-                    <p id="extra-live-question" class="text-center"></p>
-                    <div class="container" style="text-align: center;">
-                        <div class="row">
-                            <div class="col-sm" id="saveLive1">
-                                1
-                            </div>
-                            <div class="col-sm" id="saveLive2">
-                                2
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm" id="saveLive3">
-                                3
-                            </div>
-                            <div class="col-sm" id="saveLive4">
-                                4
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer justify-content-center" id="extra-live-footer">
-                    <button id="extra-live-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Out of lives modal, needs to be on top level (child of body) for display purposes -->
-    <div class="modal modal-sm fade" id="gameOverModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header justify-content-center" id="game-over-header">
-                    <h5 class="modal-title" id="game-over-title"></h5>
-                </div>
-                <div class="modal-body" id="game-over-body">
-                    <p id="game-over-text" class="text-center"></p>
-                    <img loading="lazy" id="game-over-mascot-img" style="margin-top: -100px; transform: rotate(6deg) translate(-5px, 30px) scale(0.5)" class="img-fluid rounded mx-auto d-block" src="./src/resources/mascot/sad.svg" alt="mascot_sad">
-                </div>
-                <div class="modal-footer justify-content-center" id="game-over-footer">
-                    <button id="game-over-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- How to upload modal, needs to be on top level (child of body) for display purposes -->
-    <div class="modal modal-sm fade" id="uploadModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header justify-content-center" id="upload-modal-header">
-                    <h5 class="modal-title" id="upload-modal-title"></h5>
-                </div>
-                <div class="modal-body" id="upload-modal-body">
-                    <p id="upload-modal-text" class="text-center"></p>
-                </div>
-                <div class="modal-footer justify-content-center" id="upload-modal-footer">
-                    <button id="upload-modal-close-btn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schlie&szligen</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Navbar Navigation -->
-    <nav class="navbar fixed-top navbar-dark bg-dark p-2" id="navbar">
+    <nav class="navbar fixed-top navbar-dark bg-dark p-2 user-select-none" id="navbar">
         <div style="display: flex; gap: 10px;">
             <button id="nav-toggler" class="navbar-toggler" style="border: 1px solid transparent" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
         </div>
         <a class="navbar-brand" id="nav-logo">simpliPFy</a>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="collapse navbar-collapse mt-1" id="navbarSupportedContent">
             <ul class="navbar-nav">
                 <li class="nav-item">
                     <a class="nav-link navigation mt-4 p-0" id="nav-home"><span class="sr-only"></span></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link navigation m-0 p-0" id="nav-select"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link navigation m-0 p-0" id="nav-editor"></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link navigation m-0 p-0" id="nav-cheat"></a>
@@ -309,9 +125,6 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link navigation m-0 p-0" id="nav-tools"></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link navigation m-0 p-0" id="nav-news"></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link navigation m-0 p-0" id="nav-about"></a>
@@ -334,31 +147,29 @@
                 <li>
                     <div id="lang-dropdown" class="dropdown">
                         <a class="dropdown-toggle" style="color: white" id="Dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="src/resources/navigation/uk.png" id="activeLanguageFlag" class="flag" alt="englishFlag"></a>
+                            <img src="src/resources/navigation/en.png" id="activeLanguageFlag" class="flag" alt="englishFlag"></a>
                         <ul class="dropdown-menu" id="languagesDropdown" aria-labelledby="Dropdown" style="background-color: #33393f; width: min-content">
                             <li>
                                 <a id="select-english" class="d-flex lang-selector" style="text-decoration: none; color:white">
-                                    <img src="src/resources/navigation/uk.png" class="flag my-auto mx-2" alt="englishFlag">
+                                    <img src="src/resources/navigation/en.png" class="flag my-auto mx-2" alt="englishFlag">
                                     <p class="my-auto" style="font-size: 20px">English</p>
                                 </a>
                             </li>
                             <li>
                                 <a id="select-german" class="d-flex lang-selector" style="text-decoration: none; color:white">
-                                    <img src="src/resources/navigation/germany.png" class="flag my-auto mx-2" alt="germanFlag">
+                                    <img src="src/resources/navigation/de.png" class="flag my-auto mx-2" alt="germanFlag">
                                     <p class="my-auto" style="font-size: 20px">Deutsch</p>
-                                </a>
-                            </li>
-                            <li>
-                                <a id="select-french" class="d-flex lang-selector" style="text-decoration: none; color:white">
-                                    <img src="src/resources/navigation/french.png" class="flag my-auto mx-2" alt="frenchFlag">
-                                    <p class="my-auto" style="font-size: 20px">Francais</p>
                                 </a>
                             </li>
                         </ul>
                     </div>
                 </li>
-                <a id="nav-dataprivacy" style="color: gray" class="mt-3 mb-0 pb-0" href="datenschutz.html">Datenschutz</a>
-                <a id="nav-legal" style="color: gray" class="mt-1 pt-0 mb-0 pb-0" href="impressum.html">Impressum</a>
+                <li class="nav-item">
+                    <a id="nav-dataprivacy" style="color: gray" class="nav-link mt-3 mb-0 pb-0" href="datenschutz.html">Datenschutz</a>
+                </li>
+                <li class="nav-item">
+                    <a id="nav-legal" style="color: gray" class="nav-link mt-1 pt-0 mb-0 pb-0" href="impressum.html">Impressum</a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -367,68 +178,25 @@
     <!--####################################################################################################
     ####################################        Landing page       #########################################
     #####################################################################################################-->
-    <div class="container-fluid m-0 p-0 text-center justify-content-center" id="landing-page-container">
-
-        <div class="container-fluid bg-warning pb-2 mb-0" id="landing-page-welcome-image">
-            <!--img loading="eager" style="height: 300px" class="pt-2" src="src/resources/landingpage/Bild26.png" alt="smartphone-and-tablet-example"-->
-            <!-- Welcome page carousel, data-bs-interval is used to set cycle time when images switch-->
-            <div id="myCarousel" class="carousel slide pt-2 carousel-fade" data-bs-ride="carousel" data-bs-interval="3000" data-bs-pause="false">
-                <div class="carousel-inner" id="landing-page-carousel">
-                    <div class="carousel-item active">
-                        <!-- loading set to eager to have image displayed before carousel is displayed -->
-                        <img loading="eager" src="src/resources/landingpage/Bild2.png">
-                    </div>
-                </div>
-            </div>
-
-            <p class="pt-2" id="heading-logo">simpliPFy</p>
-            <p id="landing-page-greeting" class="pb-2 px-5"></p>
-        </div>
-
-        <div class="container-fluid py-5" id="start-container">
-            <button class="btn my-4 px-5" id="start-button">START</button>
-        </div>
-
-        <div class="container-fluid py-5 feature-container" id="feature-container1">
-            <p class="feature-heading" id="key-feature1heading"></p>
-            <p class="feature-body px-5" id="key-feature1"></p>
-        </div>
-        <div class="container-fluid py-5 feature-container" id="feature-container2">
-            <p class="feature-heading" id="key-feature2heading"></p>
-            <p class="feature-body px-5" id="key-feature2"></p>
-        </div>
-        <div id="trigger"></div>
-        <div class="container-fluid py-5 feature-container" id="feature-container3">
-            <p class="feature-heading" id="key-feature3heading"></p>
-            <p class="feature-body px-5" id="key-feature3"></p>
-        </div>
-        <div class="container-fluid pt-5 pb-4">
-            <p id="landing-page-explanation1" class="my-0 px-5 mx-auto" style="max-width: 750px"></p>
-            <div id="landing-image-wrapper" style="position: relative; display: inline-block;">
-                <img id="landing-page-image" src="src/resources/landingpage/Bild26.png" class="img-fluid pt-3" alt="overview">
-            </div>
-        </div>
-    </div>
+    <div class="container-fluid m-0 p-0 text-center justify-content-center" id="landing-page-container" style="display: none;"></div>
 
     <!--####################################################################################################
    ###################################        Selection page       #########################################
    #####################################################################################################-->
     <!-- Specific circuits will be added with the selectorBuilder.js -->
-    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="select-page-container">
-        <div id="pgr-bar-container" class="container-fluid">
-            <div class="progress my-4">
-                <div id="pgr-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar"
-                     style="width: 0" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                </div>
-            </div>
-            <div id="progress-bar-note" class="justify-content-center"></div>
-        </div>
-    </div>
+    <div class="container-fluid m-0 p-3 text-center justify-content-center bg-dark user-select-none" id="select-page-container" style="display: none;"></div>
+
+    <!--####################################################################################################
+    ###################################        Selection page skeleton      ################################
+    #####################################################################################################-->
+    <!-- Specific circuits will be added with the selectorBuilder.js -->
+    <div class="container-fluid m-0 p-3 text-center justify-content-center bg-dark" id="select-page-skeleton-container" style="display: none;"></div>
 
     <!--####################################################################################################
     ###################################           Simplifier page        #########################################
     #####################################################################################################-->
-    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="simplifier-page-container">
+    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="simplifier-page-container"
+         style="display: none;">
         <div class="container-fluid pb-5 mb-5">
             <div class="col justify-content-center" id="content-col">
                 <!-- content is added step by step -->
@@ -439,120 +207,55 @@
     <!--####################################################################################################
     ###################################           Upload page        #########################################
     #####################################################################################################-->
-    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="upload-page-container">
+    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="upload-page-container" style="display: none;">
     </div>
 
     <!--####################################################################################################
     ###################################           Tools page        #########################################
     #####################################################################################################-->
-    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="tool-page-container">
+    <div class="container-fluid m-0 p-3 text-center justify-content-center bg-dark" id="tool-page-container" style="display: none;">
     </div>
 
     <!--####################################################################################################
     ###################################           Settings page        #####################################
     #####################################################################################################-->
-    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="settings-page-container">
+    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="settings-page-container" style="display: none;">
     </div>
 
     <!--####################################################################################################
-    ###################################           News page        #########################################
+    ###################################           Editor sheet      #########################################
     #####################################################################################################-->
-    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="news-page-container">
-        <div class="container-fluid pb-5 mb-5" style="max-width: 600px;">
-            <h1 id="news-heading" class="mb-4"></h1>
-            <div id="news-text"></div>
+    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="editor-page-container" style="display: none;">
+        <div id="editor-page-editor" class="container-fluid pb-0">
+            <input type="hidden" class="schematic" height='460' width='800' />
         </div>
     </div>
 
     <!--####################################################################################################
     ###################################           Cheat sheet      #########################################
     #####################################################################################################-->
-    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="cheat-sheet-container">
-        <div class="container-fluid pb-5 mb-5" style="max-width: 600px;">
-
-            <p id="substitutionTableHeading" class="big-heading"></p>
-            <div class="table-responsive">
-                <table class="table table-dark">
-                    <thead>
-                    <tr>
-                        <th scope="col" id=""></th>
-                        <th scope="col" id="seriesHeading"></th>
-                        <th scope="col" id="parallelHeading"></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <th scope="row" id="subTableResHeading"></th>
-                        <td id="resistorSeries"></td>
-                        <td id="resistorParallel"></td>
-                    </tr>
-                    <tr>
-                        <th scope="row" id="subTableCapHeading"></th>
-                        <td id="capacitorSeries"></td>
-                        <td id="capacitorParallel"></td>
-                    </tr>
-                    <tr>
-                        <th scope="row" id="subTableIndHeading"></th>
-                        <td id="inductorSeries"></td>
-                        <td id="inductorParallel"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <br><br><br>
-
-            <p id="resistanceReactanceTableHeading" class="big-heading"></p>
-            <div class="table-responsive">
-                <table class="table table-dark">
-                    <thead>
-                    <tr>
-                        <th scope="col"></th>
-                        <th scope="col" id="resistance"></th>
-                        <th scope="col" id="reactance"></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <th scope="row" id="resistor"></th>
-                        <td id="resistorResistance"></td>
-                        <td id="resistorReactance"></td>
-                    </tr>
-                    <tr>
-                        <th scope="row" id="capacitor"></th>
-                        <td id="capacitorResistance"></td>
-                        <td id="capacitorReactance"></td>
-                    </tr>
-                    <tr>
-                        <th scope="row" id="inductor"></th>
-                        <td id="inductorResistance"></td>
-                        <td id="inductorReactance"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <p id="pRX"></p>
-            <br><br><br>
-
-            <p id="wheatstoneFormulaHeading" class="big-heading"></p>
-            <p id="wheatstoneFormula"></p>
-        </div>
-    </div>
+    <div class="container-fluid m-0 p-3 text-center justify-content-center bg-dark" id="cheat-sheet-container" style="display: none;"></div>
 
     <!--####################################################################################################
    ###################################           ABOUT           #########################################
    #####################################################################################################-->
-    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="about-page-container">
-        <div class="container-fluid pb-5 mb-5" style="max-width: 600px;">
-            <h1 style="color: #ffc107">simpliPFy</h1>
-            <p id="about-text"></p>
-        </div>
-    </div>
+    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="about-page-container" style="display: none;"></div>
+
+    <!--####################################################################################################
+   ###################################           Loading Page           ####################################
+   #####################################################################################################-->
+    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="loading-page-container"></div>
+
+    <!--####################################################################################################
+    ###################################           Loading Pyodide Page           ###########################
+    #####################################################################################################-->
+    <div class="container-fluid m-0 p-0 text-center justify-content-center bg-dark" id="loading-pyodide-page-container"></div>
+
+    <!-- Bootstrap Import -->
+    <script src="src/scripts/extern/bootstrap.bundle.min.js"></script>
 
     <script>
         main();
     </script>
-
-    <!-- Bootstrap Import -->
-    <script src="src/scripts/extern/bootstrap.bundle.min.js"></script>
 </body>
 </html>
