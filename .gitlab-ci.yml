@@ -135,7 +135,6 @@ deploy-release:
 
   script:
     - echo "Checking out tag $CI_COMMIT_TAG..."
-    - git fetch --tags  # Fetch tags to ensure they are available
     - git checkout $CI_COMMIT_TAG  # Checkout the tag
     - python ./Pyodide/Scripts/cli/release.py --target simplipfy
 
