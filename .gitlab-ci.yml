@@ -117,7 +117,7 @@ deploy-profSky:
     - git checkout $(git rev-list --tags --max-count=1)
     - cd ..
     - git commit --amend -m "${commitMsg}"
-    - git push https://thehowland:${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
+    - git push https://${PAT_TH}@github.com/prof-sky/simplipfy.git temp:main --force
 
 
   rules:
