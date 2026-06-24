@@ -222,7 +222,7 @@ function speedModeTimeoutHandler() {
     let checkBtn = document.getElementById("check-btn");
     checkBtn?.classList.add("disabled");
     // Show message
-    setTimeout(() => {showMessage(languageManager.currentLang.alerts.speedModeTooSlow, "warning")}, 0);
+    UserMessage.warning(languageManager.currentLang.alerts.speedModeTooSlow);
     let speedModeBar = document.getElementById("speedModeBar");
     speedModeBar?.remove();
     setTimeout(() => {

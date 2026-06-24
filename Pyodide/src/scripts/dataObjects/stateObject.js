@@ -8,15 +8,6 @@ class StateObject {
     loadingProgress = 0;
     /** @type {boolean} */
     selectPageBuild = false;
-    /** @type {Promise} */
-    overviewSvgsLoadedPromise = null;
-    /** @type {boolean} */
-    //true when the python file with the object used on the simplifier pages is loaded and ready to use with pyodide
-    solverLoaded = false;
-
-    // Map to store interval ids for tracking qr codes
-    /** @type {Map<string, int>} */
-    trackerIntervalMap = new Map();
 
     //Tracks the current step in the circuit simplification process.
     /** @type {int} */
@@ -24,7 +15,7 @@ class StateObject {
 
     // Stores the circuit infos (source voltage, components, omega_0, ...)
     /** @type {StepObject} */
-    step0Data = {};
+    step0Data = new StepObject();
 
     //Array to store selected elements in the circuit.
     /** @type {Array<string>} */
@@ -47,23 +38,27 @@ class StateObject {
     /** @typedef APIs
      * @property {PyodideAPI | null} pyodide
      * @property {DrawingConfigAPI | null} drawingConfig
+     * @property {SVGGeneratorAPI | null} svgGenerator
      * */
     /** @type {APIs} */
     apis= {
         pyodide: null,
         drawingConfig: null,
+        svgGenerator: null
     }
 
     /** @typedef Solvers
      * @property {KirchhoffSolverAPI | null} kirchhoff
      * @property {StepSolverAPI | HardcodedStepSolverAPI} stepwise
      * @property {WheatstoneSolverAPI | null} wheatstone
+     * @property {MagneticSolverAPI | null} magnetic
      * */
     /** @type {Solvers} */
     solvers= {
         stepwise: new HardcodedStepSolverAPI(),
         kirchhoff: null,
         wheatstone: null,
+        magnetic: null,
     }
     solversReady = false;
 
@@ -97,15 +92,9 @@ class StateObject {
     kirchhoffAddTime = new TimeVal(1000); // ms per element
     timeSliderStepSize = new TimeVal(500);
 
-    options = []; // List of possible wheatstone circuits
-    currentOption = 0; // Current option
     unknown = ""; // Unknown variable
 
-    //Boolean to track if the Pyodide environment is ready.
-    pyodide = null;
-    pyodideReady = false;
-
-    selectorsBuild = false;
+    backendReady = false;
 
     //To count how many svgs are on the screen right now
     pictureCounter = 0;
@@ -119,7 +108,13 @@ class StateObject {
     selectedZipDir = null;
 
     fileForQrCode = null;
-    html5QrCode = null;
+
+    /** @type {string} */
+    netlistForQrCode = "";
+
+    /** @type {QrTrackingData | EmptyQrTrackingData} */
+    trackingData = new EmptyQrTrackingData();
+
     isScanning = false;
 
     selectedSvgsZip = null;

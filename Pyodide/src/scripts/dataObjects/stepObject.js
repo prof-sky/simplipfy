@@ -66,6 +66,19 @@ class StepObject {
     gSvgData= "<svg></svg>"
     /** @type {boolean} */
     isGeneralized= false
+    /** @type {"R" | "L" | "C" | "Z" | "RL" | "RC" | "LC" | "RLC" | "undefined"} */
+    componentTypes
+
+    /** @type {Array<Source>} */
+    sources
+
+    // Magnetic params
+    /** @type {string} */
+    coreRelations = "undefined"
+    /** @type {string} */
+    coreSVGData= "<svg></svg>"
+    /** @type {string} */
+    translatedSVGData= "<svg></svg>"
 
 
     constructor(object) {

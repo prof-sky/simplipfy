@@ -92,43 +92,7 @@ function pushCircuitEventMatomo(action, value=-1) {
     pushEventToMatomo(mappedCategory, action, circuitName, value);
 
     // Send event to session database if sessionId is set
-    if (state.sessionId) {
-        let text = action;
-        // Show which elements were selected
-        if (action === circuitActions.ErrCanNotSimpl) {
-            text += " ("
-            state.selectedElements.forEach((el) => {
-                text += el + ", ";
-            });
-            // Remove the last comma and space
-            text = text.slice(0, -2);
-            text += ")";
-        } else if (action === circuitActions.InvalidVoltageLoop) {
-            // TODO fix Uges = U1 error. Tracking shows Uges as U1
-            text += " ("
-            state.selectedElements.forEach((el) => {
-                // Extract the number from the element name
-                const match = el.match(/\d+/);
-                el = "U" + `${parseInt(match[0], 10)}`;
-                text += el + ", ";
-            });
-            // Remove the last comma and space
-            text = text.slice(0, -2);
-            text += ")";
-        } else if (action === circuitActions.InvalidJunction) {
-            text += " ("
-            state.selectedElements.forEach((el) => {
-                // Extract the number from the element name
-                const match = el.match(/\d+/);
-                el = "I" + `${parseInt(match[0], 10)}`;
-                text += el + ", ";
-            });
-            // Remove the last comma and space
-            text = text.slice(0, -2);
-            text += ")";
-        }
-        sendEventToDB(text);
-    }
+    TrackingDB.sendCircuitAction(action);
 }
 
 function pushLanguageEventMatomo(language) {
@@ -151,6 +115,7 @@ function mapCategory(category) {
     if (["kirch"].includes(category)) return eventCategories.Kirchhoff;
     if (["wheat"].includes(category)) return eventCategories.Wheatstone;
     if (["simplifier"].includes(category)) return eventCategories.Simplifier;
+    if (["qr"].includes(category)) return eventCategories.Simplifier;
     console.log("Category not possible, check: " + category);
     return null;
 }

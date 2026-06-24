@@ -30,16 +30,15 @@ class SelectModeModal extends ModalContent {
             // specific errors for stepwise
             if (solver === 'stepwise'){
                 if(components.filter(c => c.type === 'v').length >= 2) {
-                    setTimeout(() => { showMessage(i18n.double_source, 'warning', false)});
+                    UserMessage.warning(i18n.double_source);
                     return true;
                 }
+
             }
             // specific errors for kirchhoff
             else if (solver === 'kirchhoff'){
                 if (components.filter(c => c.type === 'c' || c.type === 'l').length > 0) {
-                    setTimeout(() => {
-                        showMessage(i18n.wrong_component, 'warning', false)
-                    });
+                    UserMessage.warning(i18n.wrong_component)
                     return true;
                 }
             }
@@ -48,11 +47,11 @@ class SelectModeModal extends ModalContent {
             let nullMsg = `null_value_${solver}`
             for (let c of components){
                 if(c.type === 'v' && (c.properties['value'] === 'dc(0)' || c.properties['value'] === 'sin(0,0,0)' || c.properties['value'] === '')) {
-                    setTimeout(() => { showMessage(i18n[nullMsg], 'warning', false)});
+                    UserMessage.warning(i18n[nullMsg])
                     return true;
                 }
                 if(c.type !== 'v' && c.properties[c.type] === "0" || c.properties[c.type] === '') {
-                    setTimeout(() => { showMessage(i18n.null_value_stepwise, 'warning', false)});
+                    UserMessage.warning(i18n.null_value_stepwise)
                     return true;
                 }
             }
@@ -60,7 +59,13 @@ class SelectModeModal extends ModalContent {
 
         body.querySelector(".simplifier").addEventListener("click", async () => {
             let netlist = converter.convertNetlist('');
+            if (netlist === undefined ){
+                UserMessage.warning(i18n.undefined_netlist)
+                return;
+            }
             await startFromEditor(netlist);
+            state.currentCircuitMap.selectorGroup = ScannedCircuitMap.getSelectorGroup(netlist);
+
             if(returnErrors(comp, 'stepwise')) return;
             pageManager.pages.stepwisePage.reset()
             await pageManager.changePage(pageManager.pages.stepwisePage)
@@ -68,23 +73,11 @@ class SelectModeModal extends ModalContent {
         })
 
         body.querySelector(".symbolic").addEventListener("click", async () => {
-            // let countC = 0;
-            // let countV = 0;
-            // for (let c of comp){
-            //     if(['v', 'c', 'l', 'r'].includes(c.type)){
-            //         countC++;
-            //         if(c.type === 'v' && c.properties['value'] === 'dc(0)' || c.properties['value'] === 'sin(0,0,0)') countV++;
-            //         if(c.type === 'r' && c.properties['r'] === "0") countV++;
-            //         if(c.type === 'c' && c.properties['c'] === "0") countV++;
-            //         if(c.type === 'l' && c.properties['l'] === "0") countV++;
-            //     }
-            // }
-            // if(countC !== countV) {
-            //     setTimeout(() => { showMessage(i18n.value_symbolic, 'warning', false)});
-            //     return;
-            // }
-
             let netlist = converter.convertNetlist('sym');
+            if (netlist === undefined ){
+                UserMessage.warning(i18n.undefined_netlist)
+                return;
+            }
             await startFromEditor(netlist);
             state.currentCircuitMap.selectorGroup = window.definitions.selectorIDs.symbolic;
             pageManager.pages.stepwisePage.reset()
@@ -94,7 +87,12 @@ class SelectModeModal extends ModalContent {
 
         body.querySelector(".kirchhoff").addEventListener("click", async () => {
             let netlist = converter.convertNetlist('');
+            if (netlist === undefined ){
+                UserMessage.warning(i18n.undefined_netlist);
+                return;
+            }
             await startFromEditor(netlist);
+            state.currentCircuitMap.selectorGroup = window.definitions.selectorIDs.kirchhoff;
             if(returnErrors(comp, 'kirchhoff')) return;
             pageManager.pages.kirchhoffPage.reset()
             await pageManager.changePage(pageManager.pages.kirchhoffPage)

@@ -6,12 +6,12 @@ class Configurations {
     //this could be a class that returns <path>+/<name> for path and <name> for name but for simplicity’s sake it is not
     //path does include the name
     pyodide = {
-        paths : {workingDir: "", circuits: "", simplipfyAPI: "", solutions: ""},
+        paths : {workingDir: "", circuits: "", simplipfyAPI: "", solutions: "", tutorials: ""},
         names : {circuits: "", simplipfyAPI: "", solutions: ""}
     }
     server = {
-        paths : {workingDir: "", circuits: "", simplipfyAPI: "", packages: ""},
-        names : {circuits: "", simplipfyAPI: "", packages: ""},
+        paths : {workingDir: "", circuits: "", simplipfyAPI: "", packages: "", tutorials: ""},
+        names : {circuits: "", simplipfyAPI: "", packages: "", tutorials: ""},
     }
     wheatstone = {
         names : {optionsExtension : ""}
@@ -33,6 +33,9 @@ class Configurations {
     page = {
         // time in ms before a page load is aborted
         values: {/** @type {int} */timeout: 20e3}
+    }
+    worker = {
+        request: {/** @type {int} */timeout: 5e3}
     }
     editor = {
         paths : {dir: ""},
@@ -73,7 +76,14 @@ class Configurations {
         }
         this.server.names.circuits = circuitsServerName;
 
+        let tutorialServerName = conf["server.names.tutorials"]
+        if (!tutorialServerName.endsWith(".zip")) {
+            tutorialServerName = tutorialServerName + ".zip";
+        }
+        this.server.names.tutorials = tutorialServerName;
+
         this.server.paths.circuits = this.server.names.circuits;
+        this.server.paths.tutorials = this.server.names.tutorials;
         this.server.names.simplipfyAPI = conf["server.names.simplipfyAPI"];
         this.server.paths.simplipfyAPI = this.gitHubProject + this.server.names.simplipfyAPI;
         this.server.names.packages = conf["server.names.packages"];
@@ -88,6 +98,8 @@ class Configurations {
 
         this.pyodide.names.circuits = this.server.names.circuits.replace(".zip", "");
         this.pyodide.paths.circuits = basePath + this.pyodide.names.circuits;
+        this.pyodide.names.tutorials = this.server.names.tutorials.replace(".zip", "");
+        this.pyodide.paths.tutorials = basePath + this.pyodide.names.tutorials;
         this.pyodide.names.solutions = conf["pyodide.names.solutions"];
         this.pyodide.paths.solutions = basePath + this.pyodide.names.solutions;
         this.pyodide.names.simplipfyAPI = this.server.names.simplipfyAPI;
@@ -110,6 +122,7 @@ class Configurations {
         this.editor.paths.dir = basePath + this.editor.names.dir;
 
         this.page.values.timeout = Number.parseInt(conf["page.values.timeout"]);
+        this.worker.request.timeout = Number.parseInt(conf["worker.request.timeout"]);
     }
 
     async loadConf() {

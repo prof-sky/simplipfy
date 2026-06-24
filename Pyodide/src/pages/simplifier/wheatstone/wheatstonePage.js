@@ -7,7 +7,7 @@ class WheatstonePage extends SimplifierPage{
         let content = {
         }
         // <pageName>-page-container (id of div on index.htlm)
-        super(content, "WheatstonePage");
+        super(content, "WheatstonePage", window.definitions.selectorIDs.wheatstone);
     }
 
     reset(calledFromResetBtn){
@@ -56,23 +56,9 @@ class WheatstonePage extends SimplifierPage{
         catch(error){
             console.trace(error)
             console.error("Error starting Wheatstone: " + error);
-            setTimeout(() => {
-                showMessage(error, "error", false);
-            }, 0);
+            UserMessage.error(error);
             pushErrorEventMatomo(errorActions.wheatstoneStartError, error);
         }
-    }
-
-    updateLang() {
-        super.updateLang();
-    }
-
-    updateColor() {
-        super.updateColor();
-    }
-
-    addEventListeners() {
-        super.addEventListeners();
     }
 
     afterPyodideLoaded() {

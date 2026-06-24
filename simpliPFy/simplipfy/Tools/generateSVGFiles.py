@@ -5,6 +5,9 @@ from simplipfy.Tools.forceDrawing import forceDrawing
 from simplipfy.Tools.printColored import cPrint
 from simplipfy.Tools.validateCircuitFile import ValidateCircuitFile
 from pathlib import Path
+
+from simplipfy.Tools.validateMagneticFile import ValidateMagneticFile
+
 curFile: str = ""
 project_root = Path(__file__).parents[3]
 circuitFiles = project_root/"Pyodide"/"Circuits"
@@ -80,20 +83,29 @@ class SVGFileGenerator:
         folder, file = os.path.split(filePath)
         baseName, ext = os.path.splitext(file)
 
-        if not os.path.isfile(os.path.join(self.folderPath, filePath)):
+        fullPath = os.path.join(self.folderPath, filePath)
+        if not os.path.isfile(fullPath):
             cPrint(f"File {filePath} not found")
             return 1
-
         print(f"generating: {os.path.join(folder, baseName + '.svg')}")
-        if not ValidateCircuitFile(fileName=file, filePath=os.path.join(self.folderPath, folder)).isValid():
+
+        # --- read file first ---
+        with open(fullPath, "r") as f:
+            netlist = f.read()
+
+        # --- detect magnetic flag ---
+        is_magnetic = netlist.lower().startswith("#magnetic")
+        if is_magnetic:
+            if not ValidateMagneticFile(fileName=file, filePath=os.path.join(self.folderPath, folder)).isValid():
+                self.failedFiles.append(filePath)
+                return 2
+        elif not ValidateCircuitFile(fileName=file, filePath=os.path.join(self.folderPath, folder)).isValid():
             self.failedFiles.append(file)
             return 2
+
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-
-                with open(os.path.join(self.folderPath, filePath), "r") as f:
-                    netlist = f.read()
 
                 drawingConfig = ""
                 if netlist[0] == "#":

@@ -1,3 +1,11 @@
+/**
+ * @typedef {HTMLButtonElement & {
+ *   dataset: DOMStringMap & {
+ *     bsSlideTo: string
+ *   }
+ * }} CarouselIndicatorButton
+ */
+
 /** Builds and manages the carousel that is displayed in each accordion item e.g. on the learn page (in code {@link SelectPage}) */
 class SelectorCarousel {
     /** @type {HTMLDivElement} */
@@ -10,6 +18,8 @@ class SelectorCarousel {
     indicatorsDiv;
     /** @type {HTMLDivElement} */
     carousel;
+    /** @type {bootstrap.Carousel} */
+    bootstrapCarousel;
     /** @type {HTMLDivElement} */
     innerCarousel;
     /** @type {HTMLDivElement} */
@@ -72,9 +82,9 @@ class SelectorCarousel {
     }
 
     /** @returns {HTMLElement} */
-    circuitNameContainerElement(identifier) {
+    circuitNameContainerElement(text) {
         let  tmp = document.createElement("template");
-        tmp.innerHTML = `<h5 class="inheritColors" style="margin-top: 10px;">${this.getCircuitFileName(0)}</h5>`
+        tmp.innerHTML = `<h5 class="inheritColors" style="margin-top: 10px;">${text}</h5>`
         return tmp.content.firstElementChild;
     }
 
@@ -108,10 +118,10 @@ class SelectorCarousel {
                     <span class="carousel-control-next-icon" aria-hidden="true" style="background-color: ${colors.current.prevNextBtnBackgroundColor};"></span>
                     <span class="visually-hidden">Next</span>
                 </button>
-                <div id="${this.parentDiv.id}-overlay" class="img-overlay" style="display: block; border-color: ${colors.definitions.keyYellow};">
+                <div id="${this.parentDiv.id}-overlay" class="img-overlay" style="display: flex;justify-content: center;align-items: center; border-color: ${colors.definitions.keyYellow};">
                     <button id="${this.parentDiv.id}-overlay-btn" 
                     class="btn btn-warning px-5 circuitStartBtn disabled" 
-                    style="display: inline"
+                    style="display: block"
                     data-identifier="${this.identifier}"
                     >
                         <div class="fill-layer"></div>
@@ -124,7 +134,7 @@ class SelectorCarousel {
         return template.content.firstElementChild
     }
 
-    toggleImgOverlay() {
+    hideImgOverlay(){
         let parent = this.parentDiv;
         let btn = parent.querySelector(".img-overlay").querySelector("button");
         /** @type {NodeListOf<HTMLElement>} */
@@ -133,16 +143,35 @@ class SelectorCarousel {
         let overlays = parent.querySelectorAll(".volt-freq-overlay");
         let svgs = parent.querySelectorAll("svg");
 
+        btn.style.display = "none";
+        selectors.forEach( s => (s.style.borderColor = colors.current.svgStrokeColor));
+        overlays.forEach(s => (s.style.display = "none"))
+        svgs.forEach(s => (s.style.opacity = "1"))
+    }
+
+    showImgOverlay(){
+        let parent = this.parentDiv;
+        let btn = parent.querySelector(".img-overlay").querySelector("button");
+        /** @type {NodeListOf<HTMLElement>} */
+        let selectors = parent.querySelectorAll(".svg-selector");
+        /** @type {NodeListOf<HTMLElement>} */
+        let overlays = parent.querySelectorAll(".volt-freq-overlay");
+        let svgs = parent.querySelectorAll("svg");
+
+        btn.style.display = "inline";
+        selectors.forEach(s => (s.style.borderColor = colors.definitions.keyYellow));
+        overlays.forEach(s => (s.style.display = "block"))
+        svgs.forEach(s => (s.style.opacity = "0.7"))
+    }
+
+    toggleImgOverlay() {
+        let parent = this.parentDiv;
+        let btn = parent.querySelector(".img-overlay").querySelector("button");
+
         if (btn.style.display === "inline") {
-            btn.style.display = "none";
-            selectors.forEach( s => (s.style.borderColor = colors.current.svgStrokeColor));
-            overlays.forEach(s => (s.style.display = "none"))
-            svgs.forEach(s => (s.style.opacity = "1"))
+            this.hideImgOverlay();
         } else {
-            btn.style.display = "inline";
-            selectors.forEach(s => (s.style.borderColor = colors.definitions.keyYellow));
-            overlays.forEach(s => (s.style.display = "block"))
-            svgs.forEach(s => (s.style.opacity = "0.7"))
+            this.showImgOverlay();
         }
     }
 
@@ -175,14 +204,19 @@ class SelectorCarousel {
      */
     startBtnFn(event){
         event.stopPropagation()
-        let index = Number(this.innerCarousel.querySelector(".active").dataset.index)
+        let index = Number(this.innerCarousel.querySelector(".active").dataset.index);
         this.startCircuit(index)
     }
 
     startCircuit(index){
         state.currentCircuitIndex = index;
         state.currentSelector = this.parent;
-        SimplifierPage.showSimplifierPage(this.circuitMaps[index]);
+        const cm = this.circuitMaps[index];
+
+        if (!cm.trackingId) state.trackingData = new EmptyQrTrackingData();
+        else state.trackingData = new QrTrackingData(cm.trackingId, "Scanner Carousel", undefined, cm.selectorGroup);
+
+        SimplifierPage.showSimplifierPage(cm);
     }
 
     /**
@@ -228,7 +262,7 @@ class SelectorCarousel {
 
             gridElement.appendChild(svg)
             overviewStartBtn.addEventListener("click", async (event) => {
-                this.indicatorsDiv.children[index].click();
+                this.bootstrapCarousel.to(index);
                 modalXl.hide();
                 this.startCircuit(index)
             });
@@ -317,6 +351,8 @@ class SelectorCarousel {
         this.parentDiv.appendChild(this.indicatorsDiv);
 
         this.carousel = this.createCarousel();
+        this.bootstrapCarousel = new bootstrap.Carousel(this.carousel);
+
         this.imgOverlay = this.carousel.querySelector(".img-overlay")
         this.imgOverlay.addEventListener("click", (event) => {
             this.toggleImgOverlay()
@@ -353,7 +389,7 @@ class SelectorCarousel {
         })
 
         this.parentDiv.appendChild(this.carousel);
-        this.circuitNameContainer = this.circuitNameContainerElement(this.identifier)
+        this.circuitNameContainer = this.circuitNameContainerElement(this.getCircuitFileName(0))
         this.parentDiv.appendChild(this.circuitNameContainer);
         this.parentDiv.querySelector(".image-overlay");
         let downloadingText = this.parentDiv.querySelector("p")
@@ -368,10 +404,10 @@ class SelectorCarousel {
     selectCircuitInCarousel() {
         /** @type {HTMLButtonElement} */
         let indicatorBtn = this.indicatorsDiv.querySelectorAll(":not(.done)")[0]
-        if (indicatorBtn) indicatorBtn.click()
-        else {
-            this.indicatorsDiv.firstElementChild.click();
-        }
+        if (!indicatorBtn) indicatorBtn = this.indicatorsDiv.firstElementChild;
+
+        const idx = indicatorBtn.dataset.bsSlideTo;
+        this.bootstrapCarousel.to(Number(idx));
     }
 
     updateOverviewBody(){

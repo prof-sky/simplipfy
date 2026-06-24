@@ -83,7 +83,7 @@ def buildDocs():
     if os.path.isdir(fdfp) and isGeneratedInfo:
         print("build of frontend API documentation succeeded!\n")
     else:
-        print("\n\ncheck output on console it was not expected that jsdoc generates output to the console\n")
+        print("\n\ncheck output on console it was not expected that typedoc generates output to the console\n")
 
     # check if frontend folder exists, remove if exists
     if os.path.isdir(fdbfp):

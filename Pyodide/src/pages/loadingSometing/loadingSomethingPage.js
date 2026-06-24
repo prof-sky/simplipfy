@@ -10,7 +10,7 @@ class LoadingSomethingPage extends Page{
         let content = {
             spinner: new Spinner()
         }
-        super(content, "loading-page-container");
+        super(content, "loading-page-container", "noTitle");
     }
 
     setup() {
@@ -21,10 +21,10 @@ class LoadingSomethingPage extends Page{
         super.afterSetup();
     }
 
-    show() {
+    show(animate=false) {
         let page = document.getElementById(this.id);
         page.classList.add("slide-in-right");
         page.style.display = "block";
-        return Promise.resolve(true)
+        return true;
     }
 }

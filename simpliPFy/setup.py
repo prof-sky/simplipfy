@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from setuptools import find_packages, setup
 
-__version__ = '0.2.4'
+__version__ = '0.2.8'
 
 long_description = "Backend for interactive learning environment for electrical engineering hosted at simplipfy.org"
 

@@ -1,5 +1,6 @@
 import argparse
 import os.path
+from socket import gethostname
 
 from cli.buildBundles import create_bundles, srcPath
 from cli.generateSVGFiles import SVGFileGenerator, circuitFiles
@@ -12,6 +13,8 @@ from cli.buildDocs import pdbfp as docsBuildPath
 from cli.buildDocs import buildDocs, uploadDocs
 from cli.release import makeRelease
 from cli.startServer import startServer
+from cli.dockerQuickReleaseDev import quickReleaseDev
+from cli.dockerCopyDistToDev import copyToServer
 from simpliPFyBuildTools.buildSimplipfy import build_simplipfy
 from simpliPFyBuildTools.buildSchemdrawInskale import build_schemdraw
 from simpliPFyBuildTools.buildLcapyInskale import build_lcapyInskale
@@ -124,6 +127,12 @@ languageParser.add_argument("newLang", nargs="?",
 languageParser.add_argument("--override", "-o", action="store_true", default=False,
                     help="Override existing language files, if they exists, else create a new one")
 
+###################
+# docker quick build Parser
+###################
+dockerQuickBuild = subparsers.add_parser("quickBuild")
+dockerQuickBuild.add_argument('--copy', action="store_true", default=False, help="Skip generation and only copy current dist folder to the docker server")
+
 args = mainParser.parse_args()
 if args.command == "build":
     if args.target == "bundles":
@@ -184,6 +193,18 @@ elif args.command == "language":
         if not args.newLang:
             raise ValueError("newLang is required to build a language")
         generateNewLang(args.newLang, override=args.override)
+
+elif args.command == "quickBuild":
+    if gethostname() != "simplipfyDockerContainer":
+        """
+        This only works if the server folder is directly accessible to copy files to (docker container)
+        """
+        exit("Not in simplipfy docker container")
+
+    if args.copy:
+        copyToServer()
+    else:
+        quickReleaseDev()
 
 if args.version:
     print("SimpliPFy CLI Script Version 1.0")

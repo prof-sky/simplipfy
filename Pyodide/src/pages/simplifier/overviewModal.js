@@ -7,7 +7,7 @@ class OverviewModal extends ModalContent {
         let body = this.params.get("overviewModalBody");
         let btns = body.querySelectorAll(".circuitStartBtnModal")
         for (/** @type {HTMLButtonElement} */ let btn of btns){
-            btn.disabled = !state.pyodideReady;
+            btn.disabled = !state.backendReady;
         }
         if (!body) {
             throw Error(`Could not find body with id "${body.id}"`);

@@ -1,16 +1,16 @@
 toolsDeTexts = {
     //Accordion Headings
-    genQrAccHeading:
+    qrCodeGeneratorHeading:
         "QR-Code Generator",
-    scanQRCodeAccHeading:
+    qrScannerHeading:
         "QR-Code Scanner",
-    liveDrawingAccHeading:
+    liveDrawingHeading:
         "Eigene Netzliste",
-    svgGeneratorAccHeading:
+    svgGeneratorHeading:
         "SVG-Generator",
-    trackAccHeading:
+    liveTrackerHeading:
         "QR-Code live tracking",
-    customCircuitsAccHeading:
+    customCircuitsHeading:
         "Eigene Schaltkreissammlung",
 
     //Generate Qr-Code
@@ -65,11 +65,23 @@ toolsDeTexts = {
 
     //liveTracking
     liveTrackingEvents : toolsLiveTrackingEventsDeTexts,
+    trackingPage:
+        "Tracking von Fortschritt",
+    errorSessionLimitExceeded:
+        "Der Server hat die Tracking-Anfrage abgelehnt. Bitte versuche es später erneut.",
+    actions:
+        "Ereignisse",
+    errorCantStart:
+        "Es fehlen Informationen, um das Tracking zu starten. Bitte versuchen Sie es erneut oder verwenden Sie einen anderen Link.",
 
     //helps texts on page
     helpBtn:
         "Info",
     helpTexts : toolsHelpDeTexts,
+    join:
+        "Beitreten",
+    joinSession:
+        "Sitzung beitreten",
 
     //General
     copyBtn:

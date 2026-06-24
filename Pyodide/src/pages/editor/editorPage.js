@@ -8,7 +8,7 @@ class EditorPage extends Page{
             editor: new Editor(),
         }
         // <pageName>-page-container (id of div on index.html)
-        super(content, "editor-page-container", "AboutPage");
+        super(content, "editor-page-container", "editor", "nav-editor");
     }
 
     afterPyodideLoaded() {

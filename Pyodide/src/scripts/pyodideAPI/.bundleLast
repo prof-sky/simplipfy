@@ -1,1 +1,1 @@
-hardcodedStepSolverAPI.js,kirchhoffSolverAPI.js,stepSolverAPI.js,wheatstoneSolverAPI.js
+workerCommunication.js,solverInterface.js,drawingConfigAPI.js,hardcodedStepSolverAPI.js,kirchhoffSolverAPI.js,magneticSolverAPI.js,pyodideAPI.js,stepSolverAPI.js,svgGeneratorAPI.js,wheatstoneSolverAPI.js,

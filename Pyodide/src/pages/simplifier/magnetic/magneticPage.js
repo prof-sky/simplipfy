@@ -5,59 +5,33 @@
 class MagneticPage extends SimplifierPage{
     constructor() {
         let content = {
+            "header": new MagneticHeading(),
+            "circuitContainer": new MagneticCircuitContainer(),
+            "explanation": new MagneticExplanation(),
+            "nextElements": new MagneticNextElements(),
+            "solution": new MagneticSolution(),
+            "footer": new MagneticFooter(),
+            "values": new MagneticValues(),
         }
         super(content, "MagneticPage");
     }
 
     setup() {
         if (!super.beforeSetup()) return;
-        //class specific setup of content
-
+        this.content.circuitContainer.changeElement = (classname) => this.changeElementOnList(classname);
+        this.content.nextElements.onTranslate = (toTranslate) => this.translateElements(toTranslate);
         //after content is added to page
         super.afterSetup();
     }
 
-    get step0(){
-        /** @type {string} */
-        //todo here should be the generated one
-        //let svgData = state.step0Data.svgData;
-        let svgData = state.step0Data.svgData;
-        let simplifierSVG = new SimplifierPageSVG(svgData, "Mag");
-
-        // First svg, set valuesShown to false
-        // Also set to zero if labels contain Z because they can't be toggled
-        state.valuesShown.set(simplifierSVG.div.id, false);
-
-        // SVG Data written, now add eventListeners, only afterward because they would be removed on rewrite of svgData
-        // Add button on first voltage and first current svg
-        addKirchhoffInfoHelpButton(simplifierSVG.div);
-
-        return simplifierSVG.div;
-    }
-
     async initialize() {
         if (!super.beforeInit()) return;
-
+        SimplifierPage.contentDiv.appendChild(this.content.header.setup());
         SimplifierPage.resetSolvers();
-        await state.solvers.stepwise.init(state.currentCircuitMap);
-        //class specific code
-        state.step0Data = await state.solvers.stepwise.createStep0();
-        state.currentStep = 0;
-
-        const firstStep = Containers.Circuit
-        /* todo remove this when the svg is generated correctly in backend */
-        state.step0Data.svgData = await state.currentCircuitMap.svgData();
-        firstStep.appendChild(this.step0);
-
-        this.contentDiv.appendChild(firstStep);
-
-        //let electricalElements= getElementsFromSvgContainer(document.getElementById('svgDivMag0'));
-        const nextElementsContainer = Containers.NextElements
-
-        /** @type {HTMLDivElement} */
-        // The order of function-calls is important
-        //makeElementsClickable(electricalElements, nextElementsContainer);
-        prepareNextElementsContainer(this.contentDiv, nextElementsContainer);
+        // await state.solvers.magnetic.reset();
+        // await state.solvers.magnetic.init(state.currentCircuitMap)
+        SimplifierPage.contentDiv.appendChild(this.content.circuitContainer.setup());
+        SimplifierPage.contentDiv.appendChild(this.content.nextElements.setup());
 
         super.afterInit();
     }
@@ -67,24 +41,45 @@ class MagneticPage extends SimplifierPage{
         this.isInitialized = false;
     }
 
+    changeElementOnList(classname) {
+        this.content.nextElements.changeElementOnList(classname);
+    }
+
+    translateElements(toTranslate){
+        //
+        // let result = await state.solvers.magnetic.check(state.selectedElements);
+        //
+        // if (!result.success) {
+        //     setTimeout(() => {
+        //         showMessage(languageManager.currentLang.alerts.canNotSimplify, "error",)
+        //     }, 0);
+        //     return;
+        // }
+
+        this.addNextStep(toTranslate);
+    }
+
+    addNextStep(toTranslate) {
+        this.content.circuitContainer.disable();
+
+        let newExplanation = new MagneticExplanation();
+        SimplifierPage.contentDiv.appendChild(newExplanation.setup());
+
+        let newCircuit = new MagneticCircuitContainer();
+        newCircuit.changeElement = (classname) => this.changeElementOnList(classname);
+        SimplifierPage.contentDiv.appendChild(newCircuit.setup(toTranslate));
+        this.content.circuitContainer = newCircuit; // update the reference
+
+        SimplifierPage.contentDiv.appendChild(this.content.nextElements.root);
+
+        this.content.nextElements.clearList();
+    }
+
     resetBtn() {
 
-    }
-
-    updateLang() {
-        super.updateLang();
-    }
-
-    updateColor() {
-        super.updateColor();
-    }
-
-    addEventListeners() {
-        super.addEventListeners();
     }
 
     afterPyodideLoaded() {
 
     }
-
 }

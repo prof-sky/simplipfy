@@ -3,14 +3,10 @@ class Descriptions extends Content{
         let idLangMap = new Map([
             ["qr-gen-head-id", () => languageManager.currentLang.toolsPage.descrTexts.qrGenHead],
             ["qr-gen-text-id", () => languageManager.currentLang.toolsPage.descrTexts.qrGenText],
-            ["qr-scan-head-id", () => languageManager.currentLang.toolsPage.descrTexts.qrScanHead],
-            ["qr-scan-text-id", () => languageManager.currentLang.toolsPage.descrTexts.qrScanText],
             ["track-view-head-id", () => languageManager.currentLang.toolsPage.descrTexts.trackViewerHead],
             ["track-view-text-id", () => languageManager.currentLang.toolsPage.descrTexts.trackViewerText],
             ["live-draw-head-id", () => languageManager.currentLang.toolsPage.descrTexts.liveDrawHead],
             ["live-draw-text-id", () => languageManager.currentLang.toolsPage.descrTexts.liveDrawText],
-            ["svg-gen-head-id", () => languageManager.currentLang.toolsPage.descrTexts.svgGenHead],
-            ["svg-gen-text-id", () => languageManager.currentLang.toolsPage.descrTexts.svgGenText],
             ["custom-circuit-gen-head-id", () => languageManager.currentLang.toolsPage.descrTexts.customCircuitsHead],
             ["custom-circuit-gen-text-id", () => languageManager.currentLang.toolsPage.descrTexts.customCircuitsText],
         ])
@@ -59,10 +55,8 @@ class Descriptions extends Content{
             <div class="container">
                 <div class="row g-4">
                     ${this.#generateGridToolItem("qr-gen", languageManager.currentLang.toolsPage.descrTexts.qrGenHead, languageManager.currentLang.toolsPage.descrTexts.qrGenText, path+"qrIcon.svg")}
-                    ${this.#generateGridToolItem("qr-scan", languageManager.currentLang.toolsPage.descrTexts.qrScanHead, languageManager.currentLang.toolsPage.descrTexts.qrScanText, path+"scanQR.svg")}
                     ${this.#generateGridToolItem("track-view", languageManager.currentLang.toolsPage.descrTexts.trackViewerHead, languageManager.currentLang.toolsPage.descrTexts.trackViewerText, path+"teacherLaptop.svg")}
                     ${this.#generateGridToolItem("live-draw", languageManager.currentLang.toolsPage.descrTexts.liveDrawHead, languageManager.currentLang.toolsPage.descrTexts.liveDrawText, path+"keyboard.svg")}
-                    ${this.#generateGridToolItem("svg-gen", languageManager.currentLang.toolsPage.descrTexts.svgGenHead, languageManager.currentLang.toolsPage.descrTexts.svgGenText, path+"generate.svg")}
                     ${this.#generateGridToolItem("custom-circuit-gen", languageManager.currentLang.toolsPage.descrTexts.customCircuitsHead, languageManager.currentLang.toolsPage.descrTexts.customCircuitsText, path+"customZipFile.svg")}
                 </div>
             </div>

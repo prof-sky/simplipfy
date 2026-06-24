@@ -38,7 +38,7 @@ class ResetCounters extends Content{
 
     btn(btn, id, btnText){
         btn.id = id;
-        btn.classList.add("btn", "btn-danger", "text-white", "mt-3", "px-5");
+        btn.classList.add("btn", "btn-danger", "text-white", "mt-3", "px-5", "disabled");
         btn.style.color = colors.definitions.keyDark;
         btn.innerHTML = btnText;
     }
@@ -82,17 +82,12 @@ class ResetCounters extends Content{
         storageManager.circuitsDone.resetHash(hash);
 
         selector.counters.update();
-
-        setTimeout(() => {
-            showMessage(resetMsg, "info")
-        }, 0);
+        UserMessage.info(resetMsg);
     }
 
     resetCustom(){
         if(!this.customSelector()){
-            setTimeout(() => {
-                showMessage(languageManager.currentLang.settingsPage.cantResetIfNotLoaded, "error",)
-            }, 0);
+            UserMessage.error(languageManager.currentLang.settingsPage.cantResetIfNotLoaded)
             return;
         }
         this.resetDependingOnHash(this.customSelector(), languageManager.currentLang.settingsPage.resetCustomCounters);
@@ -119,9 +114,7 @@ class ResetCounters extends Content{
         this.customSelector()?.counters.update();
         this.tutorialSelector().counters.update();
 
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.settingsPage.resetAllCounters, "info")
-        }, 0);
+        UserMessage.info(languageManager.currentLang.settingsPage.resetAllCounters);
     }
 
     addEventListeners() {

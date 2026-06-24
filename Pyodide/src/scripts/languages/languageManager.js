@@ -108,6 +108,7 @@ class LanguageManager {
     async setLang(lang){
         await this.fetchLangFiles(lang);
         this.#currLangSymbol = lang;
+        document.documentElement.lang = lang;
         this.currentLang = this.langs[lang];
         storageManager.language.save(lang);
 

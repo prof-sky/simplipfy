@@ -3,22 +3,34 @@
  * @extends Page
  */
 class ToolsPage extends Page {
+
     constructor(props) {
         let content = {
-            "qrCodeGenerator": new QrCodeGenerator(),
-            "qrScanner": new QrScanner(),
+            "qrCodeGenerator": new QrCodeGeneratorTools(),
             "liveTracker": new LiveTracker(),
             "liveDrawing": new LiveDrawing(),
-            "svgGenerator": new SvgGenerator(),
             "customCircuits": new CustomCircuits(),
             "descriptions": new Descriptions(),
             }
 
-        super(content, "tool-page-container", "ToolsPage");
+        super(content, "tool-page-container", "tools", "nav-tools");
     }
 
     updateLang() {
+        let accBtns = document.getElementsByClassName("accordion-button-tool");
+        for (let btn of accBtns) {
+            let textIdentifier = `${btn.id.split("-")[0]}Heading`;
+            btn.textContent = languageManager.currentLang.toolsPage[textIdentifier];
+        }
+
         super.updateLang();
+    }
+
+    hide() {
+        super.hide();
+        /** @type {LiveTracker} */
+        const tracker = this.content.liveTracker
+        tracker.stopUpdatingTables;
     }
 
     updateColor() {
@@ -27,13 +39,20 @@ class ToolsPage extends Page {
         super.updateColor();
     }
 
-    async show(){
-        await super.show();
+    show(animate=false){
+        super.show(animate);
+
         /** @type {Selector} */
         let selector = this.content.customCircuits.selector
         if (selector){
             selector.counters.update();
         }
+
+        /** @type {LiveTracker} */
+        const tracker = this.content.liveTracker
+        tracker.startUpdatingTables;
+
+        return true;
     }
 
     setup() {
@@ -43,12 +62,6 @@ class ToolsPage extends Page {
 
         let toolAccordion = this.#createToolAccordion();
 
-        toolAccordion.appendChild(this.content.qrCodeGenerator.setup());
-        toolAccordion.appendChild(this.content.qrScanner.setup());
-        toolAccordion.appendChild(this.content.liveTracker.setup());
-        toolAccordion.appendChild(this.content.liveDrawing.setup());
-        toolAccordion.appendChild(this.content.svgGenerator.setup());
-        toolAccordion.appendChild(this.content.customCircuits.setup());
         this.pageDiv.appendChild(toolAccordion);
 
         this.pageDiv.appendChild(this.content.descriptions.setup());
@@ -70,6 +83,47 @@ class ToolsPage extends Page {
         toolAccordion.style.maxWidth = "600px";
         toolAccordion.style.color = colors.current.foreground;
         toolAccordion.style.backgroundColor = colors.current.bsBackground;
+
+        for (const [name, tool] of Object.entries(/** @type {Map<string, AccordionContent | Content>} */ this.content)) {
+            if (name === "descriptions") continue;
+
+            let accordionHeader = document.createElement("h2");
+            accordionHeader.classList.add("accordion-header");
+            accordionHeader.id = `${name}-accordion-heading`;
+
+            let accordionBtn = document.createElement("button");
+            accordionBtn.classList.add("accordion-button", "accordion-button-tool", "collapsed");
+            accordionBtn.id = `${name}-accordion-button`;
+            accordionBtn.setAttribute("data-bs-toggle", "collapse");
+            accordionBtn.setAttribute("data-bs-target", `#${name}-accordion-collapse`);
+            accordionBtn.setAttribute("aria-expanded", "false");
+            accordionBtn.setAttribute("aria-controls", `${name}-accordion-collapse`);
+            accordionBtn.textContent = tool.heading;
+
+            accordionHeader.appendChild(accordionBtn);
+
+            let accordionCollapse = document.createElement("div");
+            accordionCollapse.classList.add("accordion-collapse", "collapse");
+            accordionCollapse.id = `${name}-accordion-collapse`;
+            accordionCollapse.setAttribute("aria-labelledby", `${name}-accordion-heading`);
+            accordionCollapse.setAttribute("data-bs-parent",  "#tool-accordion");
+
+            let accordionBody = document.createElement("div");
+            accordionBody.classList.add("accordion-body");
+            accordionBody.id = `${name}-accordion-body`;
+            accordionBody.appendChild(tool.setup());
+
+            accordionCollapse.appendChild(accordionBody);
+
+            const accordionItem = document.createElement("div");
+            accordionItem.classList.add("accordion-item");
+
+            accordionItem.appendChild(accordionHeader);
+            accordionItem.appendChild(accordionCollapse);
+
+            toolAccordion.appendChild(accordionItem);
+        }
+
         return toolAccordion;
     }
 

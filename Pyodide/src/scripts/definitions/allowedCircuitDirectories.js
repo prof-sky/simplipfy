@@ -10,5 +10,5 @@ window.definitions.allowedDirNames = {
     mixed: "mixed",
     kirchhoff: "kirchhoff",
     wheatstone: "wheatstone",
-    magnetic: "magnetic"
+    magnetic: "magnetic",
 }

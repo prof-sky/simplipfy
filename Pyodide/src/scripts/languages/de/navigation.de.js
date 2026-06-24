@@ -4,8 +4,8 @@ navigationDeTexts = {
     "simplifier": "Lernen",
     "editor": "Editor",
     "cheatsheet": "Cheatsheet",
-    "upload": "Eigene Schaltungen",
-    "tools": "Tools",
+    "tracking": "Analyse QR-Circuits",
+    "tools": "Dozenten Tools",
     "news": "Aktuelles",
     "about": "Über",
     "darkmode": "Darkmode",
@@ -13,4 +13,5 @@ navigationDeTexts = {
     "dataprivacy": "Datenschutz",
     "legal": "Impressum",
     "settings": "Einstellungen",
+    "noTitle": "",
 }

@@ -8,7 +8,7 @@ class LoadingPyodidePage extends Page{
             pgrBar: new ProgressBar(),
             note: new LoadingPyodideNote()
         }
-        super(content, "loading-pyodide-page-container");
+        super(content, "loading-pyodide-page-container", "noTitle");
     }
 
     setup() {

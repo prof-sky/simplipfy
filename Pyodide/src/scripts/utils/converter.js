@@ -12,6 +12,10 @@ class Converter{
     convertNetlist(mode) {
         // prepare netlist from editor
         this.editorNetlist = JSON.parse(state.currentEditorNetlist);
+        if(state.currentEditorNetlist.startsWith('[["view"')) {
+            UserMessage.warning(i18n.undefined_netlist);
+            return;
+        }
 
         let compCount = 0;
         let CLCount = 0;
@@ -38,23 +42,25 @@ class Converter{
         for (const i of positionComp){
             if (this.editorArray[i][2]['name'] === undefined || this.editorArray[i][2]['name'] === '') unnamedCompCount++;
             else unnamedComp = 'some';
-            if (['c'].includes(this.editorArray[i][0].toLowerCase()) && this.editorArray[i][2]["c"] === "0" ) noValueCount++;
-            if (['l'].includes(this.editorArray[i][0].toLowerCase()) && this.editorArray[i][2]["l"] === "0") noValueCount++;
-            if (['r'].includes(this.editorArray[i][0].toLowerCase()) && this.editorArray[i][2]["r"] === "0") noValueCount++;
+            if (['c'].includes(this.editorArray[i][0].toLowerCase()) && (this.editorArray[i][2]["c"] === "0" || this.editorArray[i][2]["c"] === '')) noValueCount++;
+            if (['l'].includes(this.editorArray[i][0].toLowerCase()) && (this.editorArray[i][2]["l"] === "0" || this.editorArray[i][2]["l"] === '')) noValueCount++;
+            if (['r'].includes(this.editorArray[i][0].toLowerCase()) && (this.editorArray[i][2]["r"] === "0" || this.editorArray[i][2]["r"] === '')) noValueCount++;
         }
 
         // check for unnamed and zero value sources
         for (const j of positionSource){
             if (this.editorArray[j][2]['name'] === undefined || this.editorArray[j][2]['name'] === '') unnamedCompCount++;
             else unnamedComp = 'some';
-            if ((this.editorArray[j][2]["value"] === 'dc(0)' || this.editorArray[j][2]["value"]=== 'sin(0,0,0)')) noValueCount++;
+            if (this.editorArray[j][2]["v"] === 'dc(0)' || this.editorArray[j][2]["v"] === 'sin(0,0,0)' || this.editorArray[j][2]["v"]=== '') noValueCount++;
         }
 
-        if (noValueCount < sourceCount+compCount && noValueCount !== 0){
+        if (noValueCount > 0){
             if(!confirm(i18n.null_value)){
                 return;
             }
         }
+
+
 
         if (unnamedCompCount === 0) unnamedComp = 'none';
 
@@ -277,9 +283,7 @@ class Converter{
                         if (!userAcknowledged) {
                             if (confirm(i18n.blind_Components)) userAcknowledged = true;
                             else {
-                                setTimeout(() => {
-                                    showMessage(i18n.convert_Abort)
-                                });
+                                UserMessage.warning(i18n.convert_Abort);
                                 return;
                             }
                         }
@@ -305,8 +309,8 @@ class Converter{
         let newResult = [];
 
         // get first voltage V0
-        for (let i in this.editorArray){
-            if (this.editorArray[i][0] === 'v') {
+        for (let i in result){
+            if (result[i].startsWith('V')) {
                 newResult.push(result[i]);
                 let nodeIds = result[i].split(';')[0].split(' ');
                 connectedNodeIds.push(nodeIds[1], nodeIds[2]);
@@ -328,23 +332,27 @@ class Converter{
                             connectedNodeIds.push(nodeIds[i]);
                         }
                     // add line to new result if not in yet
-                    if (!newResult.includes(line))
+                    if (!newResult.includes(line)){
                         newResult.push(line);
+                    }
                 }
             }
         }
 
-        // netlist isn't completed
+        if(newResult.length === 0){
+            UserMessage.warning(i18n.undefined_netlist);
+            return;
+        }
+
+        // netlist isn't completely named
         if(unnamedComp === 'some'){
-            setTimeout(() => {showMessage(i18n.not_named, 'warning', false)});
+            UserMessage.warning(i18n.not_named);
             return;
         }
 
         if ((this.editorArray[positionSource[0]][2]['v'].split('(')[0] === 'dc' || sourceCount > 1) && CLCount >= 1) {
             if(!confirm(i18n.potential_Errors)){
-                setTimeout(() => {
-                    showMessage(i18n.convert_Abort)
-                });
+                UserMessage.warning(i18n.convert_Abort);
                 return;
             }
         }
@@ -358,17 +366,13 @@ class Converter{
         result = result.join('\r\n');
         if (window.activeSchematic.has_short_circuit(result)){
             if(!confirm(i18n.short_Circuit)){
-                setTimeout(() => {
-                    showMessage(i18n.convert_Abort)
-                });
+                UserMessage.warning(i18n.convert_Abort);
                 return;
             }
         }
         if (window.activeSchematic.has_one_comp(result)) {
             if(!confirm(i18n.potential_Errors)){
-                setTimeout(() => {
-                    showMessage(i18n.convert_Abort)
-                });
+                UserMessage.warning(i18n.convert_Abort);
                 return;
             }
         }
@@ -379,7 +383,7 @@ class Converter{
     convertSI2value(input) {
         // abort if too many decimal dots
         if (input.match(/\./g) != null && input.match(/\./g).length > 1) {
-            setTimeout(() => { showMessage(i18n.too_many_deci + `${input}`) });
+            UserMessage.warning(i18n.too_many_deci + `${input}`);
             return;
         }
         // get value & suffix
@@ -426,7 +430,7 @@ class Converter{
                 value += 'e-12';
                 break;
             default:
-                setTimeout(() => { showMessage(i18n.unknown_SI + `${input}`)});
+                UserMessage.warning(i18n.unknown_SI + `${input}`);
                 return 'error';
         }
         // return value

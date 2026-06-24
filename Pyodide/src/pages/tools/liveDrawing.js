@@ -8,74 +8,70 @@ class LiveDrawing extends Content {
     checkboxExample = null;
     checkBoxShownodes = null;
     pyodideReady = false;
+    heading = languageManager.currentLang.toolsPage.liveDrawingHeading;
 
     constructor() {
         let idLangMap = new Map([
-            ["label-load-example", () => this.currentLang.toolsPage.example],
-            ["label-comments-switch-generalize", () => this.currentLang.toolsPage.generalize],
-            ["label-comments-switch-optimize-mobile", () => this.currentLang.toolsPage.optimizeMobile],
-            ["label-comments-switch-optimize-desktop", () => this.currentLang.toolsPage.optimizeDesktop],
-            ["label-comments-switch-shownodes", () => this.currentLang.toolsPage.showNodes],
-            ["help-track-viewer", () => languageManager.currentLang.toolsPage.helpBtn]
+            ["label-load-example", () => languageManager.currentLang.toolsPage.example],
+            ["label-comments-switch-generalize", () => languageManager.currentLang.toolsPage.generalize],
+            ["label-comments-switch-optimize-mobile", () => languageManager.currentLang.toolsPage.optimizeMobile],
+            ["label-comments-switch-optimize-desktop", () => languageManager.currentLang.toolsPage.optimizeDesktop],
+            ["label-comments-switch-shownodes", () => languageManager.currentLang.toolsPage.showNodes],
+            ["drawing-field-div", () => languageManager.currentLang.toolsPage.startTyping],
+            ["help-live-drawing", () => languageManager.currentLang.toolsPage.helpBtn],
+            ["file-name", () => languageManager.currentLang.toolsPage.filename],
+            ["download-btn", () => languageManager.currentLang.toolsPage.download],
+            ["label-form-check-input", () => languageManager.currentLang.toolsPage.downloadSvg],
         ])
-        super(idLangMap, "live-drawing-accordion-item");
+        super(idLangMap, "live-drawing-item");
     }
 
     get html(){
         return `
-            <h2 class="accordion-header" id="live-drawing-acc-heading">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#live-drawing-acc-collapse" aria-expanded="false" aria-controls="live-drawing-acc-collapse">
-                    ${languageManager.currentLang.toolsPage.liveDrawingAccHeading}
-                </button>
-            </h2>
-            <div id="live-drawing-acc-collapse" class="accordion-collapse collapse" aria-labelledby="live-drawing-acc-heading" data-bs-parent="#tool-accordion">
-                <div class="accordion-body">
-                    <button class="btn btn-outline-warning mx-auto my-1" style="color: ${colors.current.headingForeground}; cursor: pointer;" id="help-live-drawing">${languageManager.currentLang.toolsPage.helpBtn}</button>
-                    <div id="drawing-field-div" class="my-3" style="color: ${colors.current.foreground};">
-                        <div class="circuitStartBtn mx-auto" style="height: 10px;">
-                            <div class="fill-layer"></div>
-                            <div class="progress-stripes"></div>
-                        </div>
-                    </div>
-                    <div id="comments-switch-div" class="d-flex align-items-center mx-auto" style="max-width: 800px;">
-                        <!-- Checkboxes aligned in the middle on desktop or listed on mobile -->
-                        <div id="checkbox-group" class="d-flex justify-content-center flex-grow-1">
-                            <div class="me-4 d-flex mb-2 mb-lg-0">
-                                <label id="label-load-example" for="load-example" class="form-label me-2" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.example}</label>
-                                <input type="checkbox" id="load-example" class="form-check-input netlist-comment" disabled>
-                            </div>
-                            <div class="me-4 d-flex mb-2 mb-lg-0">
-                                <label id="label-comments-switch-generalize" for="comments-switch-generalize" class="form-label me-2" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.generalize}</label>
-                                <input type="checkbox" id="comments-switch-generalize" class="form-check-input netlist-comment" disabled>
-                            </div>
-                            <div class="me-4 d-flex mb-2 mb-lg-0">
-                                <label id="label-comments-switch-optimize-mobile" for="comments-switch-optimize-mobile" class="form-label me-2" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.optimizeMobile}</label>
-                                <input type="checkbox" id="comments-switch-optimize-mobile" class="form-check-input netlist-comment" disabled>
-                            </div>
-                            <div class="me-4 d-flex mb-2 mb-lg-0">
-                                <label id="label-comments-switch-optimize-desktop" for="comments-switch-optimize-desktop" class="form-label me-2" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.optimizeDesktop}</label>
-                                <input type="checkbox" id="comments-switch-optimize-desktop" class="form-check-input netlist-comment" disabled>
-                            </div>
-                            <div class="me-4 d-flex mb-2 mb-lg-0">
-                                <label id="label-comments-switch-shownodes" for="comments-switch-shownodes" class="form-label me-2" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.showNodes}</label>
-                                <input type="checkbox" id="comments-switch-shownodes" class="form-check-input netlist-comment" disabled>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="input-live-drawing" class="form-group">
-                        <textarea class="form-control" id="live-drawing-input-area" rows="3"></textarea>
-                    </div>
-                    <ul id="live-drawing-error-list" class="mt-3 p-0"></ul>
-                    <div>
-                        <input type="text" id="file-name" placeholder=${languageManager.currentLang.toolsPage.filename}>
-                        <input type="button" class="btn btn-warning my-3" id="download-btn" value=${languageManager.currentLang.toolsPage.download} />
-                    </div>     
-                    <div class="d-flex align-items-center justify-content-center">
-                        <label id="label-form-check-input" for="form-check-input" class="form-label me-2 mb-0" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.downloadSvg}</label>
-                        <input type="checkbox" id="download-svg-check" class="form-check-input">
-                    </div>   
+        <button class="btn btn-outline-warning mx-auto my-1" style="color: ${colors.current.headingForeground}; cursor: pointer;" id="help-live-drawing">${languageManager.currentLang.toolsPage.helpBtn}</button>
+        <div id="drawing-field-div" class="my-3" style="color: ${colors.current.foreground};">
+            <div class="circuitStartBtn mx-auto" style="height: 10px;">
+                <div class="fill-layer"></div>
+                <div class="progress-stripes"></div>
+            </div>
+        </div>
+        <div id="comments-switch-div" class="d-flex align-items-center mx-auto" style="max-width: 800px;">
+        <!-- Checkboxes aligned in the middle on desktop or listed on mobile -->
+            <div id="checkbox-group" class="d-flex justify-content-center flex-grow-1">
+                <div class="me-4 d-flex mb-2 mb-lg-0">
+                    <label id="label-load-example" for="load-example" class="form-label me-2" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.example}</label>
+                    <input type="checkbox" id="load-example" class="form-check-input netlist-comment" disabled>
+                </div>
+                <div class="me-4 d-flex mb-2 mb-lg-0">
+                    <label id="label-comments-switch-generalize" for="comments-switch-generalize" class="form-label me-2" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.generalize}</label>
+                    <input type="checkbox" id="comments-switch-generalize" class="form-check-input netlist-comment" disabled>
+                </div>
+                <div class="me-4 d-flex mb-2 mb-lg-0">
+                    <label id="label-comments-switch-optimize-mobile" for="comments-switch-optimize-mobile" class="form-label me-2" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.optimizeMobile}</label>
+                    <input type="checkbox" id="comments-switch-optimize-mobile" class="form-check-input netlist-comment" disabled>
+                </div>
+                <div class="me-4 d-flex mb-2 mb-lg-0">
+                    <label id="label-comments-switch-optimize-desktop" for="comments-switch-optimize-desktop" class="form-label me-2" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.optimizeDesktop}</label>
+                <input type="checkbox" id="comments-switch-optimize-desktop" class="form-check-input netlist-comment" disabled>
+                </div>
+                <div class="me-4 d-flex mb-2 mb-lg-0">
+                    <label id="label-comments-switch-shownodes" for="comments-switch-shownodes" class="form-label me-2" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.showNodes}</label>
+                    <input type="checkbox" id="comments-switch-shownodes" class="form-check-input netlist-comment" disabled>
                 </div>
             </div>
+        </div>
+        <div id="input-live-drawing" class="form-group">
+            <textarea class="form-control" id="live-drawing-input-area" rows="3"></textarea>
+        </div>
+        <ul id="live-drawing-error-list" class="mt-3 p-0"></ul>
+        <div>
+            <input type="text" id="file-name" placeholder=${languageManager.currentLang.toolsPage.filename}>
+            <input type="button" class="btn btn-warning my-3" id="download-btn" value=${languageManager.currentLang.toolsPage.download} />
+        </div>     
+        <div class="d-flex align-items-center justify-content-center">
+            <label id="label-form-check-input" for="form-check-input" class="form-label me-2 mb-0" style="color: ${colors.current.foreground}">${languageManager.currentLang.toolsPage.downloadSvg}</label>
+            <input type="checkbox" id="download-svg-check" class="form-check-input">
+        </div>   
         `
     }
 
@@ -83,7 +79,6 @@ class LiveDrawing extends Content {
         if (this.isSetUp === true) return;
 
         let accLiveDrawItem = document.createElement("div");
-        accLiveDrawItem.classList.add("accordion-item");
         accLiveDrawItem.id = this.mainID;
         accLiveDrawItem.innerHTML = this.html;
         this.isSetUp = true;
@@ -92,37 +87,15 @@ class LiveDrawing extends Content {
     }
 
     updateLang() {
-        let liveDrawingAccHeading = document.getElementById('live-drawing-acc-heading');
-        liveDrawingAccHeading.querySelector("button").innerHTML = languageManager.currentLang.toolsPage.liveDrawingAccHeading;
+        super.updateLang();
 
-        let example = document.getElementById('label-load-example');
-        example.innerHTML = languageManager.currentLang.toolsPage.example;
+        this.heading = languageManager.currentLang.toolsPage.liveDrawingHeading;
 
-        let generalize = document.getElementById('label-comments-switch-generalize');
-        generalize.innerHTML = languageManager.currentLang.toolsPage.generalize;
-
-        let optiMobile = document.getElementById('label-comments-switch-optimize-mobile');
-        optiMobile.innerHTML = languageManager.currentLang.toolsPage.optimizeMobile;
-
-        let optiDesktop = document.getElementById('label-comments-switch-optimize-desktop');
-        optiDesktop.innerHTML = languageManager.currentLang.toolsPage.optimizeDesktop;
-
-        let showNodes = document.getElementById('label-comments-switch-shownodes');
-        showNodes.innerHTML = languageManager.currentLang.toolsPage.showNodes;
-
-        let drawingFieldDiv = document.getElementById("drawing-field-div");
-        if (drawingFieldDiv && state.pyodideReady) {
-            drawingFieldDiv.innerHTML = languageManager.currentLang.toolsPage.startTyping;
-        }
         let fileNameDiv = document.getElementById("file-name");
         fileNameDiv.placeholder = languageManager.currentLang.toolsPage.filename;
 
         let downloadBtn = document.getElementById("download-btn");
         downloadBtn.value = languageManager.currentLang.toolsPage.download;
-
-        let svgCheck = document.getElementById("label-form-check-input");
-        svgCheck.innerHTML = languageManager.currentLang.toolsPage.downloadSvg;
-
     }
 
     updateColor() {
@@ -328,7 +301,7 @@ class LiveDrawing extends Content {
 
         let helpLiveDrawing = document.getElementById("help-live-drawing");
         helpLiveDrawing.addEventListener("click", () => {
-            setTimeout(() => {showMessage(languageManager.currentLang.toolsPage.helpTexts.netlistComments, "info", false)},0);
+            UserMessage.info(languageManager.currentLang.toolsPage.helpTexts.netlistComments, "", false);
         });
     }
 
@@ -410,15 +383,16 @@ class LiveDrawing extends Content {
                 input = lines.join("\n");
 
                 checkNetlistEasterEgg(input); // without comments and trimmed input
-                let paramMap = createParamMap();
+                let paramMap = new ParamMap();
                 if (optionsString === undefined || optionsString === null) {
                     optionsString = "";
                 }
-                let [isValidSyntax, svgData, errMsgs, warnMsgs] = await state.apis.pyodide.forceDrawing(input, paramMap, optionsString);
+
+                let netlistInfo = (await state.apis.pyodide.forceDrawing(input, paramMap, optionsString)).data;
 
                 // Split errMsgs and warnMsgs into lines
-                let errMsgsList = errMsgs?.split("\n");
-                let warnMsgsList = warnMsgs?.split("\n");
+                let errMsgsList = netlistInfo.errMsgs.split("\n");
+                let warnMsgsList = netlistInfo.warnMsgs.split("\n");
                 // Add both lists together
                 let allMsgs = errMsgsList?.concat(warnMsgsList);
                 let errorList = document.getElementById("live-drawing-error-list");
@@ -462,14 +436,14 @@ class LiveDrawing extends Content {
                 });
 
                 // After writing errors and warnings, return if syntax is not valid
-                if (!isValidSyntax) {
+                if (!netlistInfo.isValidSyntax) {
                     return;
                 }
 
                 // Syntax ok, draw the circuit
                 let drawingFieldDiv = document.getElementById("drawing-field-div");
                 drawingFieldDiv.innerHTML = "";
-                svgData = new SvgMagician(svgData).onlyElementLabels();
+                let svgData = new SvgMagician(netlistInfo.svgData).onlyElementLabels();
                 svgData.setSvgWidthTo(90);
                 let svg = drawingFieldDiv.querySelector("svg");
                 if (svg){

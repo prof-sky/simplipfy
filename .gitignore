@@ -54,3 +54,4 @@ Pyodide/Scripts/.envServer
 node_modules
 package.json
 /package-lock.json
+simplipfy_docker_latest.tar

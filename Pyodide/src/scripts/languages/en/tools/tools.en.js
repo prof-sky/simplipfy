@@ -1,16 +1,16 @@
 toolsEnTexts = {
     //Accordion Headings
-    genQrAccHeading:
+    qrCodeGeneratorHeading:
         "QR-Code Generator",
-    scanQRCodeAccHeading:
+    qrScannerHeading:
         "QR-Code Scanner",
-    liveDrawingAccHeading:
+    liveDrawingHeading:
         "Custom Netlist",
-    svgGeneratorAccHeading:
+    svgGeneratorHeading:
         "SVG Generator",
-    trackAccHeading:
+    liveTrackerHeading:
         "QR-Code live tracking",
-    customCircuitsAccHeading:
+    customCircuitsHeading:
         "Custom Circuit Collections",
 
     //Generate Qr-Code
@@ -65,6 +65,18 @@ toolsEnTexts = {
 
     //liveTracking
     liveTrackingEvents : toolsLiveTrackingEventsEnTexts,
+    trackingPage:
+        "Tracking of progress",
+    join:
+        "Join",
+    joinSession:
+        "Join Session",
+    errorSessionLimitExceeded:
+        "Server rejected tracking request, please try again later",
+    actions:
+        "Actions",
+    errorCantStart:
+        "There is not enough information to start tracking. Please try again or use a different link.",
 
     //helps texts on page
     helpBtn:

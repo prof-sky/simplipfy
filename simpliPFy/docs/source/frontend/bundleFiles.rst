@@ -3,7 +3,7 @@
 .bundleLast Files
 ==================
 Those files mark directories where all files are combined into a <folderName>.bundle.js file including subdirectories.
-This is done when ``.../Inskale/Pyodide/Scripts/buildBundles.py`` is executed. The script is integrated in the build
+This is done when ``.../Inskale/Pyodide/Scripts/cli/buildBundles.py`` is executed. The script is integrated in the build
 process. Combining multiple files into one bundle reduces loading time because it removes loading overhead for multiple
 small files.
 

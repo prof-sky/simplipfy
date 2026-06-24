@@ -35,6 +35,13 @@ class SimplifierPageSVG {
 
         this.div.appendChild(this.svg.element);
     }
+
+    /**
+     * element has to be rendered in the dom for this to work
+     * @param {Array<string>} elementIds */
+    highlightElements(elementIds){
+        this.svg.highlightElements(elementIds);
+    }
 }
 
 class KirchhoffPageSvgDiv extends SimplifierPageSVG{

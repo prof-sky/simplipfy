@@ -61,16 +61,16 @@ class LocalStorageWriter{
 
     /**
      *
-     * @returns {number} returns 0 if key was not found, returns 1 if key was deleted
+     * @returns {number} returns 1 if key was not found, returns 0 if key was deleted
      */
     _delete(){
         let [isKey, val] = this._get()
 
         if (isKey){
             localStorage.removeItem(this.key)
-            return 1
+            return 0
         }
 
-        return 0
+        return 1
     }
 }

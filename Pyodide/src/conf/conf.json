@@ -2,6 +2,7 @@
   "pyodide.paths.workingDir": "/home/pyodide",
   "pyodide.names.solutions": "Solutions",
   "server.names.circuits": "Circuits.zip",
+  "server.names.tutorials": "Tutorials.zip",
   "server.names.packages": "Packages",
   "server.names.simplipfyAPI": "simplipfyAPI.py",
   "wheatstone.names.optionsExtension": "_options.json",
@@ -11,5 +12,6 @@
   "tools.svgScan.names.file": "scannedNetlist.txt",
   "editor.names.dir": "",
   "editor.names.file": "editorNetlist.txt",
-  "page.values.timeout": 20e3
+  "page.values.timeout": 20e3,
+  "worker.request.timeout": 5e3
 }

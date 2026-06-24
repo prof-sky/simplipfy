@@ -31,4 +31,12 @@ selectorEnTexts = {
         "Downloading Circuits ...",
     taskStandardName:
         "Task",
+    scanStandardName:
+        "Scan",
+    scannerName:
+        "QR Scanner",
+    slowInternetConnectionInfo:
+        "It looks like you have a slow internet connection. We're sorry, but this will take quite a while to load ...",
+    internetToSlowError:
+        "Loading takes too long. Please try again using a faster internet connection with a download speed of at least 8 Mbit/s."
 }

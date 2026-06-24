@@ -16,7 +16,7 @@ class PageManager {
          */
 
         /**
-         * @typedef {"toolPage" | "settingsPage" | "aboutPage" | "editorPage" | "cheatSheetPage" | "landingPage" | "selectPage"} PageName
+         * @typedef {"toolPage" | "settingsPage" | "aboutPage" | "editorPage" | "cheatSheetPage" | "landingPage" | "selectPage" | "trackingPage"} PageName
          */
 
         this.pages = {
@@ -34,14 +34,15 @@ class PageManager {
             kirchhoffPage: new KirchhoffPage(),
             wheatstonePage: new WheatstonePage(),
             magneticPage: new MagneticPage(),
+            trackingPage: new TrackingPage(),
         }
 
         this.timeout = conf.page.values.timeout;
 
 
-        awaitVal(() => state.pyodideReady, () => this.afterPyodideLoaded())
+        awaitVal(() => state.backendReady, () => this.afterPyodideLoaded())
         awaitVal(
-            () => Object.values(this.pages).every(obj => obj.isSetUp === true) && state.pyodideReady,
+            () => Object.values(this.pages).every(obj => obj.isSetUp === true) && state.backendReady,
             async () => {
                 await this.setupEasterEggs()
                 console.log("Easter eggs setup")
@@ -72,8 +73,42 @@ class PageManager {
     showPage(newPage, history=true){
         this.hide();
         this.current = newPage;
+
+        this.pages.navigation.updateNavbarTitle(newPage.navigationTitle)
+        this.pages.navigation.highlightNavigationLink(newPage.highlightOnNavbar);
+
         newPage.show();
 		if (history) pageHistory.pushPage(newPage);
+    }
+
+    /**
+     * shows a page while waiting for a condition to be true, then shows the waitFor page, returns when the waitFor page is shown,
+     * if meanwhile another page change was requested, the function returns immediately and does not show the waitFor page
+     * @param waitFor {Page}
+     * @param showWhileWaiting {Page}
+     * @param condition {() => boolean}
+     * @returns {Promise<void>}
+     */
+    async waitTillReady(waitFor, showWhileWaiting, condition){
+       let ready = await this.tellWhenReady(showWhileWaiting, condition)
+        if (ready) pageManager.changePage(waitFor);
+    }
+
+    /**
+     * shows a pages and tells when the condition is met, returns true if no page change was requested in the meantime, otherwise false
+     * @param showWhileWaiting
+     * @param condition
+     * @returns {Promise<boolean>}
+     */
+    async tellWhenReady(showWhileWaiting, condition) {
+        let requestID = this.requestID;
+        if (!condition()) {
+            pageManager.changePage(showWhileWaiting, false, false)
+            requestID = this.requestID;
+            await awaitVal(condition, () => {})
+        }
+
+        return requestID === this.requestID;
     }
 
     /** @param newPage {Page} the page that shall be displayed
@@ -97,11 +132,10 @@ class PageManager {
                 if (requestID === this.#requestID) this.showPage(newPage, history)
                 else console.warn(`change to page ${newPage.constructor.name} aborted, different page was requested in the meantime`)
             });
-            return Promise.resolve(true);
+            return;
 		}
 
         this.showPage(newPage, history);
-        return Promise.resolve(true)
     }
 
     /** @param page {Page}
@@ -141,7 +175,7 @@ class PageManager {
                 if (requestID !== this.#requestID) return; //means page already changed
                 // on page load time out the page is not shown and therefore not the last page in the history.
                 this.changePage(pageHistory.currentPage(), false, false)
-                showMessage(languageManager.currentLang.alerts.pageLoadingTimeOut, "error", false)
+                UserMessage.error(languageManager.currentLang.alerts.pageLoadingTimeOut);
                 reject(new Error("page load timeout"));
             }, this.timeout)
         });
@@ -180,7 +214,7 @@ class PageManager {
     async setup(startPage = this.pages.landingPage){
         await storageManager.language.load()
         this.setColorScheme(); // decide on which color to set up pages
-        pageHistory = new PageHistory();
+        pageHistory = new PageHistory(startPage);
 
         startPage.setup();
         // track how often the page was loaded on landing page
@@ -196,7 +230,8 @@ class PageManager {
         this.pages.loadingPyodidePage.setup();
         this.pages.loadingPyodidePage.initialize();
 
-        this.showPage(startPage);
+        this.pages.navigation.highlightNavigationLink(startPage.highlightOnNavbar);
+        this.showPage(startPage, false);
 
         //scroll bootstrap accordions into view when their body is displayed
         document.addEventListener('shown.bs.collapse', (Event) =>  {
@@ -345,6 +380,7 @@ class PageManager {
         pages.splice(indexOfCurPage, 1);
 
 	    this.current.updateLang();
+        this.pages.navigation.updateNavbarTitle(this.current.navigationTitle)
         await this.current.typesetPage();
 
         // update remaining pages

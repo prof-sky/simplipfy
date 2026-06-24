@@ -1,6 +1,7 @@
 window.definitions.colors = {
     keyYellow: "#FFC107",
     keyYellowDarkened: "#af8807",
+    keyYellowLightened: "#FFE183",
     keyLight: "white",
     keyDark: "black",
     kirchhoffGray: "gray",
@@ -23,6 +24,7 @@ window.definitions.colors = {
  * @typedef {Object} Colors
  * @property {string} keyYellow
  * @property {string} keyYellowDarkened
+ * @property {string} keyYellowLightened
  * @property {string} keyLight
  * @property {string} keyDark
  * @property {string} kirchhoffGray

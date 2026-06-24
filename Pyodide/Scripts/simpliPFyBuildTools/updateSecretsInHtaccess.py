@@ -30,14 +30,16 @@ def updateSecretsInHtaccess():
     db_name = envVar.dbName
     db_user = envVar.dbUser
     db_pass = envVar.dbPass
+    session_limit = envVar.sessionLimit
+    entry_limit = envVar.entryLimit
 
     # Check if API_SECRET is set
     if not api_secret:
         print("Error: API_SECRET is not set.")
         sys.exit(1)
 
-    if not all([db_name, db_user, db_pass]):
-        raise ValueError("Missing required DB configuration: DB_NAME, DB_USER, DB_PASS")
+    if not all([db_name, db_user, db_pass, session_limit, entry_limit]):
+        raise ValueError("Missing required DB configuration: DB_NAME, DB_USER, DB_PASS, SESSION_LIMIT, ENTRY_LIMIT")
 
     dest = Path(__file__).parents[2].joinpath(HTACCESS_FILE)
 
@@ -47,6 +49,8 @@ def updateSecretsInHtaccess():
     lines = set_env_var(lines, "DB_NAME", db_name)
     lines = set_env_var(lines, "DB_USER", db_user)
     lines = set_env_var(lines, "DB_PASSWORD", db_pass)
+    lines = set_env_var(lines, "SESSION_LIMIT", session_limit)
+    lines = set_env_var(lines, "ENTRY_LIMIT", entry_limit)
 
     #write back to file
     with open(dest, "w") as f:

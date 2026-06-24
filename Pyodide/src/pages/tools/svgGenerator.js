@@ -1,34 +1,28 @@
 class SvgGenerator extends Content {
+    heading = languageManager.currentLang.toolsPage.svgGeneratorHeading;
     constructor() {
         let idLangMap = new Map([
             ["description-label-svg-generator", () => languageManager.currentLang.toolsPage.svgGeneratorText],
             ["svg-gen-help-btn", () => languageManager.currentLang.toolsPage.helpBtn],
+            ["download-svgs-btn", () => languageManager.currentLang.toolsPage.downloadSvgsBtn],
+            ["generate-svgs-btn", () => languageManager.currentLang.toolsPage.generateSvgsBtn],
         ]);
         super(idLangMap, "svg-accordion-item");
     }
 
     get html(){
-        return `
-            <h2 class="accordion-header" id="svg-gen-acc-heading">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svg-gen-acc-collapse" aria-expanded="false" aria-controls="svg-gen-acc-collapse">
-                    ${languageManager.currentLang.toolsPage.svgGeneratorAccHeading}
-                </button>
-            </h2>
-            <div id="svg-gen-acc-collapse" class="accordion-collapse collapse" aria-labelledby="svg-gen-acc-heading" data-bs-parent="#tool-accordion">
-                <div class="accordion-body">
-                    <button class="btn btn-outline-warning mx-auto my-1" style="color: ${colors.current.headingForeground}; cursor: pointer;" id="svg-gen-help-btn">${languageManager.currentLang.toolsPage.helpBtn}</button>
-                    <p id="description-label-svg-generator" style="color: ${colors.current.foreground};">${languageManager.currentLang.toolsPage.svgGeneratorText}</p>
-                    <input class="form-control mx-auto" type="file" id="svg-gen-input" accept=".zip"
-                    style="width: fit-content; max-width: 350px; color: white; background-color: rgb(33, 37, 41);">
-                    <button id="generate-svgs-btn" type="button" class="btn btn-warning circuitStartBtn my-3 disabled">
-                        <div class="fill-layer"></div>
-                        <div class="progress-stripes"></div>    
-                        <span class="button-text">${languageManager.currentLang.toolsPage.generateSvgsBtn}</span>
-                    </button>
-                    <btn class="btn btn-warning mx-auto" id="download-svgs-btn">${languageManager.currentLang.toolsPage.downloadSvgsBtn}</btn>
-                    <a id="download-svg-link" style="display: none;"></a>
-                </div>
-            </div>
+        return `            
+            <button class="btn btn-outline-warning mx-auto my-1" style="color: ${colors.current.headingForeground}; cursor: pointer;" id="svg-gen-help-btn">${languageManager.currentLang.toolsPage.helpBtn}</button>
+            <p id="description-label-svg-generator" style="color: ${colors.current.foreground};">${languageManager.currentLang.toolsPage.svgGeneratorText}</p>
+            <input class="form-control mx-auto" type="file" id="svg-gen-input" accept=".zip"
+            style="width: fit-content; max-width: 350px; color: white; background-color: rgb(33, 37, 41);">
+            <button id="generate-svgs-btn" type="button" class="btn btn-warning circuitStartBtn my-3 disabled">
+                <div class="fill-layer"></div>
+                <div class="progress-stripes"></div>    
+                <span class="button-text">${languageManager.currentLang.toolsPage.generateSvgsBtn}</span>
+            </button>
+            <btn class="btn btn-warning mx-auto" id="download-svgs-btn">${languageManager.currentLang.toolsPage.downloadSvgsBtn}</btn>
+            <a id="download-svg-link" style="display: none;"></a>
         `
     }
 
@@ -36,7 +30,6 @@ class SvgGenerator extends Content {
         if (this.isSetUp === true) return;
 
         let accSvgItem = document.createElement("div");
-        accSvgItem.classList.add("accordion-item");
         accSvgItem.id = this.mainID;
         accSvgItem.innerHTML = this.html;
         this.isSetUp = true;
@@ -47,11 +40,7 @@ class SvgGenerator extends Content {
     updateLang() {
         super.updateLang();
 
-        let svgAccHeading = document.getElementById('svg-gen-acc-heading');
-        svgAccHeading.querySelector("button").innerHTML = languageManager.currentLang.toolsPage.svgGeneratorAccHeading;
-
-        let downloadSvg = document.getElementById('download-svgs-btn');
-        downloadSvg.innerHTML = languageManager.currentLang.toolsPage.downloadSvgsBtn;
+        this.heading = languageManager.currentLang.toolsPage.svgGeneratorHeading;
     }
 
     updateColor() {
@@ -76,7 +65,7 @@ class SvgGenerator extends Content {
         const downloadBtn = document.getElementById("download-svgs-btn");
         input.addEventListener("change", (event) => {
             state.selectedSvgsZip = event.target.files[0];
-            if (state.pyodideReady) {
+            if (state.backendReady) {
                 genBtn.classList.remove("disabled");
             }
             this.#hideDownloadButton();
@@ -87,17 +76,13 @@ class SvgGenerator extends Content {
         });
         let helpBtn = document.getElementById("svg-gen-help-btn");
         helpBtn.addEventListener("click", () => {
-            setTimeout(() => {
-                showMessage(languageManager.currentLang.toolsPage.helpTexts.svgGen, "info", false);
-            });
+            UserMessage.info(languageManager.currentLang.toolsPage.helpTexts.svgGen, "", false);
         });
     }
 
     async #generateSvgsGenHandler() {
         if (state.selectedSvgsZip === null || state.selectedSvgsZip === undefined) {
-            setTimeout(() => {
-                showMessage(languageManager.currentLang.alerts.noDirSelected, "info");
-            });
+            UserMessage.warning(languageManager.currentLang.alerts.noDirSelected);
             return;
         }
         document.getElementById("svg-gen-input").value = "";
@@ -105,13 +90,13 @@ class SvgGenerator extends Content {
         let path = conf.tools.svgGen.paths.dir + "/" + state.selectedSvgsZip.name.replace(".zip", "").replace(" ", "_");
 
         let startBtn = document.getElementById("generate-svgs-btn");
-        await state.apis.pyodide.initSVGGenerator(path); // path to folder
-        let files = await state.apis.pyodide.getCircuitFiles(); // get all files in dir (only .txt circuit files, no svgs/json)
+        await state.apis.svgGenerator.init(path); // path to folder
+        let files = await state.apis.pyodide.getCircuitFiles().data; // get all files in dir (only .txt circuit files, no svgs/json)
         let len = files.length;
         let pgr = 0;
         let pgrPercent = 0;
         for (let file of files) {
-            await state.apis.pyodide.generateSvgFile(file); // generate svg for each file
+            await state.apis.svgGenerator.generateFile(file); // generate svg for each file
             // update pgr
             pgr += 1;
             pgrPercent = Math.round((pgr / len) * 100);
@@ -153,7 +138,7 @@ class SvgGenerator extends Content {
         let dirName = state.selectedSvgsZip.name.replace(" ", "_"); // with .zip ending
         let dirPath = conf.tools.svgGen.paths.dir + "/" +  dirName;
         await state.apis.pyodide.zipFiles(dirPath.replace(".zip", ""));
-        let data = await state.apis.pyodide.readFile(dirPath, "binary"); // read existing zip file (binary for zip)
+        let data = (await state.apis.pyodide.readFile(dirPath, "binary")).data; // read existing zip file (binary for zip)
         await state.apis.pyodide.deleteFile(dirPath); // remove dir after reading (delete zip just like file)
 
         let blob = new Blob([data], {type: "application/zip"});
@@ -173,15 +158,13 @@ class SvgGenerator extends Content {
         let status;
 
         // Check if dir for user svgs exists
-        let dirs_;
-        [status, dirs_] = await state.apis.pyodide.readDir(conf.pyodide.paths.workingDir);
+        let dirs_ = (await state.apis.pyodide.readDir(conf.pyodide.paths.workingDir)).data;
         if (!dirs_.includes(conf.tools.svgGen.names.dir)) {
             await state.apis.pyodide.mkdir(conf.tools.svgGen.paths.dir);
         }
         // Check if dir for this circuit.zip name already exists
         zipDirName = file.name.replace(".zip", "").replace(" ", "_");
-        let dirs;
-        [status, dirs] = await state.apis.pyodide.readDir(conf.tools.svgGen.paths.dir);
+        let dirs = (await state.apis.pyodide.readDir(conf.tools.svgGen.paths.dir)).data;
         if (dirs.includes(zipDirName)) {
             // Dir exists, delete it
             await state.apis.pyodide.recursiveRmdir(conf.tools.svgGen.paths.dir + zipDirName);
@@ -192,6 +175,7 @@ class SvgGenerator extends Content {
         // Define storage path for user dirs
         let options = Object.assign({}, {extractDir: conf.tools.svgGen.paths.dir});
         // Load the array buffer into pyodide
-        await state.apis.pyodide.unpackArchive(arrayBuffer, ".zip", options);
+        let response = await state.apis.pyodide.unpackArchive(arrayBuffer, ".zip", options);
+        if(!response.success) { throw Error("Error while unpacking Archive: ", response.error); }
     }
 }

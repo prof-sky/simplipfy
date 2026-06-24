@@ -2,178 +2,126 @@
 // ########################## Pyodide API Class ########################################
 // #####################################################################################
 
-class PyodideAPI {
-    constructor(worker) {
-        this.worker = worker;
-    }
-
+class PyodideAPI extends APIBase{
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["unpackArchive"]["output"]>>} */
     unpackArchive(pkgArrBuff, packageExtension, options) {
-        return requestResponse(this.worker, {
-            action: "unpackArchive",
-            data: { buffer: pkgArrBuff, extension: packageExtension, options: options}
-        });
+        return this.getDataPromise(
+            "unpackArchive",
+            { buffer: pkgArrBuff, extension: packageExtension, options }
+        );
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["readdir"]["output"]>>} */
     readDir(path) {
-        return requestResponse(this.worker, {
-            action: "readdir",
-            data: { path: path }
+        return this.getDataPromise("readdir", { path });
+    }
+
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["writeFile"]["output"]>>} */
+    writeFile(path, content, encoding = "utf8") {
+        return this.getDataPromise("writeFile", {
+            path,
+            content,
+            encoding
         });
     }
 
-    writeFile(path, content, encoding="utf8") {
-        return requestResponse(this.worker, {
-            action: "writeFile",
-            data: {
-                path: path,
-                content: content,
-                encoding: encoding
-            }
-        });
-    }
-
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["exists"]["output"]>>} */
     exists(path) {
-        return requestResponse(this.worker, {
-            action: "exists",
-            data: {
-                path: path
-            }
-        });
+        return this.getDataPromise( "exists", { path });
     }
 
-    rename(from, to){
-        return requestResponse(this.worker, {
-            action: "rename",
-            data: {
-                from: from,
-                to: to
-            }
-        });
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["rename"]["output"]>>} */
+    rename(from, to) {
+        return this.getDataPromise( "rename", { from, to });
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["unlink"]["output"]>>} */
     deleteFile(path) {
-        return requestResponse(this.worker, {
-            action: "unlink",
-            data: { path: path }
-        });
+        return this.getDataPromise( "unlink", { path });
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["loadSolve"]["output"]>>} */
     loadSolver() {
-        return requestResponse(this.worker, {
-            action: "loadSolve",
-            data: {}
-        });
+        return this.getDataPromise( "loadSolve");
     }
 
-    readFile(path, encoding="utf8") {
-        return requestResponse(this.worker, {
-            action: "readFile",
-            data: { path: path, encoding: encoding }
-        });
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["readFile"]["output"]>>} */
+    readFile(path, encoding = "utf8") {
+        return this.getDataPromise( "readFile", { path, encoding });
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["runPython"]["output"]>>} */
     runPython(code) {
-        return requestResponse(this.worker, {
-            action: "runPython",
-            data: { code: code}
-        });
+        return this.getDataPromise("runPython", { code });
     }
 
+    /**
+     * Convenience wrapper (still typed via runPython)
+     * @returns {Promise<WorkerResponse<any>>}
+     */
     importPackage(packageName) {
         return this.runPython("import " + packageName);
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["pyimport"]["output"]>>} */
     pyimport(moduleName) {
-        return requestResponse(this.worker, {
-            action: "pyimport",
-            data: { module: moduleName }
-        });
+        return this.getDataPromise("pyimport", { pythonModuleName: moduleName });
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["recursiveRmDir"]["output"]>>} */
     recursiveRmdir(path) {
-        return requestResponse(this.worker, {
-            action: "recursiveRmdir",
-            data: {path: path}
-        });
+        return this.getDataPromise("recursiveRmDir", { path });
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["mkdir"]["output"]>>} */
     mkdir(path) {
-        return requestResponse(this.worker, {
-            action: "mkdir",
-            data: { path: path }
-        });
+        return this.getDataPromise("mkdir", { path });
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["isValidCircuitFile"]["output"]>>} */
     isValidCircuitFile(filename, filepath) {
-        return requestResponse(this.worker, {
-            action: "isValidCircuitFile",
-            data: {
-                circuitFile: filename,
-                circuitPath: filepath
-            }
+        return this.getDataPromise("isValidCircuitFile", {
+            circuitFile: filename,
+            circuitPath: filepath
         });
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["isValidCircuitString"]["output"]>>} */
     isValidCircuitString(circuitString) {
-        return requestResponse(this.worker, {
-            action: "isValidCircuitString",
-            data: {
-                fileString: circuitString
-            }
+        return this.getDataPromise("isValidCircuitString", {
+            fileString: circuitString
         });
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["forceDrawing"]["output"]>>} */
     forceDrawing(circuitString, paramMap, optionsString) {
-        return requestResponse(this.worker, {
-            action: "forceDrawing",
-            data: {
-                circuitString: circuitString,
-                paramMap: paramMap,
-                optionsString: optionsString
-            }
+        return this.getDataPromise("forceDrawing", {
+            circuitString,
+            paramMap,
+            optionsString
         });
     }
 
-    // TODO move to SVGGeneratorAPI
-    generateSvgFiles(path) {
-        return requestResponse(this.worker, {
-            action: "generateSvgFiles",
-            data: { path: path }
-        });
-    }
-
-    getGeneratorProgress() {
-        return requestResponse(this.worker, {
-            action: "getGeneratorProgress",
-            data: {}
-        });
-    }
-
-    initSVGGenerator(path) {
-        return requestResponse(this.worker, {
-            action: "initSVGGenerator",
-            data: { path: path }
-        });
-    }
-
-    getCircuitFiles() {
-        return requestResponse(this.worker, {
-            action: "getCircuitFiles",
-            data: {}
-        });
-    }
-
-    generateSvgFile(file) {
-        return requestResponse(this.worker, {
-            action: "generateSvgFile",
-            data: { file: file }
-        });
-    }
-
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["zipFiles"]["output"]>>} */
     zipFiles(path) {
-        return requestResponse(this.worker, {
-            action: "zipFiles",
-            data: { path: path }
-        });
+        return this.getDataPromise("zipFiles", { path });
+    }
+
+    async ready(){
+        let response = await this.getDataPromise("pyodideReady");
+        if (response.success) return true;
+
+        UserMessage.info(languageManager.currentLang.selector.slowInternetConnectionInfo, "", false);
+        console.warn(`Pyodide ready request timed out. Retrying ...`);
+
+        const timeOutInMs = 90e3; //ms
+        response = await this.getDataPromise("pyodideReady", {}, timeOutInMs);
+
+        if(!response.success){
+            UserMessage.error(languageManager.currentLang.selector.internetToSlowError);
+            throw Error("Loading pyodide took to long");
+        }
+
+        return true;
     }
 }

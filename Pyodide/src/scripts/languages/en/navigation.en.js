@@ -1,16 +1,17 @@
-// Texts are displayed with uppercase letters except dataprivacy and legal
+// Texts are displayed with uppercase letters except dataprivacy, legal and tools
 navigationEnTexts = {
     "home": "Home",
     "simplifier": "Learning",
     "editor": "Editor",
     "cheatsheet": "Cheatsheet",
-    "upload": "Custom Circuits",
-    "tools": "Tools",
+    "tracking": "Tracking",
+    "tools": "Lecturer tools",
     "news": "News",
-    "about": "about",
+    "about": "About",
     "darkmode": "Darkmode",
     "gamemode": "gamemode",
     "dataprivacy": "Data Privacy",
     "legal": "Legal",
     "settings": "Settings",
+    "noTitle": "",
 }

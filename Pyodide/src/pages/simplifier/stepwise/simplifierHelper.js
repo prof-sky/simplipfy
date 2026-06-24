@@ -3,10 +3,6 @@ function notLastPicture() {
     return document.getElementById("nextElementsContainer") != null;
 }
 
-function setSvgColorMode(svgData) {
-    if (colors.svgGenerationStrokeColor === colors.current.svgStrokeColor) return svgData;
-    return svgData.replaceAll(colors.svgGenerationStrokeColor, colors.current.svgStrokeColor);
-}
 
 function enableCheckBtnParallel() {
     document.getElementById("check-btn-parallel").disabled = false;
@@ -24,13 +20,6 @@ function enableLastCalcButton() {
     }, 100);
 }
 
-async function getCircuitInfo() {
-    let circuitInfoPath = await stepSolve.createCircuitInfo();
-    let circuitInfoFile = await state.pyodide.FS.readFile(circuitInfoPath, {encoding: "utf8"});
-    return JSON.parse(circuitInfoFile);
-
-}
-
 /**
  * First function to be called when the user starts the simplifier.
  * It initializes the step solver and creates the first step (step 0).
@@ -38,14 +27,18 @@ async function getCircuitInfo() {
  */
 async function createAndShowStep0(circuitMap) {
     try {
-        let paramMap = createParamMap();
+        let paramMap = new ParamMap();
         let netlist;
         let generalizeActive = false;
         let netlistContainsWires = false;
 
         await state.solvers.stepwise.init(circuitMap);
 
-        netlist = await state.apis.pyodide.readFile(circuitMap.circuitPath+`/${circuitMap.circuitFile}`);
+        let response = (await state.apis.pyodide.readFile(circuitMap.circuitPath+`/${circuitMap.circuitFile}`));
+        if (response instanceof TimeOutResponse || !response.success) {
+            throw Error("could not read file");
+        }
+        netlist = response.data;
         // Check netlist comments
         let [optionsStr, cleanedNetlist] = extractCommentsAndNetlist(netlist);
         if (optionsStr.includes("--generalize-true")) {
@@ -61,7 +54,7 @@ async function createAndShowStep0(circuitMap) {
             netlistContainsWires = true;
         }
 
-        state.step0Data = await state.solvers.stepwise.createStep0();
+        state.step0Data = (await state.solvers.stepwise.createStep0()).data;
         state.currentStep = 0;
         state.allValuesMap.set(`${paramMap.get("volt")}${paramMap.get("total")}`, getSourceVoltageVal());
         state.allValuesMap.set(`I${paramMap.get("total")}`, getSourceCurrentVal());
@@ -70,7 +63,7 @@ async function createAndShowStep0(circuitMap) {
     } catch (error) {
         console.trace(error)
         console.error("Error creating step 0: " + error);
-        showMessage(error, "error", false);
+        UserMessage.error(error);
         pushErrorEventMatomo(errorActions.step0Error, "(simplifier) " + error);
     }
 }
@@ -105,14 +98,14 @@ function createSolutionsBtnContainer() {
 function createTotalCurrentBtn() {
     const totalCurrentBtn = setupVoltageCurrentBtn();
     totalCurrentBtn.textContent = languageManager.currentLang.simplifier.firstVCStepBtn;
-    totalCurrentBtn.disabled = false;
+    totalCurrentBtn.classList.remove("pseudo-disabled");
     return totalCurrentBtn;
 }
 
 function createSolutionsBtn() {
     const totalCurrentBtn = setupVoltageCurrentBtn();
     totalCurrentBtn.textContent = languageManager.currentLang.simplifier.solutionsBtn;
-    totalCurrentBtn.disabled = false;
+    totalCurrentBtn.classList.remove("pseudo-disabled");
     return totalCurrentBtn;
 }
 
@@ -122,23 +115,6 @@ function setStyleAndEvent(element, nextElementsList) {
     element.addEventListener('click', () =>
         chooseElement(element, nextElementsList)
     );
-}
-
-function colorArrowsColorful(svgDiv) {
-    let labels = svgDiv.querySelectorAll(".arrow");
-    for (let label of labels) {
-        if (label.classList.contains("voltage-label")) {
-            label.style.color = colors.definitions.voltageBlue;
-            label.style.stroke = colors.definitions.voltageBlue;
-            label.style.fill = colors.definitions.voltageBlue;
-            label.style.opacity = "0.8";
-        } else if (label.classList.contains("current-label")) {
-            label.style.color = colors.definitions.currentRed;
-            label.style.stroke = colors.definitions.currentRed;
-            label.style.fill = colors.definitions.currentRed;
-            label.style.opacity = "0.8";
-        }
-    }
 }
 
 async function highlightHelpButton() {
@@ -154,27 +130,5 @@ async function highlightHelpButton() {
             helpBtn.style.color = colors.definitions.keyYellow;
         }, 500);
     }
-}
-
-function explanationGeneralizeSwitch(switchInput){
-    const contentCol = document.getElementById("content-col");
-    if (!switchInput.checked) {
-        contentCol.append(createExplanationPopup(languageManager.currentLang.simplifier.generalizeBtnOn, switchInput.id));
-    } else {
-        switchInput.title = languageManager.currentLang.simplifier.generalizeBtnOff;
-    }
-}
-
-function createExplanationPopup(explanation, originID) {
-    let explanationPopup = document.createElement("div");
-    explanationPopup.innerHTML = `<div id="explanation-popup"  class="position-fixed top-50 start-50 translate-middle p-4 bg-light border rounded shadow"
-                                 style="display: none; z-index: 1050; min-width: 200px;">
-                                <p>explanation</p>
-                                <div class="d-flex justify-content-center" style="gap: 5px">
-                                    <button id="popup-cancel" class="btn btn-secondary btn-sm">X</button>
-                                </div>
-                            </div>`;
-    explanationPopup.id = originID+"-explanation-popup";
-    return explanationPopup;
 }
 

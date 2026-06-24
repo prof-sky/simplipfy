@@ -1,140 +1,211 @@
+class PageHistoryStack{
+	/** @type {Array<{id: number, page: Page}>} */
+	#pages= [];
+
+	/** @type {number} */
+	#index= -1; //necessary as start index so when the first page is added it is at 0
+
+	/** @type {number} */
+	#historyLimit;
+
+	#pushEventId = 0;
+
+
+	get currentIndex(){
+		return this.#index;
+	}
+
+	get current(){
+		return this.#pages[this.#index];
+	}
+
+	get currentId(){
+		return this.#pages[this.#index].id;
+	}
+
+	get currentPage(){
+		return this.#pages[this.#index].page;
+	}
+
+	get length(){
+		return this.#pages.length;
+	}
+
+	get hasNextIndex(){
+		return this.#index < this.length - 1;
+	}
+
+	get hasLastIndex(){
+		return this.#index > 0;
+	}
+
+	/** @param {number} index */
+	at(index){
+		if (index <= this.#pages.length - 1) return this.#pages[index];
+		else return {id: undefined, page: undefined};
+	}
+
+	moveIndexForward(){
+		if (this.#index < this.#pages.length - 1) this.#index++;
+		else {
+			console.warn("history index not moved, index exceeds array entries");
+		}
+	}
+
+	moveIndexBack(){
+		if (this.#index > 0) this.#index--;
+		else{
+			console.warn("history index not moved, index must be greater than or equal to 0");
+		}
+	}
+
+	/** @param {Page} page */
+	push(page){
+		if (this.#index === this.#historyLimit - 1) this.#pages.splice(0, 1);
+
+		const pushId = this.#pushEventId
+		this.#pages.push({id: pushId, page: page});
+		this.moveIndexForward();
+		this.#pushEventId++;
+
+		history.pushState({id: pushId},``, window.location.href);
+	}
+
+	forgetAfter(index){
+		if (this.#index > index) this.#index = index;
+		this.#pages.splice(index + 1, this.#pages.length);
+	}
+
+	constructor(firstPage, historyLimit = 3){
+		this.#historyLimit = historyLimit;
+		this.push(firstPage);
+	}
+
+	logToConsole(){
+		console.log("Navigation History: [" + this.#pages.map(p => p.page.constructor.name).join(", ") + "]")
+	}
+
+	get navigationsOutsideOfStackSize(){
+		// it should be:
+		// this.#pushEventId + 1 - this.lenght (because pushEventId starts at 0)
+		// but initial pushEvent is treated as replaceState -> one less
+		if (this.#pushEventId <= this.#historyLimit) return 0;
+		return this.#pushEventId - this.length
+	}
+}
+
 /**
  * Intercepts the browsers navigation (forward and back) to further imitate page like behavior on our single page web page
  */
 class PageHistory {
-	/** @type {Array<Page>} */
-	#stack = [];
-	/** @type {Page} */
-	popped;
-	#index= -1;
+	/** @type {PageHistoryStack} */
+	#stack;
+
 	/** @type {PageHistory} */
 	static instance;
 
-	constructor() {
+	/** @type {Array<Page>} */
+	blockedPages = [pageManager.pages.loadingPage, pageManager.pages.loadingPyodidePage, pageManager.pages.navigation];
+
+	constructor(firstPage, historyLimit = 60) {
 
 		if (PageHistory.instance) {
 			return PageHistory.instance;
 		}
 		PageHistory.instance = this;
-		// no need, because first element upon initialisation is undefined
+		this.#stack = new PageHistoryStack(firstPage, historyLimit);
 		window.addEventListener("popstate",this.browserNavigation.bind(this))
+
 		return this;
 	}
 
 	lastPage() {
-		if (this.#index <= 0 ) {
-			window.history.back();
-			return pageManager.pages.landingPage;
-		}
-		this.#index--;
-		// console.log(this.#index)
-		return this.#stack[this.#index];
-		// this.popped = this.#stack.pop();
-		// return this.popped;
-
-
+		this.#stack.moveIndexBack();
+		return this.#stack.currentPage;
 	}
 
 	nextPage() {
-		this.#index++;
-		// console.log(this.#index)
-		return this.#stack[this.#index];
+		this.#stack.moveIndexForward();
+		return this.#stack.currentPage;
 	}
 
     currentPage(){
-        return this.#stack[this.#index];
+        return this.#stack.currentPage;
     }
 
-	browserNavigation(event){
-		/** @type {Page} */
-		let nextPage = null;
-		// console.log("navigation event detected", this.#index, this.#stack[this.#index].id);
-		if (this.#index <= 0){
-			// index 1 does not exist -> navigate back (can only be a back action)
-			if (this.stack.length === 1 || !event.state){
-				// console.log("back event detected on oldest and first page", this.#index, this.#stack[this.#index].id);
-				nextPage = this.lastPage();
-			}
-			else{
-				let eventPageDiv = event.state.id
-				// index one exists, check if id of index 1 is eaqual to event.state.id -> forward navigation
-				let nextPageDiv = this.#stack[this.#index+1].id;
-				if (eventPageDiv===nextPageDiv){
-					// console.log("forward event detected on oldest page", this.#index, this.#stack[this.#index].id)
-					nextPage = this.nextPage();
-				}
-				// else back navigation
-				else {
-					// console.log("back event detected on oldest page", this.#index, this.#stack[this.#index].id);
-					nextPage = this.lastPage();
-				}
-			}
-
-			pageManager.changePage(nextPage, false, false);
+	async browserNavigation(event){
+		if (this.#stack.currentIndex === 0 && this.#stack.length === 1) {
+			console.log("No navigation History, assume back navigation to page before simplipfy");
+			history.back();
 			return;
 		}
 
-		let lastPageDiv = this.#stack[this.#index-1].id;
-		if (event.state === null) return
-
-		let eventPageDiv = event.state.id
-		if (eventPageDiv === lastPageDiv){
-			// console.log("back event detected", this.#index, this.#stack[this.#index].id);
-			nextPage = this.lastPage();
-			pageManager.changePage(nextPage, false, false);
-		}
-		else {
-			// console.log("forward event detected", this.#index, this.#stack[this.#index].id);
-			nextPage = this.nextPage();
-			pageManager.changePage(nextPage, false, false);
+		const eventId = event.state?.id;
+		if(eventId === undefined || eventId === null) {
+			console.log("No state in event, assume back navigation to page before simplipfy");
+			history.back();
+			return;
 		}
 
+
+		const isBackEvent = this.#isBackEvent(eventId);
+		const isForwardEvent = this.#isForwardEvent(eventId);
+
+		// browser history may be longer than stack size limit. It would get valid ids from previous pages but not change
+		// pages anymore because the stack would always return page at position 0. Avoid this by going back until the
+		// page is not executed anymore -> left the page
+		if(this.#stack.currentIndex === 0 && isBackEvent){
+			history.go((this.#stack.navigationsOutsideOfStackSize) * -1);
+			return;
+		}
+
+		/** @type {Page | null} */
+		let navigateTo = null;
+
+		if (isForwardEvent) navigateTo = this.nextPage()
+		else if (isBackEvent) navigateTo = this.lastPage();
+
+		if (!navigateTo){
+			console.warn("Could not figure out navigation direction, going to LandingPage")
+			navigateTo = pageManager.pages.landingPage;
+		}
+
+		pageManager.changePage(navigateTo, false, false);
+	}
+
+
+	/** @param id {number} */
+	#isForwardEvent(id){
+		return this.#stack.currentId < id;
+	}
+
+	/** @param id {number} */
+	#isBackEvent(id){
+		return this.#stack.currentId > id;
 	}
 
 	navigateBack(event){
 		pageManager.changePage(this.lastPage(), false, false)
-		// console.log(event.state.id)
-
-	}
-
-	#resetHistory(){
-			let delStart = this.index;
-			let delCount= this.stack.length-(this.index);
-			this.#stack.splice(delStart, delCount);
 	}
 
 	/**
-	 *  @param latestPage {Page}
+	 *  @param newPage {Page}
 	 */
-	pushPage(latestPage) {
-		let nextPageDiv = this.#stack[this.#index+1];
-		if (latestPage === pageManager.pages.loadingPage || latestPage === pageManager.pages.navigation) return;
+	pushPage(newPage) {
+		if (this.blockedPages.includes(newPage)) return;
+
 		// Necessary to differentiate between latest page and the latest popped page -> no double entry in array
-		if (this.#stack[this.#index] === latestPage) return;
+		const isCurrentPageInHistory = this.#stack.currentPage === newPage
+		if (isCurrentPageInHistory) return;
 
-		// List should not be longer than 90 entries
-		if (this.#stack.length<90) {
-			this.#index++;
-			if(latestPage !== nextPageDiv) this.#resetHistory();
-			this.#stack.push(latestPage);
-			// console.log(this.#index);
-		}
-		else{
-			this.#resetHistory(latestPage !== nextPageDiv)
-			this.#stack.splice(0,1);
-			this.#stack.push(latestPage);
-		}
-		window.history.pushState({id: latestPage.id},``,window.location)
+		const hasNextPage = this.#stack.hasNextIndex;
+		const nextPageInHistory = this.#stack.at(this.#stack.currentIndex+1).page;
+		const isNextPageInHistory = newPage === nextPageInHistory;
 
-        console.log("Navigation History: [" + this.#stack.map(p => p.constructor.name).join(", ") + "]")
+		if (hasNextPage && !isNextPageInHistory) this.#stack.forgetAfter(this.#stack.currentIndex);
+
+		this.#stack.push(newPage);
+
+        this.#stack.logToConsole()
 	}
-
-	get stack(){
-		return this.#stack
-	}
-
-	get index(){
-		return this.#index;
-	}
-
 }

@@ -4,18 +4,13 @@
  * @interface
  * interface for solver objects
  */
-class SolverInterface {
-    /** @type {Worker | null} */
-    worker;
-
-    constructor(worker) {
-        this.worker = worker;
-    }
-
+class SolverInterface extends APIBase {
+    /** @virtual */
     init(){
 
     }
 
+    /** @virtual */
     reset(){
 
     }

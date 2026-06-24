@@ -7,7 +7,7 @@ class CircuitSet {
     /** @type {window.definitions.selectorIDs} */
     identifier
     /** @type {Array<CircuitMap>} */
-    circuitMaps
+    circuitMaps= [];
 
     static ids = window.definitions.selectorIDs;
 
@@ -25,8 +25,6 @@ class CircuitSet {
             console.error("Allowed dir names: " + Object.keys(window.definitions.selectorIDs));
         }
 
-        /** @type {Array<CircuitMap>} */
-        this.circuitMaps = [];
         this.identifier = identifier;
 
         let fkt = (new CircuitMapFactory()).getCircuitMap;
@@ -37,6 +35,31 @@ class CircuitSet {
         for (let circuitFileName of files) {
             await fkt(identifier).init(circuitFileName, dir, identifier, this.circuitMaps,
                 idx, mode)
+            idx++;
+        }
+
+        return this;
+    }
+
+    /**
+     *
+     * @param circuits {ScannedCircuits} local storage manager class that returns Map<string, string> from load() fn
+     */
+    async initFromStorage(circuits){
+        const data = await circuits.load();
+        const scannedCircuits = data.values();
+
+        const dir = Scanner.dirName;
+        this.identifier = Scanner.identifier;
+
+        const dirPath = conf.pyodide.paths.circuits + "/" + dir;
+
+        if (!(await state.apis.pyodide.exists(dirPath)).data) await state.apis.pyodide.mkdir(dirPath);
+
+        let idx = 0;
+        for (let scannedCircuit of scannedCircuits){
+            await new ScannedCircuitMap().initFromStorage(idx, scannedCircuit.trackingId, scannedCircuit.identifier,
+                scannedCircuit.netlist, this.circuitMaps);
             idx++;
         }
 

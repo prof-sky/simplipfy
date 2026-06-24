@@ -6,11 +6,12 @@ from typing import Sequence
 
 from .elements import Element, Element2Term, gap
 from ..util import Point, linspace
-from ..segments import Segment, SegmentArc, SegmentText, SegmentCircle, SegmentPoly
+from ..segments import Segment, SegmentArc, SegmentText, SegmentCircle, SegmentPoly, SegmentPath
 
 resheight = 0.25      # Resistor height
 reswidth = 1.0 / 6   # Full (inner) length of resistor is 1.0 data unit
-
+inch_to_pt = 72 # linewidth is given in pt while width/length/.. is given in inch (1 inch = 72 pt)
+std_width = 0.25 # default width of magnetic cores
 
 class ResistorIEEE(Element2Term):
     ''' Resistor (IEEE/U.S. style) '''
@@ -627,14 +628,25 @@ class VoltageMirror(Element2Term):
         self.anchors['common'] = (0.5, math.sqrt(1 - 0.2**2/0.3**2)*0.15)
 
 
+class StdMagnetCore(Element):
+    def __init__(self, width=0.25, **kwargs):
+        super().__init__()
+        #  Maße werden in inches angegeben - lw aber in pt : 1 inch = 72pt
+        width = std_width
+        length = 3
+        self.segments.append(Segment([(0,0), (length, 0)], lw=width*inch_to_pt, capstyle="projecting", color="gray", userparams=self._userparams)) #capstyle passt die enden auf Eckig an
+
+
+
 class MagnetCore(Element):
     def __init__(self, width=0.25, **kwargs):
         super().__init__()
-        #width = 0.25
-        width = 0.25
-        length = 3
-        self.segments.append(Segment([(0, -width), (0, width), (length, width), (length, -width), (0, -width)],fill="gray", color="gray", userparams=self._userparams))
-
+        #  Maße werden in inches angegeben - lw aber in pt : 1 inch = 72pt
+        width = 0.35
+        corr = width - std_width
+        #corr = 0
+        length = 3-2*corr
+        self.segments.append(Segment([(+corr,-corr), (length+corr, -corr)], lw=width*inch_to_pt, capstyle="projecting", color="gray", userparams=self._userparams)) #capstyle passt die enden auf Eckig an
         '''
         Segment(
             [(0, 0), (0.5*reswidth, resheight), (1.5*reswidth, -resheight),
@@ -645,49 +657,52 @@ class MagnetCore(Element):
 class AirGap(Element):
     def __init__(self, **kwargs):
         super().__init__()
-        width = 0.25
-        gap = 1.5
-        length = 3 - gap
-        self.segments.append(Segment([(0, -width), (0, width), (length/2, width), (length/2, -width), (0, -width)], fill="gray", color="gray", userparams=self._userparams))
-        self.segments.append(Segment([(length/2+gap, -width), (length/2+gap, width), (length+gap, width), (length+gap, -width), (length/2+gap, -width)], fill="gray", color="gray", userparams=self._userparams))
+        width = 0.3
+        corr = width - std_width
+        air_gap = 1
+        length = 3-2*corr - air_gap
+
+        self.segments.append(Segment([(corr, -corr),(length/2+corr, -corr),gap,(length/2+air_gap+corr, -corr), (length+air_gap+corr, -corr)], lw = width*inch_to_pt, capstyle = "projecting", color="gray", userparams=self._userparams))
+        #self.segments.append(Segment([(length/2+gap+corr, -corr), (length+gap+corr, -corr)], lw=width*inch_to_pt, capstyle = "projecting", color="gray", userparams=self._userparams))
 
 class MagneticSource(Element):
     def __init__(self, **kwargs):
         super().__init__()
+        id_ = kwargs.get('id_', "na")
+        class_ = kwargs.get('class_', "na")
+        width = 0.4
         radius = 0.4
-        width = 0.25
-        length = 3
-        spacing = width + radius/2
-        arrowLength = 0.6
-        arcRadius = 0.25
+        corr = (width-std_width) # factor by which we have to the elements
+        self.localshift = (5,5)
+        length = 3 - 2*corr
+        spacing = 2*width + radius # abstand wird mit skaliert
+        arrowLength = 3/2 *radius
+        arcDiam = 2/3 * radius
         # circle for source
-        self.segments.append(SegmentCircle((length/2, -spacing), radius, color="black", userparams=self._userparams))
+        self.segments.append(SegmentCircle((length/2+corr, -spacing+corr), radius, color="black", userparams={'id_': id_+"_Circle", 'class_': class_}))
         # arrow in source
-        self.segments.append(Segment([(length/2+arrowLength/2, -spacing), (length/2-arrowLength/2, -spacing)], arrow='->', color="black", userparams=self._userparams))
+        self.segments.append(Segment([(length/2+arrowLength/2+corr, -spacing+corr), (length/2-arrowLength/2+corr, -spacing+corr)], arrow='->', color="black", userparams={'id_': id_+"_Arrow", 'class_': class_}))
         # core beside source
-        self.segments.append(Segment([(0, -width+spacing), (0, width+spacing), (length, width+spacing), (length, -width+spacing), (0, -width+spacing)],fill="gray", color="gray", userparams=self._userparams))
-        # top wire to arc
-        self.segments.append(Segment([(length/2-radius, -spacing), (length/2-radius-arcRadius, -spacing), (length/2-radius-arcRadius, -spacing+1.2)], color="black", userparams=self._userparams))
+        self.segments.append(Segment([(0+corr, 0+corr), (length+corr,0+corr)],lw = width*inch_to_pt, capstyle="projecting", color="gray", userparams={'id_': id_+"_Core", 'class_': class_}))
 
         arcsStartpoint = length / 2 - radius
-
-        # segments on top of core next to source
-        self.segments.append(Segment([(arcsStartpoint+arcRadius, -spacing+0.6), (length/2-radius+arcRadius, -spacing+1.2)], color="black", userparams=self._userparams))
-        self.segments.append(Segment([(arcsStartpoint+arcRadius*3, -spacing+0.6), (length/2-radius+arcRadius*3, -spacing+1.2)], color="black", userparams=self._userparams))
-        #self.segments.append(Segment([(arcsStartpoint+arcRadius*5, -spacing+0.6), (length/2-radius+arcRadius*5, -spacing+1.2)], color="black", userparams=self._userparams))
+        # straight wires
+        self.segments.append(Segment(
+            [(length/2-radius+corr, -spacing+corr), (length/2-radius-arcDiam+corr, -spacing+corr), (length/2-radius-arcDiam+corr, width+corr), gap,
+             (arcsStartpoint+arcDiam+corr, -width+corr), (arcsStartpoint+arcDiam+corr, width+corr),gap,
+             (arcsStartpoint+arcDiam*3+corr, -width+corr), (arcsStartpoint+arcDiam*3+corr, width+corr), gap,
+             (arcsStartpoint + arcDiam * 4 + corr, -width + corr),
+             (arcsStartpoint + arcDiam * 4 + corr, -spacing + corr),
+             (arcsStartpoint + arcDiam * 4 - arcDiam + corr, -spacing + corr)], capstyle="butt", color="black", userparams={'id_': id_+"_wires", 'class_': class_}))
 
         # arcs on the right side
-        self.segments.append(SegmentArc((arcsStartpoint-arcRadius/2, -spacing+1.2), arcRadius, arcRadius, 0 ,180, color="black"))
-        self.segments.append(SegmentArc((arcsStartpoint+arcRadius/2+arcRadius, -spacing+1.2), arcRadius, arcRadius, 0 ,180, color="black"))
-        self.segments.append(SegmentArc((arcsStartpoint+arcRadius/2+arcRadius*3, -spacing+1.2), arcRadius, arcRadius, 0 ,180, color="black"))
+        self.segments.append(SegmentArc((arcsStartpoint-arcDiam/2+corr, width+corr), arcDiam, arcDiam, 0 ,180, color="black"))
+        self.segments.append(SegmentArc((arcsStartpoint+arcDiam/2+arcDiam+corr, width+corr), arcDiam, arcDiam, 0 ,180, color="black"))
+        self.segments.append(SegmentArc((arcsStartpoint+arcDiam/2+arcDiam*3+corr, width+corr), arcDiam, arcDiam, 0 ,180, color="black"))
 
         #arcs on the left side
-        self.segments.append(SegmentArc((arcsStartpoint+arcRadius/2, -spacing+0.6), arcRadius, arcRadius, 180, 360, color="black"))
-        self.segments.append(SegmentArc((arcsStartpoint+arcRadius/2+arcRadius*2, -spacing+0.6), arcRadius, arcRadius, 180, 360, color="black"))
-        #self.segments.append(SegmentArc((arcsStartpoint+arcRadius/2+arcRadius*4, -spacing+0.6), arcRadius, arcRadius, 180, 360, color="black"))
-
-        self.segments.append(Segment([(arcsStartpoint+arcRadius*4, -spacing+0.6), (arcsStartpoint+arcRadius*4, -spacing), (arcsStartpoint+arcRadius*4-0.2, -spacing)], color="black", userparams=self._userparams))
-
+        self.segments.append(SegmentArc((arcsStartpoint+arcDiam/2+corr, -width+corr), arcDiam, arcDiam, 180, 360, color="black"))
+        self.segments.append(SegmentArc((arcsStartpoint+arcDiam/2+arcDiam*2+corr, -width+corr), arcDiam, arcDiam, 180, 360, color="black"))
 
 # default to IEC style
 Resistor = ResistorIEC

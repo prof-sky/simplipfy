@@ -32,4 +32,12 @@ selectorDeTexts = {
         "Schaltkreise werden heruntergeladen ...",
     taskStandardName:
         "Aufgabe",
+    scanStandardName:
+        "Scan",
+    scannerName:
+        "QR Scanner",
+    slowInternetConnectionInfo:
+        "Es sieht so aus, als hättest du eine langsame Internetverbindung. Es tut uns leid, aber das Laden wird eine ganze Weile dauern ...",
+    internetToSlowError:
+        "Zu lange Ladezeit. Bitte versuche es erneut mit einer schnelleren Internetverbindung mit einer Download-Geschwindigkeit von mindestens 8 Mbit/s."
 }

@@ -4,17 +4,22 @@
  */
 class NavigationPage extends Page{
     #isEnabled = true;
+    #bootstrapCollapse = null;
 
     constructor() {
         let content = {
             navbar: new SideBar(),
         }
-        super(content, "navbar", "NavigationPage");
+        super(content, "navbar", "noTitle");
 
         this.languageSelect = document.getElementById("Dropdown");
         this.darkModeSwitch = document.getElementById("darkmode-switch");
         this.gameModeSwitch = document.getElementById("game-switch");
         this.activeLangFlag = document.getElementById("activeLanguageFlag");
+        this.navbarTitle = document.getElementById("navbarTitle");
+        this.#bootstrapCollapse = new bootstrap.Collapse(document.getElementById("navbarSupportedContent"), { toggle: false });
+
+        this.boundAutoCollapse = this.autoCollapse.bind(this);
     }
 
     setup() {
@@ -27,18 +32,52 @@ class NavigationPage extends Page{
         super.afterSetup();
     }
 
+    toggleNavBar(){
+        this.#bootstrapCollapse.toggle();
+    }
+
+    showNavBar(){
+        this.#bootstrapCollapse.show();
+    }
+
+    hideNavBar(){
+        this.#bootstrapCollapse.hide();
+    }
+
+    autoCollapse(event){
+        if (!this.pageDiv.contains(event.target)) {
+            event.stopPropagation();
+            this.hideNavBar();
+            this.setOpacity();
+        }
+    }
+
+    setOpacity(){
+        let newOpacity
+        if (this.pageDiv.querySelector("button").classList.contains("collapsed")) {
+            newOpacity = 1;
+            document.body.removeEventListener("click", this.boundAutoCollapse);
+        }
+        else{
+            document.body.addEventListener("click", this.boundAutoCollapse);
+            newOpacity = 0.3;
+        }
+        pageManager.updatePageOpacity(newOpacity, null, true);
+    }
+
+    highlightNavigationLink(id){
+        let navbar = document.getElementById(this.content.navbar.mainID);
+        navbar.querySelector(".highlighted-navbar-link")?.classList.remove("highlighted-navbar-link")
+        navbar.querySelector(`#${id}`)?.classList.add("highlighted-navbar-link");
+    }
+
     addEventListeners() {
         const toggler = document.getElementById("nav-toggler");
-        toggler.addEventListener("click", () => {
-            let newOpacity
-            if (this.pageDiv.querySelector("button").classList.contains("collapsed")) {
-                newOpacity = 1;
-            }
-            else{
-                newOpacity = 0.3;
-            }
-            pageManager.updatePageOpacity(newOpacity, null, true);
-        })
+        toggler.addEventListener("click", this.setOpacity.bind(this));
+    }
+
+    updateNavbarTitle(text){
+        this.navbarTitle.textContent = text;
     }
 
     close() {
@@ -104,7 +143,7 @@ class NavigationPage extends Page{
         const navBar = document.getElementById("navbar");
         let height = navBar.offsetHeight;
         const body = document.getElementsByTagName("body")[0];
-        body.style.paddingTop = height + "px";
+        document.body.style.paddingTop = height + "px";
     }
 
     #setupDarkModeSwitch() {
@@ -145,5 +184,10 @@ class NavigationPage extends Page{
         this.activeLangFlag.setAttribute("src", `src/resources/navigation/${lang}.png`)
         this.close();
         pushLanguageEventMatomo(configLanguageValues[lang]);
+    }
+
+    updateColor(bgClassName = "bg") {
+        super.updateColor(bgClassName);
+        this.pageDiv.querySelector("#navbarTitle").style.color = colors.current.foreground;
     }
 }

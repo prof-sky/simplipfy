@@ -69,6 +69,7 @@ class DrawingConfig:
     _generalize = False
     _optimize = Optimize.NONE
     _showNodes = False
+    _magnetic = False
 
     def __new__(cls):
         if cls._instance is None:
@@ -76,6 +77,16 @@ class DrawingConfig:
             cls._setOptionFns = [cls._optionGeneralize, cls._optionOptimize, cls._optionShowNodes]
 
         return cls._instance
+
+
+    @property
+    def magnetic(self) -> bool:
+        """
+        :returns: True if magnetic is set, else False
+
+
+        """
+        return DrawingConfig._magnetic
 
     @property
     def generalize(self) -> bool:
@@ -178,6 +189,7 @@ class DrawingConfig:
 
             * --<optionName>-<value> -> value is set to <value>
             * --<optionName> -> value is set to true
+            * --magnetic -> sets magnetic to true
             * --generalize -> sets generalize to True
             * --generalize-true -> sets generalize to True
             * --generalize-false -> sets generalize to False
@@ -210,6 +222,21 @@ class DrawingConfig:
         parsedOptions: list[Option] = self.parseString(optionStr, reset=reset)
         for option in parsedOptions:
             self._setOption(option)
+
+    def _optionMagnetic(self, option: Option) -> None:
+        """
+            :param option: Option class
+            :returns: None
+
+            checks if the option given into this function is "magnetic" and sets the value if it is, else does nothing
+            """
+        if option.name == "magnetic":
+            if option.value == "true":
+                DrawingConfig._magnetic = True
+            elif option.value == "false":
+                DrawingConfig._magnetic = False
+            else:
+                warn(f"Unknown magnetic value: {option.value}, option not changed")
 
     def _optionGeneralize(self, option: Option) -> None:
         """

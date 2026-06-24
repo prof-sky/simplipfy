@@ -9,7 +9,7 @@ class AboutPage extends Page{
             news: new News(),
         }
         // <pageName>-page-container (id of div on index.htlm)
-        super(content, "about-page-container", "AboutPage");
+        super(content, "about-page-container", "about", "nav-about");
     }
 
     setup() {

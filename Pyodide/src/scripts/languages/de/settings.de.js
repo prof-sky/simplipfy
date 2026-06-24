@@ -8,6 +8,8 @@ settingsDeTexts = {
     resetTrackIDsText:
         "<b>Tracking IDs zurücksetzen</b><br>Setzt die für das QR-Code tracking gespeicherten IDs zurück." +
         "Damit ist die Liste gemeint, die angezeigt wird, wenn das Eingabefeld angecklickt wird.",
+    resetScannerCarousel:
+        "<b>Reset Scanner Karussell</b><br>Löscht alle auf der Lernseite im Scanner-Karussell angezeigten Schaltkreise",
     resetBtn:
         "Zurücksetzen",
     resetMessage:

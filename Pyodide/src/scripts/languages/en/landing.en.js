@@ -29,5 +29,8 @@ landingEnTexts = {
     modalTitle:
         "Change Landing Page",
     modalBody:
-        "Do you want to change your starting page to learning? You can always change the page simplipfy.org shows you first in the settings."
+        "Do you want to change your starting page to learning? You can always change the page simplipfy.org shows you first in the settings.",
+    //currently English version is hardcoded into the index.html
+    searchEngineDescription:
+        "Guided exercises in the areas of analytical circuit simplification (DC/AC), Kirchhoff's laws, and Wheatstone's law. DSGVO conform and Open Source."
 }

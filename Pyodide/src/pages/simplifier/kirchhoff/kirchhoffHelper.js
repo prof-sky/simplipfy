@@ -44,7 +44,7 @@ function setupNextElementsVoltageLawContainer() {
     });
     let nextBtn = nextElementsContainer.querySelector("#next-btn");
     nextBtn.addEventListener('click', async () => {
-        if (await state.solvers.kirchhoff.foundAllVoltEquations()) {
+        if ((await state.solvers.kirchhoff.foundAllVoltEquations()).data) {
             // Remove last svg
             let svgDiv = document.getElementById(`svgDivVolt${state.pictureCounter}`).parentElement;
             svgDiv.remove();
@@ -52,11 +52,11 @@ function setupNextElementsVoltageLawContainer() {
              //   removeSvgEventHandlers(`svgDivVolt${i}`);
             //}
             // Finish circuit if enough equations found
-            if (await state.solvers.kirchhoff.foundAllEquations()) {
+            if ((await state.solvers.kirchhoff.foundAllEquations()).data) {
                 let contentCol = document.getElementById("content-col");
                 finishKirchhoff(contentCol);
                 pushCircuitEventMatomo(circuitActions.Finished, state.pictureCounter);
-                setTimeout(() => {showMessage(languageManager.currentLang.kirchhoff.foundEnoughVoltLoops, "success", false);});
+                UserEmojiMessage.success(languageManager.currentLang.kirchhoff.foundEnoughVoltLoops, false);
             } else {
                     pushCircuitEventMatomo(circuitActions.FinishedVoltages);
                     state.selectedElements = [];
@@ -65,7 +65,7 @@ function setupNextElementsVoltageLawContainer() {
             }
         } else {
             setTimeout(() => {
-                showMessage(languageManager.currentLang.alerts.notAllVoltLoopsFound, "warning");
+                UserEmojiMessage.warning(languageManager.currentLang.alerts.notAllVoltLoopsFound);
             });
         }
     });
@@ -113,18 +113,16 @@ function setupNextElementsCurrentLawContainer() {
 
 async function checkFinishKirchhoff() {
     let contentCol = document.getElementById("content-col");
-    let allEqsFound = await state.solvers.kirchhoff.foundAllEquations();
+    let allEqsFound = (await state.solvers.kirchhoff.foundAllEquations()).data;
     if (allEqsFound) {
         finishKirchhoff(contentCol);
     } else {
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.alerts.notAllEquationsFound, "warning");
-        }, 0);
+        UserEmojiMessage.warning(languageManager.currentLang.alerts.notAllEquationsFound);
     }
 }
 
 async function solveFirstStep() {
-    state.step0Data = await state.solvers.stepwise.createStep0();
+    state.step0Data = (await state.solvers.kirchhoff.createStep0()).data;
     state.currentStep = 0;
 }
 
@@ -182,7 +180,7 @@ async function showCorrectSelection(checkBoxId) {
 }
 
 async function getCurrentEquationNr() {
-    let equations = await state.solvers.kirchhoff.equations();
+    let equations = (await state.solvers.kirchhoff.equations()).data;
     // get nr of equation from this list where the element is not "-"
     let eqNr = 0;
     for (let i = 0; i < equations.length; i++) {
@@ -196,7 +194,7 @@ async function getCurrentEquationNr() {
 async function updateEquations() {
     let equationContainer = document.getElementById("equations-overview-container");
     equationContainer.innerHTML = languageManager.currentLang.kirchhoff.missingEquations;
-    equationContainer.appendChild(getEquationsTable(await state.solvers.kirchhoff.equations()));
+    equationContainer.appendChild(getEquationsTable((await state.solvers.kirchhoff.equations()).data));
 }
 
 async function waitForCorrectSelection() {
@@ -251,47 +249,32 @@ function handleVoltageError(errorCode, svgDiv) {
     } else{
         msg = languageManager.currentLang.alerts.somethingIsWrong
     }
-    setTimeout(() => {
-        showMessage(msg, "warning");
-    }, 0);
+    UserEmojiMessage.warning(msg);
 }
 
 function handleJunctionError(errorCode, svgDiv) {
     if (errorCode === 1) {
         // Equation already exists
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.alerts.junctionAlreadyExists, "warning");
-        }, 0);
+        UserEmojiMessage.warning(languageManager.currentLang.alerts.junctionAlreadyExists);
         pushCircuitEventMatomo(circuitActions.JunctionAlreadyExists);
         subtract1Live();
     } else if (errorCode === 2) {
         // Invalid selection
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.alerts.invalidJunction, "warning");
-        }, 0);
+        UserEmojiMessage.warning(languageManager.currentLang.alerts.invalidJunction);
         pushCircuitEventMatomo(circuitActions.InvalidJunction);
         subtract1Live();
     } else if (errorCode === 3) {
         // Only for junction law, if more than 2 elements in series are chosen we can't generate
         // one equation but two, I1 = I2 = I3, but we want I1 = I2 and I2 = I3
         // So throw error if more than 2 series elements are chosen
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.alerts.tooManyJunctionNodes, "warning");
-        }, 0);
+        UserEmojiMessage.warning(languageManager.currentLang.alerts.tooManyJunctionNodes);
         subtract1Live();
     } else if (errorCode === 4) {
         // Only for voltage law
     } else {
         // Default error
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.alerts.somethingIsWrong, "warning");
-        }, 0);
+        UserEmojiMessage.warning(languageManager.currentLang.alerts.somethingIsWrong);
     }
-}
-
-async function initSolverObjects(circuitMap) {
-    SimplifierPage.resetSolvers();
-    SimplifierPage.initSolvers(circuitMap);
 }
 
 function createVoltHeading() {
@@ -325,7 +308,7 @@ async function createEquationsOverviewContainer() {
     text.style.color = colors.current.foreground;
     text.style.maxWidth = "350px";
     equations.appendChild(text);
-    let eqs = await state.solvers.kirchhoff.equations();
+    let eqs = (await state.solvers.kirchhoff.equations()).data;
     // Filter out "-" equations
     eqs = eqs.filter(eq => eq !== "-");
     equations.appendChild(getEquationsTable(eqs));
@@ -602,7 +585,7 @@ function createValuesContainer() {
     list.appendChild(given);
 
     let source = document.createElement("li");
-    source.innerHTML = `\\(${languageManager.currentLang.simplifier.voltageSymbol}${languageManager.currentLang.simplifier.totalSuffix}=${getSourceVoltageVal()}\\)`;
+    source.innerHTML = `\\(${languageManager.currentLang.simplifier.voltageSymbol}_\\text{${languageManager.currentLang.simplifier.totalSuffix}}=${getSourceVoltageVal()}\\)`;
     list.appendChild(source);
 
     for (let element of state.step0Data.allComponents) {

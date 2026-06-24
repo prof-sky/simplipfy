@@ -16,8 +16,7 @@ class TrackIdReset extends Content{
         resetText.id = "reset-trackIDs-text";
         resetText.innerHTML = languageManager.currentLang.settingsPage.resetTrackIDsText;
         resetText.style.color = colors.current.foreground;
-        resetText.classList.add("mx-auto");
-        resetText.classList.add("mt-3");
+        resetText.classList.add("mx-auto", "mt-3");
         resetText.style.maxWidth = "400px";
         div.appendChild(resetText);
 
@@ -25,7 +24,7 @@ class TrackIdReset extends Content{
         this.resetCountersBtn = document.createElement("button");
         const resetCountersBtn = this.resetCountersBtn
         resetCountersBtn.id = "reset-trackIDs-btn";
-        resetCountersBtn.classList.add("btn", "btn-danger", "text-white", "mt-3", "px-5");
+        resetCountersBtn.classList.add("btn", "btn-danger", "text-white", "mt-3", "px-5", "disabled");
         resetCountersBtn.style.color = colors.definitions.keyDark;
         resetCountersBtn.innerHTML = languageManager.currentLang.settingsPage.resetBtn;
         div.appendChild(resetCountersBtn);
@@ -41,9 +40,7 @@ class TrackIdReset extends Content{
     addEventListeners() {
         this.resetCountersBtn.addEventListener("click", () => {
             storageManager.trackingIDs.reset();
-            setTimeout(() => {
-                showMessage(languageManager.currentLang.settingsPage.resetMessage, "info")
-            }, 0);
+            UserMessage.info(languageManager.currentLang.settingsPage.resetMessage);
         });
     }
 }

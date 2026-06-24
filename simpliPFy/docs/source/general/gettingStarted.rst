@@ -18,15 +18,30 @@ After June 30, 2026 the project will be open for contributions on GitHub.
 Docker Image
 -------------
 If you dont want to setup a local interpreter and developing environment you can use the prebuild docker image.
-You need a working installation of docker desktop and docker desktop needs to be running for the next steps.
+You need a working installation of docker desktop and docker desktop needs to be running for the next steps. Run Docker
+Desktop and the shells for the following commands as Administrator or with administrator privileges.
 Execute while in ``.../inskale``::
 
-     docker build -t simplipfy:0.3 .
+     docker build -t simplipfy:0.4.7 .
 
-This builds the docker image on your PC and may take some time. After that execute::
+This builds the docker image on your PC and may take some time. You can also download the prebuild image from our
+simplipfy server. With ::
 
-    docker run -it -p 8080:80 -p 8000:8000 -p 7500:7500 -v "./:/src" simplipfy:0.3
+    Accessing the webpage:
+    https://docker.simplipfy.org/simplipfy_docker_latest.tar
+    on linux:
+    curl -o simplipfy_docker_latest.tar https://docker.simplipfy.org/simplipfy_docker_latest.tar
+    with powershell:
+    Invoke-WebRequest -Uri https://docker.simplipfy.org/simplipfy_docker_latest.tar -OutFile "simplipfy_docker_latest.tar"
 
+    when file is at ``.../inskale`` navigate into ``.../inskale`` and execute:
+    docker load -i simplipfy_docker_latest.tar
+
+After that execute::
+
+    docker run --env-file .\Pyodide\Scripts\.env --hostname simplipfyDockerContainer -it -p 8080:80 -p 8000:8000 -p 7500:7500 -v "./:/src" simplipfy:0.4.7
+
+the simplipfy image version has to match the version of the image build or loaded image from the simplipfy server.
 This will start the docker container. When the starting process is finished you will enter the shell of the docker
 container. The starting process does take some time due to installation of editable packages simpliPFy, lcapy-inskale,
 schemdraw and simplipfyBuildTools. In the container there also is a apache server installed to test ftp uploads with cli
@@ -51,19 +66,21 @@ Restarting the container is time consuming due to installing editable python pac
 For using the internal apache and ftp server in the docker image create a ``.env`` file at ``.../inskale/Pyodide/Scripts``
 and add the following text to it::
 
-    API_SECRET="some-secret"
-    FTP_FOLDER="/simplipfy"
-    FTP_FOLDER_RELEASE="/simplipfy"
-    FTP_FOLDER_DEV="/dev"
-    FTP_FOLDER_DOCS="/docs"
-    FTP_PASS="ftp-pass"
-    FTP_SERVER="127.0.0.1"
-    FTP_USER="ftp-user"
-    CI_COMMIT_SHA="test_commit_sha"
-    CI_COMMIT_TAG="test_commit_tag"
-    DB_NAME="some-db-name"
-    DB_USER="some-db-user"
-    DB_PASSWORD="some-db-password"
+    API_SECRET=some-secret
+    FTP_FOLDER=/simplipfy
+    FTP_FOLDER_RELEASE=/simplipfy
+    FTP_FOLDER_DEV=/dev
+    FTP_FOLDER_DOCS=/docs
+    FTP_PASS=ftp-pass
+    FTP_SERVER=127.0.0.1
+    FTP_USER=ftp-user
+    CI_COMMIT_SHA=test_commit_sha
+    CI_COMMIT_TAG=test_commit_tag
+    DB_NAME=testTrackingDB
+    DB_USER=test-user
+    DB_PASSWORD=test-user-password
+    SESSION_LIMIT=3
+    ENTRY_LIMIT=5
 
 .. seealso::
 

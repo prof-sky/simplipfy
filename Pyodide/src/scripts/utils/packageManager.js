@@ -25,17 +25,15 @@ class PackageManager {
         try {
             await this.importPyodidePackages();
             await this.importSolverModule();
-            state.pyodideReady = true;
+            state.backendReady = true;
 
-            let endTime = new Date().getTime();
+            let endTime = Date.now();
             let loadTime = endTime - startTime;
             console.log("Loading time: " + loadTime + "ms");
         } catch (error) {
             console.trace(error)
             console.error("Error loading packages: " + error);
-            setTimeout(() => {
-                showMessage(error, "error", false);
-            });
+            UserMessage.error(error, false);
             pushErrorEventMatomo(errorActions.packageLoadError, error);
         }
     }
@@ -52,7 +50,6 @@ class PackageManager {
         let content = await (await fetch(conf.server.paths.simplipfyAPI)).text();
         await state.apis.pyodide.writeFile(conf.pyodide.paths.simplipfyAPI, content);
         await state.apis.pyodide.loadSolver();
-        state.solverLoaded = true;
     }
 
     async import_packages() {
@@ -88,7 +85,7 @@ class PackageManager {
             // Fetch package with dirname + package.whl
             let pkgArrBuff = await (await fetch(conf.server.paths.packages + packageName)).arrayBuffer();
             let packageExtension = packageName.slice(packageName.lastIndexOf("."), packageName.length);
-            await state.apis.pyodide.unpackArchive(pkgArrBuff, packageExtension);
+            await state.apis.pyodide.unpackArchive(pkgArrBuff, packageExtension, {});
             console.log("Loading: " + packageName);
             state.loadingProgress += stepSize;
             updateStartBtnLoadingPgr(state.loadingProgress);

@@ -1,6 +1,8 @@
 from lcapyInskale import Circuit
+from simplipfy.Magnetic.magneticCircuit import MCircuit
 from simplipfy.Helpers.langSymbols import LangSymbols
 from simplipfy.Svg.drawWithSchemdraw import DrawWithSchemdraw as dws
+from simplipfy.Svg.magneticDrawWithSchemdraw import MagneticDrawWithSchemdraw as mdws
 from simplipfy.Svg.drawingConfig import drawing_config_instance as dc
 from simplipfy.Tools.validateCircuitFile import ValidateCircuitFile
 
@@ -21,11 +23,16 @@ def forceDrawing(netlist: str, ls: dict, configOption:str = None) -> str:
     dc.unlock()
     configOption = configOption if configOption is not None else ""
     dc.lock(on=configOption)
-
-    try:
-        imageData = dws(Circuit(netlist=netlist), LangSymbols(ls), removeDangling=False).getImageData()
-    except RuntimeError:
-        return generateSVGWithErrorsAndWarnings(netlist)
+    if configOption == "magnetic":
+        try:
+            imageData = mdws(MCircuit.parse(netlist), LangSymbols(ls)).getImageData()
+        except:
+            pass #TODO: add runtimeError and generate as below!
+    else:
+        try:
+            imageData = dws(Circuit(netlist=netlist), LangSymbols(ls), removeDangling=False).getImageData()
+        except RuntimeError:
+            return generateSVGWithErrorsAndWarnings(netlist)
 
     dc.unlock()
     if wasLocked:

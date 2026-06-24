@@ -1,0 +1,10 @@
+Va 1 0 dc {10}; down
+W 1 2; right
+R1 2 3 {300}; down
+W 2 4; right
+R2 4 5 {300}; down
+W 4 6; right
+R3 6 7 {150}; down
+W 7 5; left
+W 5 3; left
+W 3 0; left

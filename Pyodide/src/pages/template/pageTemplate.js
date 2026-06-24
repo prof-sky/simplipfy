@@ -9,7 +9,7 @@ class pageTemplate extends Page{
             content2: "new Content2()",
         }
         // <pageName>-page-container (id of div on index.htlm)
-        super(content, "<pageName>-page-container");
+        super(content, "<pageName>-page-container", "<some-title>");
     }
 
     setup() {

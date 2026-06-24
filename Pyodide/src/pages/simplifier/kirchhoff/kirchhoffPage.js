@@ -7,12 +7,13 @@ class KirchhoffPage extends SimplifierPage{
         let content = {
         }
         // <pageName>-page-container (id of div on index.htlm)
-        super(content, "KirchhoffPage");
+        super(content, "KirchhoffPage", "kirchhoff");
     }
 
     reset(calledFromResetBtn){
         this.invalidate(); // isInitialized = false
         SimplifierPage.clear();
+
         state.valuesShown = new Map();
         state.selectedElements = [];
         state.pictureCounter = 0;
@@ -21,6 +22,7 @@ class KirchhoffPage extends SimplifierPage{
         state.doneCurrents = [];
         state.voltEquations = [];
         state.extraLiveUsed = false;
+
         //resetExtraLiveModal();
         scrollBodyToTop();
         if (calledFromResetBtn) {
@@ -39,17 +41,20 @@ class KirchhoffPage extends SimplifierPage{
         if(!super.beforeInit()) return;
 
         try {
-            this.reset()
-            await initSolverObjects(state.currentCircuitMap);
-            await solveFirstStep();  // to generate SVG and data
+            this.reset();
+
+            await state.solvers.kirchhoff.reset();
+            await state.solvers.kirchhoff.init(state.currentCircuitMap);
+
+            await solveFirstStep();// to generate SVG and data
+
             if (this.checkForError()) return;
+
             await nextKirchhoffVoltStep();
         } catch (error) {
             console.trace(error)
             console.error("Error starting Kirchhoff: " + error);
-            setTimeout(() => {
-                showMessage(error, "error", false);
-            }, 0);
+            UserMessage.error(error);
             pushErrorEventMatomo(errorActions.kirchhoffStartError, error);
         }
         super.afterInit();

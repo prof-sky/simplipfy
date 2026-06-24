@@ -28,5 +28,8 @@ landingDeTexts = {
     modalTitle:
         "Startseite ändern",
     modalBody:
-        "Möchten sie die Startseite zur Auswahlseite ändern? Sie können dies jederzeit in den Einstellungen anpassen."
+        "Möchten sie die Startseite zur Auswahlseite ändern? Sie können dies jederzeit in den Einstellungen anpassen.",
+    //currently English version is hardcoded into the index.html
+    searchEngineDescription:
+        "Eine interaktive Lernumgebung für die Elektrotechnik. Geführte Übungen in den Bereichen analytische Schaltkreisvereinfachung (DC/AC), Kirchhoffsche Gesetze und Wheatstonesches Gesetz. DSGVO-konform und Open Source."
 }

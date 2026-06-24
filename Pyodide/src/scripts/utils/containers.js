@@ -40,13 +40,13 @@ class Containers {
             sfx += "," + languageManager.currentLang.simplifier.effectiveSuffix;
         }
         if (currentCircuitIsSymbolic()) {
-            sourceInfo = `$$ ${languageManager.currentLang.simplifier.voltageSymbol}_{${sfx}}=${renameVSrc(getSourceVoltageVal())} $$`;
+            sourceInfo = `$$ ${languageManager.currentLang.simplifier.voltageSymbol}_\\text{${sfx}}=${renameVSrc(getSourceVoltageVal())} $$`;
         } else {
             if (sourceIsAC()) {
-                sourceInfo = `$$ ${languageManager.currentLang.simplifier.voltageSymbol}_{${sfx}}=${getSourceVoltageVal()} $$
+                sourceInfo = `$$ ${languageManager.currentLang.simplifier.voltageSymbol}_\\text{${sfx}}=${getSourceVoltageVal()} $$
                           $$ f = ${getSourceFrequency()}$$`;
             } else {
-                sourceInfo = `$$ ${languageManager.currentLang.simplifier.voltageSymbol}_{${sfx}}=${getSourceVoltageVal()} $$`;
+                sourceInfo = `$$ ${languageManager.currentLang.simplifier.voltageSymbol}_\\text{${sfx}}=${getSourceVoltageVal()} $$`;
             }
         }
 

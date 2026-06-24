@@ -1,4 +1,4 @@
-# for simplipfy version: 0.2.4
+# for simplipfy version: 0.2.8
 import warnings
 warnings.filterwarnings('ignore')
 # this py File is imported into pyodide and enables the use of the simpliPFy library in the web app without the need
@@ -37,4 +37,7 @@ from simplipfy.Svg.drawingConfig import drawing_config_instance as dc
 drawingConfigInstance = dc
 
 from simplipfy.Tools.generateGraphs import generate_graph_from_circuit as ggfc
-generateGraphFromCircuit = ggfc     
+generateGraphFromCircuit = ggfc
+
+from simplipfy.Magnetic.MagneticTransformer import MagneticTransformer as mtr
+MagneticTransformer = mtr

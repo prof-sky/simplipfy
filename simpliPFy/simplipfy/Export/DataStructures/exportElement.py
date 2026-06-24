@@ -41,15 +41,23 @@ class ExportElement(DictExportBase):
 
         self.suffix = self.circuit[compName].id
 
+
         self._cpxValue, self._value, self.compType = self._convertValue(self.circuit[compName].Z)
-        self.uName = self.ls.volt + self.suffix
-        self.iName = 'I' + self.suffix
 
         if compName[0] in ["I", "V"]:
             self.compType = compName[0]
+            self.name = self.compType + self.suffix
             if not self.multipleSources:
                 self.uName = self.ls.volt + self.ls.total
                 self.iName = 'I' + self.ls.total
+            else:
+                self.uName = self.ls.volt + self.suffix
+                self.iName = 'I' + self.suffix
+        else:
+            self.name = self.combine_name()
+            self.uName = self.ls.volt + self.suffix
+            self.iName = 'I' + self.suffix
+
 
 
         key = list(self.circuit[compName].V(omega_0).keys())[0]
@@ -66,7 +74,6 @@ class ExportElement(DictExportBase):
         self._u = voltage(sympy.sqrt( imU ** 2 + reU ** 2))
         self.uPhase = sympy.atan2(imU, reU) * 180 / sympy.pi * deg
 
-        self.name = self.compType + self.suffix
         self.imZ = sympy.im(self._cpxValue.expr)
         self.reZ = sympy.re(self._cpxValue.expr)
         self.zPhase = sympy.atan2(imU, reU) * 180 / sympy.pi * deg
@@ -176,3 +183,8 @@ class ExportElement(DictExportBase):
     @property
     def magnitude(self):
         return self._returnFkt(self._magnitude)
+
+    def combine_name(self):
+        if not self.suffix.startswith(self.compType):
+            self.suffix = self.compType + self.suffix
+        return self.suffix

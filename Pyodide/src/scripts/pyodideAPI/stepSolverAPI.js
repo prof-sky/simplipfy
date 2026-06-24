@@ -1,56 +1,75 @@
-
 // #####################################################################################
 // ########################## StepSolver API Class #####################################
 // #####################################################################################
 
-class StepSolverAPI extends SolverInterface{
+class StepSolverAPI extends SolverInterface {
+
     /**
      * @param {CircuitMap} circuitMap
-     * */
+     * @returns {Promise<WorkerResponse<PyodideAPIMap["initStepSolver"]["output"]>>}
+     */
+
     async init(circuitMap) {
-        return requestResponse(this.worker, {
-            action: "initStepSolver",
-            data: { circuitFile: circuitMap.circuitFile, circuitPath: circuitMap.circuitPath, paramMap: circuitMap.paramMap }
+        return this.getDataPromise("initStepSolver", {
+            circuitFile: circuitMap.circuitFile,
+            circuitPath: circuitMap.circuitPath,
+            paramMap: circuitMap.paramMap
         });
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["resetStepSolver"]["output"]>>} */
     async reset() {
-        return requestResponse(this.worker, {
-            action: "resetStepSolver",
-            data: {}
-        });
+        return this.getDataPromise("resetStepSolver");
     }
 
-    /** @returns {Promise<StepObject>} */
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["createStep0"]["output"]>>} */
     async createStep0() {
-        return requestResponse(this.worker, {
-            action: "createStep0",
-            data: {}
-        });
+        let res = await this.getDataPromise("createStep0");
+        return new WorkerResponse(
+            res.id,
+            new StepObject(res.data),
+            res.success,
+            res.errors,
+            res.warnings
+        );
     }
 
+    /**
+     * @param {string} step
+     * @returns {Promise<WorkerResponse<PyodideAPIMap["getStep"]["output"]>>}
+     */
     async getStep(step) {
-        // Returns a StepObject, see stepObject.js
-        return requestResponse(this.worker, {
-            action: "getStep",
-            step: step,
-            data: {}
-        });
+        let res = await this.getDataPromise("getStep", { step });
+        return new WorkerResponse(
+            res.id,
+            new StepObject(res.data),
+            res.success,
+            res.errors,
+            res.warnings
+        );
     }
 
-    /** @returns {Promise<StepObject>} */
+    /**
+     * @param {string[]} selectedElements
+     * @param {string} relation
+     * @returns {Promise<WorkerResponse<PyodideAPIMap["simplifyNCpts"]["output"]>>}
+     */
     async simplifyNCpts(selectedElements, relation) {
-        // Returns a StepObject, see stepObject.js
-        return requestResponse(this.worker, {
-            action: "simplifyNCpts",
-            selectedElements: selectedElements,
-            relation: relation
+        let res = await this.getDataPromise("simplifyNCpts", {
+            selectedElements,
+            relation
         });
+        return new WorkerResponse(
+            res.id,
+            new StepObject(res.data),
+            res.success,
+            res.errors,
+            res.warnings
+        )
     }
 
-    async canSimplifyCpts(){
-        return requestResponse(this.worker, {
-            action: "canSimplifyCpts",
-        });
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["canSimplifyCpts"]["output"]>>} */
+    async canSimplifyCpts() {
+        return this.getDataPromise("canSimplifyCpts");
     }
 }

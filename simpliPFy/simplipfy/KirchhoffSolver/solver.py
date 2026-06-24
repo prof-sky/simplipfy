@@ -27,10 +27,13 @@ def createDispNames(cptNames: list[str], language: LangSymbols, ms: bool) -> dic
     dispNames = {}
 
     for name in cptNames:
-        if name[0] in ["V", "I"] and not ms:
-            dispNames[name] = language.total
+        if name[0] in ["V", "I"]:
+            if not ms:
+                dispNames[name] = language.total
+            else:
+                dispNames[name] = name[1]
         else:
-            dispNames[name] = name[1:]
+            dispNames[name] = name
 
     return dispNames
 

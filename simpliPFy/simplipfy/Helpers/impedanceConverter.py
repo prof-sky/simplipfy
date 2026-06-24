@@ -7,7 +7,7 @@ from lcapyInskale import Circuit, j, omega0 as lcapy_omega0, state
 from simplipfy.Helpers.netlistLine import NetlistLine
 from simplipfy.Svg.drawingConfig import drawing_config_instance as dc
 
-
+componentMap = dict()
 def ComponentToImpedance(netlistLine: str,
                          omega_0: Union[float, str] = None,
                          skipElementTypes=None,
@@ -43,7 +43,7 @@ def ComponentToImpedance(netlistLine: str,
     if skipElementTypes is None:
         skipElementTypes = ["V", "W"]
     if replaceElementType is None:
-        replaceElementType = {"R": "Z", "L": "Z", "C": "Z"}
+        replaceElementType = {"R": "ZR", "L": "ZL", "C": "ZC"}
     if replaceValueWith is None:
         replaceValueWith = {"R": "value", "L": "j*value*omega_0", "C": "-j/(value*omega_0)"}
 
@@ -98,10 +98,14 @@ def ImpedanceToComponent(strNetlistLine: str = None,
         netLine = NetlistLine(strNetlistLine)
     else:
         raise AttributeError("strNetlistLine or netlistLine need a value")
-
+    #change netline type to R/L/C
+    line_label_old = strNetlistLine.split(" ")[0]
     netLine.value, netLine.type = ValueToComponent(netLine.value, omega_0=omega_0)
+    new_line = netLine.reconstruct()
+    line_label_new = new_line.split(" ")[0]
 
-    return netLine.reconstruct()
+    componentMap[line_label_new] = line_label_old
+    return new_line
 
 
 def ValueToComponent(value, omega_0: Union[float, str] = None) -> (sp.Mul, str):
@@ -178,7 +182,7 @@ def ValueToComponent(value, omega_0: Union[float, str] = None) -> (sp.Mul, str):
     return returnVal, returnType
 
 
-def FileToImpedance(filename: str) -> str:
+def FileToImpedance(filename: str) -> (str, dict):
     """
     :param filename: filename to open, with path and extension
     :returns: converted netlist as str
@@ -194,13 +198,17 @@ def FileToImpedance(filename: str) -> str:
 
     dc.setToDefault()
     conv_netlist = ""
+
     for line in netlist:
         if line.startswith('#'):
             dc.setOptions(line)
             continue
-        conv_netlist += ComponentToImpedance(line, newLine=True, omega_0=omega_0)
-
-    return conv_netlist
+        new_line = ComponentToImpedance(line, newLine=True, omega_0=omega_0)
+        conv_netlist += new_line
+        line_label_old = line.split(" ")[0]
+        line_label_new = new_line.split(" ")[0]
+        componentMap[line_label_old]  =  line_label_new # label in alter netzliste zu neuem label mappen
+    return conv_netlist, componentMap
 
 
 def NeedsConversion(netlist: str, checkForTypes=None) -> bool:

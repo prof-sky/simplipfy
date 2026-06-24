@@ -707,7 +707,7 @@ function stopKpsTracking(editor) {
 }
 
 function setupKeystrokeCounter(editor) {
-    let collapseEl  = document.getElementById("live-drawing-acc-collapse");
+    let collapseEl  = document.getElementById("liveDrawing-accordion-collapse");
     collapseEl.addEventListener("shown.bs.collapse", () => {
         startKpsTracking(editor);
     });

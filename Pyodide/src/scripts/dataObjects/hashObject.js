@@ -3,7 +3,8 @@
 class HashObject {
     #qrSessionID;
     #qrSelector;
-    #qrCompressedNetlist;
+    #qrNetlist;
+    #tracking;
     #ccUser;
     #ccFile;
     #setPage;
@@ -20,7 +21,9 @@ class HashObject {
 
             this.#qrSessionID = params.get("id") || false;
             this.#qrSelector = params.get("sel") || false;
-            this.#qrCompressedNetlist = params.get("net") || false;
+            this.#qrNetlist = params.get("net") || false;
+            if (this.#qrNetlist) this.#qrNetlist = new NetlistString(undefined, this.#qrNetlist);
+            this.#tracking = params.has("tracking");
             this.#ccUser = params.get("ccUser") || false;
             this.#ccFile = params.get("ccFile") || false;
             this.#setPage = params.get("setPage") || false;
@@ -32,17 +35,18 @@ class HashObject {
 
     get hasQrInfo(){
         if (this.#qrSessionID) {
-            if (this.#qrSelector && this.#qrCompressedNetlist) {return true};
+            if (this.#qrSelector && this.#qrNetlist && !this.#tracking) return true
 
-            if (!this.#qrSelector) {console.warn("SessionID found but no selector specified")}
-            if (!this.#qrCompressedNetlist) {console.warn("SessionID found but no netlist specified")};
+            if (!this.#qrSelector) console.warn("SessionID found but no selector specified")
+            if (!this.#qrNetlist) console.warn("SessionID found but no netlist specified")
         }
 
         return false;
     }
 
+    /** @returns {QrTrackingData} */
     get qrInfo(){
-        return {id: this.#qrSessionID, sel: this.#qrSelector, net: this.#qrCompressedNetlist};
+        return new QrTrackingData(this.#qrSessionID, "QR-Code scan", this.#qrNetlist, this.#qrSelector);
     }
 
     get hasCustomCircuits(){
@@ -55,6 +59,7 @@ class HashObject {
         return false;
     }
 
+    /** @returns {{user: string, file: string}} */
     get customCircuits(){
         return {user: this.#ccUser, file: this.#ccFile};
     }
@@ -64,11 +69,21 @@ class HashObject {
     }
 
     get setPage() {
-        if (this.hasSetPage)
+        if (this.hasSetPage){
             return this.#setPage;
+        }
         else{
             let [_, firstPage] = storageManager.firstPage.load()
             return firstPage;
         }
+    }
+
+    get hasTracking(){
+        return this.#qrSelector && this.#qrNetlist && this.#tracking;
+    }
+
+    /** @returns {QrTrackingData} */
+    get tracking(){
+        return new QrTrackingData(this.#qrSessionID, "Link Netlist", this.#qrNetlist.uncompressed, this.#qrSelector);
     }
 }

@@ -18,6 +18,8 @@ class LocalStorageManager {
     firstPage = null;
     /** @type {PreferredColorScheme} */
     preferredColorScheme = null;
+    /** @type {ScannedCircuits} */
+    scannedCircuits = null;
 
     constructor() {
         if (this.instance) {
@@ -34,6 +36,7 @@ class LocalStorageManager {
         this.firstPage = new FirstPage();
         this.landingPageVisits = new LandingPageVisits();
         this.preferredColorScheme = new PreferredColorScheme();
+        this.scannedCircuits = new ScannedCircuits();
 
         return this.instance;
     }

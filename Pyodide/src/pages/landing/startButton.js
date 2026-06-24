@@ -54,9 +54,7 @@ class StartButton extends Content{
             console.trace(error)
             console.error(error)
             pageManager.onError();
-            setTimeout(() => {
-                showMessage(error, "error", false);
-            });
+            UserMessage.error(error);
         }
     }
 

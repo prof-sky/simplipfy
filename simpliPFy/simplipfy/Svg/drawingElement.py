@@ -48,7 +48,7 @@ class DrawingElement(Element):
         drawParam = self.di.drawParam
         ofst = self.vaOfst[drawParam]
         ofstLabel = self.vlOfst[drawParam]
-        suffix = self.di.typeSuffix if suffix is None else suffix
+        suffix = self.di.label if suffix is None else suffix
         drawing.add(
             elm.CurrentLabel(
                 length=1.5, class_="voltage-label arrow " + self.ls.volt + suffix, ofst=ofst, reverse=reverse
@@ -63,7 +63,7 @@ class DrawingElement(Element):
         drawParam = self.di.drawParam
         ofstLabel = self.clOfst[drawParam] if ofstLabel is None else ofstLabel
 
-        suffix = self.di.typeSuffix if suffix is None else suffix
+        suffix = self.di.label if suffix is None else suffix
         drawing.add(elm.CurrentLabelInline(
             direction='in', class_="current-label arrow I" + suffix, ofst=ofst, reverse=reverse
                                     ).at(

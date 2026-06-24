@@ -78,7 +78,7 @@ class OverlayFactory {
      * @param circuitMap  {CircuitMap | WheatstoneCircuitMap}
      */
     noOverlay = [window.definitions.selectorIDs.quickstart, window.definitions.selectorIDs.symbolic,
-        window.definitions.selectorIDs.kirchhoff];
+        window.definitions.selectorIDs.kirchhoff, window.definitions.selectorIDs.magnetic];
     voltOverlay = [window.definitions.selectorIDs.resistor];
     voltFreqOverlay = [window.definitions.selectorIDs.inductor,
         window.definitions.selectorIDs.capacitor, window.definitions.selectorIDs.mixed];
@@ -94,6 +94,7 @@ class OverlayFactory {
         else if (this.voltOverlay.includes(identifier)) return new VoltageOverlay(circuitMap).overlay;
         else if (this.voltFreqOverlay.includes(identifier)) return new VoltFreqOverlay(circuitMap).overlay;
         else if (identifier === window.definitions.selectorIDs.wheatstone) return new WheatstoneOverlay(circuitMap).overlay;
+        else if (identifier === Scanner.identifier) return new EmptyOverlay(circuitMap).overlay;
         else {
             console.warn(`unhandled overlay request for identifier: ${identifier}`);
             return new EmptyOverlay(circuitMap).overlay;

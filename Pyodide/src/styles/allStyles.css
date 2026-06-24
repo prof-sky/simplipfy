@@ -245,6 +245,7 @@ mjx-container {
     padding-bottom: 5px;
     pointer-events: none;
     user-select: none;
+    white-space: normal !important;
 }
 /* */
 /*mjx-container mjx-c::before {*/
@@ -841,7 +842,7 @@ th, td {
 #editor-page-editor > div > table > tr > td > table > tr:nth-child(4) > td:first-child,
 #editor-page-editor > div > table > tr > td > table > tr:nth-child(8) > td:first-child,
 /* hide menu entries */
-#editor-page-editor > div > table > tr:first-child > td > span.fa-link,
+/*#editor-page-editor > div > table > tr:first-child > td > span.fa-link,*/
 #editor-page-editor > div > table > tr:first-child > td > span.fa-cut,
 #editor-page-editor > div > table > tr:first-child > td > span.fa-copy,
 #editor-page-editor > div > table > tr:first-child > td > span.fa-paste,
@@ -863,7 +864,7 @@ th, td {
     margin: 0 1px !important;
 }
 
-#editor-page-editor > div > table > tr:first-child > td > span:nth-child(8) {
+#editor-page-editor > div > table > tr:first-child > td > span:nth-child(9) {
     background-color: #FFC107;
     color: rgb(53, 53, 53) !important;
     border-radius: 10px;
@@ -902,5 +903,14 @@ th, td {
 
 .wheatstoneBtn.active{
     opacity: 1;
+}
+
+.pseudo-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.highlighted-navbar-link {
+    color: #FFC107 !important;
 }
 

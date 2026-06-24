@@ -3,91 +3,75 @@
 // #####################################################################################
 
 class KirchhoffSolverAPI extends SolverInterface {
+
     /**
      * @param {CircuitMap} circuitMap
-     * */
+     * @returns {Promise<WorkerResponse<PyodideAPIMap["initKirchhoffSolver"]["output"]>>}
+     */
     init(circuitMap) {
-        return requestResponse(this.worker, {
-            action: "initKirchhoffSolver",
-            data: { circuitFile: circuitMap.circuitFile, circuitPath: circuitMap.circuitPath, paramMap: circuitMap.paramMap },
+        return this.getDataPromise("initKirchhoffSolver", {
+            circuitFile: circuitMap.circuitFile,
+            circuitPath: circuitMap.circuitPath,
+            paramMap: circuitMap.paramMap
         });
     }
 
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["resetKirchhoffSolver"]["output"]>>} */
     reset() {
-        return requestResponse(this.worker, {
-            action: "resetKirchhoffSolver",
-            data: {}
-        });
+        return this.getDataPromise("resetKirchhoffSolver");
     }
 
-    checkVoltageLoopRule(selectedElements) {
-        return requestResponse(this.worker, {
-            action: "checkVoltageLoopRule",
-            selectedElements: selectedElements
-        });
-    }
-
-    checkJunctionRule(selectedElements) {
-        return requestResponse(this.worker, {
-            action: "checkJunctionRule",
-            selectedElements: selectedElements
-        });
-    }
-
-    foundAllVoltEquations() {
-        return requestResponse(this.worker, {
-            action: "foundAllVoltEquations",
-            data: {}
-        });
-    }
-
-    async foundAllEquations() {
-        let eqs = await state.solvers.kirchhoff.equations();
-        // filter "-" out of the list
-        let filteredEqs = eqs.filter(eq => eq !== "-");
-        // get number of cpts from step0 data
-        let cpts = state.step0Data.allComponents.length;
-        // check if number of equations is equal to number of cpts
-        if (filteredEqs.length < cpts) {
-            return false;
-        } else {
-            return true;
-        }
-        // TODO !!!
-        /*return requestResponse(this.worker, {
-            action: "foundAllEquations",
-            data: {}
-        });*/
-    }
-
-    equations() {
-        return requestResponse(this.worker, {
-            action: "equations",
-            data: {}
-        });
+    createStep0() {
+        return this.getDataPromise("createKirchhoffStep0");
     }
 
     /**
-     * Returns the equations from equations() but U is replaced with R*I
+     * @param {string[]} selectedElements
+     * @returns {Promise<WorkerResponse<PyodideAPIMap["checkVoltageLoopRule"]["output"]>>}
      */
+    checkVoltageLoopRule(selectedElements) {
+        return this.getDataPromise("checkVoltageLoopRule", { selectedElements });
+    }
+
+    /**
+     * @param {string[]} selectedElements
+     * @returns {Promise<WorkerResponse<PyodideAPIMap["checkJunctionRule"]["output"]>>}
+     */
+    checkJunctionRule(selectedElements) {
+        return this.getDataPromise("checkJunctionRule", { selectedElements });
+    }
+
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["foundAllVoltEquations"]["output"]>>} */
+    foundAllVoltEquations() {
+        return this.getDataPromise("foundAllVoltEquations", {});
+    }
+
+    // untouched (local logic)
+    async foundAllEquations() {
+        let eqs = (await state.solvers.kirchhoff.equations()).data;
+        let filteredEqs = eqs.filter(eq => eq !== "-");
+        let cpts = state.step0Data.allComponents.length;
+
+        return new WorkerResponse(0, filteredEqs.length >= cpts);
+    }
+
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["equations"]["output"]>>} */
+    equations() {
+        return this.getDataPromise("equations");
+    }
+
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["equationsURI"]["output"]>>} */
     equationsURI() {
-        return requestResponse(this.worker, {
-            action: "equationsURI",
-            data: {}
-        });
+        return this.getDataPromise("equationsURI");
     }
 
-    currEquations(){
-        return requestResponse(this.worker, {
-            action: "currEquations",
-            data: {}
-        });
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["currEquations"]["output"]>>} */
+    currEquations() {
+        return this.getDataPromise("currEquations");
     }
 
-    voltEquationsURI(){
-        return requestResponse(this.worker, {
-            action: "voltEquationsURI",
-            data: {}
-        });
+    /** @returns {Promise<WorkerResponse<PyodideAPIMap["voltEquationsURI"]["output"]>>} */
+    voltEquationsURI() {
+        return this.getDataPromise("voltEquationsURI");
     }
 }

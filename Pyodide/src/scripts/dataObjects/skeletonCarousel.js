@@ -5,12 +5,16 @@ class SkeletonCarousel extends SelectorCarousel {
     initializationStarted = false;
 
     constructor(parent, circuitFiles, identifier, parentSelector) {
-        super(parent, new CircuitSet(window.definitions.selectorIDs.quickstart, []), parentSelector);
+        super(parent, new CircuitSet(identifier, []), parentSelector);
         this.circuitFiles = circuitFiles;
         this.circuitSet.identifier = identifier;
     }
 
-    init(){
+    /**
+     * Initializes the carousel with placeholders, does not wait for the circuits to load, sets up a placeholder
+     * @param svgFn {function} a function that returns the innerHTML of the svg element of the carousel item, used to display a placeholder svg until the actual circuit data is loaded
+     */
+    init(svgFn){
         if (this.initializationStarted) return;
         this.initializationStarted = true;
 
@@ -20,6 +24,7 @@ class SkeletonCarousel extends SelectorCarousel {
         this.parentDiv.appendChild(this.indicatorsDiv);
 
         this.carousel = this.createCarousel();
+        this.bootstrapCarousel = new bootstrap.Carousel(this.carousel);
         this.parentDiv.appendChild(this.carousel);
 
         this.imgOverlay = this.carousel.querySelector(".img-overlay")
@@ -28,17 +33,21 @@ class SkeletonCarousel extends SelectorCarousel {
         })
         this.carousel.appendChild(this.imgOverlay);
 
-        this.innerCarousel = this.carousel.querySelector(".carousel-inner")
+        this.innerCarousel = this.carousel.querySelector(".carousel-inner");
 
         let carouselItem = this.templateItem();
-        carouselItem.querySelector("svg").innerHTML = this.templateItemInnerHtml()
+        carouselItem.querySelector("svg").innerHTML = svgFn();
         this.innerCarousel.appendChild(carouselItem);
 
         // Setup specific circuit in overview modal
-        this.indicatorsDiv.appendChild(this.indicatorBtn(-1));
+        this.indicatorsDiv.appendChild(this.indicatorBtn(0));
 
         this.nextBtn = this.carousel.querySelector(".carousel-control-next");
         this.prevBtn = this.carousel.querySelector(".carousel-control-prev");
+        this.startBtn = this.carousel.querySelector(".circuitStartBtn");
+
+        this.circuitNameContainer = this.circuitNameContainerElement("");
+        this.parentDiv.appendChild(this.circuitNameContainer);
 
         this.isInitialized = true;
     }
@@ -67,18 +76,13 @@ class SkeletonCarousel extends SelectorCarousel {
             this.carouselSlideChanged(event, this.indicatorsDiv, this.identifier);
         })
 
-        this.startBtn = this.carousel.querySelector(".circuitStartBtn");
         let startBtn = this.startBtn
         startBtn.onclick = (event) => this.startBtnFn(event);
         startBtn.classList.remove("disabled");
-        startBtn.querySelector(".progress-stripes").remove();
-        startBtn.querySelector(".fill-layer").remove();
+        startBtn.querySelector(".progress-stripes")?.remove();
+        startBtn.querySelector(".fill-layer")?.remove();
         startBtn.style.backgroundColor = colors.definitions.keyYellow
 
-        this.circuitNameContainer = this.circuitNameContainerElement(this.identifier);
-        this.circuitNameContainer.style.display = "none";
-
-        this.parentDiv.appendChild(this.circuitNameContainer);
         this.selectCircuitInCarousel();
     }
 }

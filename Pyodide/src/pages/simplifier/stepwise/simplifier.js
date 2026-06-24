@@ -40,7 +40,9 @@ async function nextSimplifierStep(stepObject, generalizeActive, netlistContainsW
     if(state.pictureCounter !== 1){
         scrollContainerToTop(circuitContainer);
     }
-    congratsAndVCDisplayIfFinished(electricalElements, contentCol, stepObject);
+
+    if (onlyOneElementLeft(electricalElements)) congratsAndVCDisplay(electricalElements, contentCol, stepObject);// no more simplifications possible
+
     await pageManager.pages.stepwisePage.typesetPage();
 
     // At the end, so the help button exists
@@ -264,6 +266,7 @@ function setupSvgDivContainerAndData(stepObject, generalizeActive, netlistContai
         addInfoHelpButton(svgDiv.div);
      }
 
+     // Group the value and generalize switch together in one div
      let functionalDiv = document.createElement("div");
      functionalDiv.id = "functionalDiv";
      functionalDiv.style.position = "absolute";
@@ -299,10 +302,10 @@ function addVoltageOverlay(svgDiv) {
     overlay.id = "voltage-overlay";
     overlay.style.color = colors.current.foreground;
     if (sourceIsAC()) {
-        overlay.innerHTML = `$$ ${languageManager.currentLang.simplifier.voltageSymbol}_{${languageManager.currentLang.simplifier.totalSuffix}, ${languageManager.currentLang.simplifier.effectiveSuffix}} = ${getSourceVoltageVal()}, ` +
-                            `f = ${getSourceFrequency()}$$`;
+        overlay.innerHTML = `\\( ${languageManager.currentLang.simplifier.voltageSymbol}_\\text{${languageManager.currentLang.simplifier.totalSuffix}, ${languageManager.currentLang.simplifier.effectiveSuffix}} = ${getSourceVoltageVal()}, ` +
+                            `f = ${getSourceFrequency()}\\)`;
     } else {
-        overlay.innerHTML = `$$ ${languageManager.currentLang.simplifier.voltageSymbol}_{${languageManager.currentLang.simplifier.totalSuffix}} = ${getSourceVoltageVal()} $$`;
+        overlay.innerHTML = `\\( ${languageManager.currentLang.simplifier.voltageSymbol}_\\text{${languageManager.currentLang.simplifier.totalSuffix}} = ${getSourceVoltageVal()} \\)`;
     }
     svgDiv.appendChild(overlay);
 }
@@ -419,34 +422,39 @@ function addGeneralizeSwitch(stepObject, svgDiv, generalizeActive, netlistContai
     switchDiv.addEventListener("click", async () =>{
         clearTimeout(eventTimer);
         eventTimer = null;
-        if (switchInput.disabled){
-            setTimeout(() =>
-                    showMessage(languageManager.currentLang.alerts.generalizeDisabled, "warning"),
-                0);
+        if (switchInput.disabled) {
+            UserMessage.warning(languageManager.currentLang.alerts.generalizeDisabled);
         }
     })
 
     switchInput.addEventListener("change", async () => {
+        const bootstrapSpinnerId = "bootstrap-spinner-gen-btn";
+        const svg = svgDiv.querySelector("svg");
+
+        svg.style.opacity = 0.5;
+        svgDiv.appendChild(BootstrapSpinner.create(bootstrapSpinnerId));
+
+        const removeSpinner = () => {svgDiv.removeChild(document.getElementById(bootstrapSpinnerId));}
+
         clearTimeout(eventTimer);
         eventTimer = null;
         clearTimeout(touchTimer);
         touchTimer = null;
-        let obj = await state.solvers.stepwise.getStep(stepObject.step);
+        let obj = (await state.solvers.stepwise.getStep(stepObject.step)).data;
 
         if (obj === undefined || obj === null) {
             console.warn("Could not generalize this circuit!");
             switchInput.checked = false;  // Uncheck the switch
             switchInput.disabled = true;  // Disable the switch
-            setTimeout(() => {showMessage(languageManager.currentLang.alerts.canNotGeneralize, "info", false)},0);
+            UserEmojiMessage.warning(languageManager.currentLang.alerts.canNotGeneralize);
             await state.apis.drawingConfig.unlock("# --generalize-false");
+
+            removeSpinner();
+            svg.style.opacity = 1;
             return;
         }
         obj = new StepObject(obj)
-        // Replace the svg
-        // Svg manipulation - set width and color for dark mode
 
-        // obj.gSvgData = undefined;
-        // obj.svgData = undefined;
         let svgData;
         if (switchInput.checked) {
             // await state.apis.drawingConfig.lock("# --generalize-true");
@@ -460,7 +468,9 @@ function addGeneralizeSwitch(stepObject, svgDiv, generalizeActive, netlistContai
 
         let newSvg = new StepwisePageSvgDiv(svgData);
         newSvg.makeElementsClickable();
-        svgDiv.querySelector("svg").replaceWith(newSvg.div.querySelector("svg"));
+        svg.replaceWith(newSvg.div.querySelector("svg"));
+        newSvg.highlightElements(state.selectedElements);
+        removeSpinner();
     });
 }
 
@@ -642,9 +652,7 @@ function toggleText(text, svgDiv) {
 function toggleNameValue(svgDiv, nameValueToggleBtn) {
     let containsZ = divContainsZLabels(svgDiv);
     if (containsZ) {
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.alerts.notToggleable, "info");
-        },0);
+        UserMessage.info(languageManager.currentLang.alerts.notToggleable);
         return;
     }
 
@@ -715,11 +723,10 @@ function setupVoltageCurrentBtn() {
     /** @type {HTMLButtonElement} */
     const vcBtn = document.createElement("button");
     vcBtn.id = `vcBtn${state.pictureCounter}`
-    vcBtn.classList.add("btn", "explBtn", "my-3", "mx-2");
+    vcBtn.classList.add("btn", "explBtn", "my-3", "mx-2", "pseudo-disabled");
     vcBtn.style.color = colors.current.foreground;
     vcBtn.style.borderColor = colors.current.foreground;
     vcBtn.textContent = languageManager.currentLang.simplifier.showVoltageBtn;
-    vcBtn.disabled = true;
     return vcBtn;
 }
 
@@ -756,45 +763,43 @@ async function checkAndSimplifyNext(div){
     const svgDiv = document.getElementById(`svgDiv${state.pictureCounter}`);
 
     if (state.selectedElements.length <= 1) {
-        setTimeout(() =>
-            showMessage(languageManager.currentLang.alerts.chooseAtLeastTwoElements, "warning"),
-        0);
+        UserEmojiMessage.warning(languageManager.currentLang.alerts.chooseAtLeastTwoElements);
         document.getElementById("check-btn-parallel").innerHTML = languageManager.currentLang.simplifier.checkBtnParallel;
         document.getElementById("check-btn-series").innerHTML = languageManager.currentLang.simplifier.checkBtnSeries;
-    } else {
-        let elapsed;
-        if (state.gamification) {
-            elapsed = pauseSpeedMode();
-        }
+    }
 
-        let now = performance.now();
-        let obj = new StepObject(await state.solvers.stepwise.simplifyNCpts(state.selectedElements,state.relation));
-        checkAndSimplify(obj, contentCol, div);
+    let elapsed;
+    if (state.gamification) {
+        elapsed = pauseSpeedMode();
+    }
 
-        // adjust start time for duration of calulation
-        let elapsedTime = performance.now() - now;
-        if (state.speedMode && state.speedMode?.startTime) {
-            state.speedMode.startTime += elapsedTime;
-        }
+    let now = performance.now();
+    let obj = (await state.solvers.stepwise.simplifyNCpts(state.selectedElements,state.relation)).data;
+    checkAndSimplify(obj, contentCol, div);
 
-        // Only add time if elements can be simplified, otherwise directly resume
-        // Also check for speed mode because this will not be executed for the last picture, speedMode will be null
-        if (state.gamification && obj.canBeSimplified && state.speedMode) {
-            // Get number of elements in the current circuit
-            const svgDiv = document.getElementById(`svgDiv${state.pictureCounter}`);
-            let electricElements = getElementsFromSvgContainer(svgDiv);
-            // Add 500ms per Element
-            state.speedMode.duration -= elapsed;
-            state.speedMode.duration += state.simplifierAddTime * electricElements.length;
-            // Update remaining time
-            state.speedMode.remaining = Math.max(0, state.speedMode.duration);
-        }
-        if (state.gamification && state.speedMode && state.speedMode?.paused && !obj.canBeSimplified) {
-            // remaining time is time from before
-            state.speedMode.duration -= elapsed;
-            state.speedMode.remaining = Math.max(0, state.speedMode.duration);
-            resumeSpeedMode();
-        }
+    // adjust start time for duration of calulation
+    let elapsedTime = performance.now() - now;
+    if (state.speedMode && state.speedMode?.startTime) {
+        state.speedMode.startTime += elapsedTime;
+    }
+
+    // Only add time if elements can be simplified, otherwise directly resume
+    // Also check for speed mode because this will not be executed for the last picture, speedMode will be null
+    if (state.gamification && obj.canBeSimplified && state.speedMode) {
+        // Get number of elements in the current circuit
+        const svgDiv = document.getElementById(`svgDiv${state.pictureCounter}`);
+        let electricElements = getElementsFromSvgContainer(svgDiv);
+        // Add 500ms per Element
+        state.speedMode.duration -= elapsed;
+        state.speedMode.duration += state.simplifierAddTime * electricElements.length;
+        // Update remaining time
+        state.speedMode.remaining = Math.max(0, state.speedMode.duration);
+    }
+    if (state.gamification && state.speedMode && state.speedMode?.paused && !obj.canBeSimplified) {
+        // remaining time is time from before
+        state.speedMode.duration -= elapsed;
+        state.speedMode.remaining = Math.max(0, state.speedMode.duration);
+        resumeSpeedMode();
     }
 
     resetNextElements(svgDiv, nextElementsContainer);
@@ -813,27 +818,19 @@ function checkAndSimplify(stepObject, contentCol, div) {
     }
     else {
         if (stepObject.simplifierState === "notSeries"){
-            setTimeout(() =>
-                    showMessage(languageManager.currentLang.alerts.isNotSeries, "warning")
-                , 0);
+            UserEmojiMessage.warning(languageManager.currentLang.alerts.isNotSeries);
             pushCircuitEventMatomo(circuitActions.ErrIsNotSeries);
         }
         else if (stepObject.simplifierState === "notParallel"){
-            setTimeout(() =>
-                    showMessage(languageManager.currentLang.alerts.isNotParallel, "warning")
-                , 0);
+            UserEmojiMessage.warning(languageManager.currentLang.alerts.isNotParallel);
             pushCircuitEventMatomo(circuitActions.ErrIsNotParallel);
         }
         else if (stepObject.simplifierState === "notInRelation"){
-            setTimeout(() =>
-                    showMessage(languageManager.currentLang.alerts.canNotSimplify, "warning")
-                , 0);
+            UserEmojiMessage.warning(languageManager.currentLang.alerts.canNotSimplify);
             pushCircuitEventMatomo(circuitActions.ErrCanNotSimpl);
         }
         else if (stepObject.simplifierState === "undefined"){
-            setTimeout(() =>
-                    showMessage(languageManager.currentLang.alerts.somethingIsWrong, "warning")
-                , 0);
+            UserEmojiMessage.warning(languageManager.currentLang.alerts.somethingIsWrong);
             pushCircuitEventMatomo(circuitActions.Aborted);
         }
         document.getElementById("check-btn-parallel").innerHTML = languageManager.currentLang.simplifier.checkBtnParallel;
@@ -848,6 +845,11 @@ function setupVCBtnFunctionality(vcText, contentCol, stepCalculationText) {
     const explContainer = document.getElementById(`explBtnContainer${state.pictureCounter - 1}`);
 
     lastVCBtn.addEventListener("click", async () => {
+        if (lastVCBtn.classList.contains("pseudo-disabled")) {
+            UserMessage.info(languageManager.currentLang.simplifier.voltCurrentWillBeEnabled);
+            return;
+        }
+
         if (lastVCBtn.textContent === languageManager.currentLang.simplifier.showVoltageBtn) {
             // Open voltage/current explanation
             lastVCBtn.textContent = languageManager.currentLang.simplifier.hideVoltageBtn;
@@ -900,7 +902,7 @@ function onlyOneElementLeft(electricalElements) {
 function enableVoltageCurrentBtns() {
     for (let i = 1; i < state.pictureCounter; i++) {
         const vcBtn = document.getElementById(`vcBtn${i}`);
-        vcBtn.disabled = false;
+        vcBtn.classList.remove("pseudo-disabled");
     }
 }
 
@@ -1028,25 +1030,22 @@ function makeElementsClickable(electricalElements, nextElementsContainer) {
     }
 }
 
-function congratsAndVCDisplayIfFinished(electricalElements, contentCol, stepObject) {
-    if (onlyOneElementLeft(electricalElements)) {
-        addFirstVCExplanation(stepObject);
-        addSolutionsButton();
-        finishCircuit(contentCol);
-        state.currentSelector.saveFinishedCircuit(true);
-        if (!state.currentCircuitFromQrScan && !state.currentCircuitFromEditor) {
-            // Only add a "next circuit" button if not from QR scan
-            let nextCircuitBtn = state.currentSelector.createNextCircuitBtn();
-            contentCol.appendChild(nextCircuitBtn);
-            // Add finished circuit to localStorage
-        }
-        // Finish speedmode
-        if (state.gamification) {
-            stopSpeedModeTimer();
-            let speedModeBar = document.getElementById("speedModeBar");
-            speedModeBar?.remove();
-        }
-
+function congratsAndVCDisplay(electricalElements, contentCol, stepObject) {
+    addFirstVCExplanation(stepObject);
+    addSolutionsButton();
+    finishCircuit(contentCol);
+    state.currentSelector.saveFinishedCircuit(true);
+    if (!state.currentCircuitFromQrScan && !state.currentCircuitFromEditor) {
+        // Only add a "next circuit" button if not from QR scan
+        let nextCircuitBtn = state.currentSelector.createNextCircuitBtn();
+        contentCol.appendChild(nextCircuitBtn);
+        // Add finished circuit to localStorage
+    }
+    // Finish speedmode
+    if (state.gamification) {
+        stopSpeedModeTimer();
+        let speedModeBar = document.getElementById("speedModeBar");
+        speedModeBar?.remove();
     }
 }
 
@@ -1167,8 +1166,8 @@ function generateVZIUMaps() {
     let zMap = new Map();
     let zPMap = new Map();
     for (let [key, value] of state.allValuesMap.entries()) {
-        if (key === null) continue;
-        if (key === undefined) continue;
+        if (key === null || undefined) continue;
+
         if (key.startsWith('R') || key.startsWith('C') || key.startsWith('L')) {
             vMap.set(key, value);
         } else if (key.startsWith('U') || key.startsWith('V')) {
@@ -1189,15 +1188,22 @@ function generateVZIUMaps() {
 function createRLCTable(vMap, helperValueRegex, tableData, color, zMap, zPMap, uMap, iMap) {
     for (let [key, value] of vMap.entries()) {
         if (helperValueRegex.test(key)) continue;
-        let iKey = "I" + key.slice(1);
-        let uKey = languageManager.currentLang.simplifier.voltageSymbol + key.slice(1);
+        let iKey;
+        let uKey;
+        if (key.includes(languageManager.currentLang.simplifier.totalSuffix)) {
+            iKey = "I" + languageManager.currentLang.simplifier.totalSuffix;
+            uKey = languageManager.currentLang.simplifier.voltageSymbol +  languageManager.currentLang.simplifier.totalSuffix;
+        } else {
+            iKey = "I" + key;
+            uKey = languageManager.currentLang.simplifier.voltageSymbol + key;
+        }
         let zKey = `Z_{${key}}`;
         tableData += `<tr>
-            <td style="color: ${color}">$$${key} = ${value}$$</td>
-            <td style="color: ${color}">$$\\underline{${zKey}} = ${zMap.get(zKey)}$$</td>
-            <td style="color: ${color}">$$\\underline{${zKey}} = ${zPMap.get(zKey)}$$</td>
-            <td style="color: ${color}">$$\\underline{${uKey}} = ${uMap.get(uKey)}$$</td>
-            <td style="color: ${color}">$$\\underline{${iKey}} = ${iMap.get(iKey)}$$</td>
+            <td style="color: ${color}">\\(${key} = ${value}\\)</td>
+            <td style="color: ${color}">\\(\\underline{${zKey}} = ${zMap.get(zKey)}\\)</td>
+            <td style="color: ${color}">\\(\\underline{${zKey}} = ${zPMap.get(zKey)}\\)</td>
+            <td style="color: ${color}">\\(\\underline{${`{${languageManager.currentLang.simplifier.voltageSymbol}}_{${key}}`}} = ${uMap.get(uKey)}\\)</td>
+            <td style="color: ${color}">\\(\\underline{${`I_{${key}}`}} = ${iMap.get(iKey)}\\)</td>
             </tr>`;
     }
     if (state.currentCircuitMap.selectorGroup === window.definitions.selectorIDs.kirchhoff) {
@@ -1210,24 +1216,36 @@ function createRLCTable(vMap, helperValueRegex, tableData, color, zMap, zPMap, u
     let zTot = `Z${languageManager.currentLang.simplifier.totalSuffix}`;
     tableData += `<tr>
         <td style="color: ${color}">-</td>
-        <td style="color: ${color}">$$\\underline{Z_{${languageManager.currentLang.simplifier.totalSuffix}}} = ${zMap.get(zTot)}$$</td>
-        <td style="color: ${color}">$$\\underline{Z_{${languageManager.currentLang.simplifier.totalSuffix}}} = ${zPMap.get(zTot)}$$</td>
-        <td style="color: ${color}">$$\\underline{${languageManager.currentLang.simplifier.voltageSymbol}_{${languageManager.currentLang.simplifier.totalSuffix}}} = ${uMap.get(uTot)}$$</td>
-        <td style="color: ${color}">$$\\underline{I_{${languageManager.currentLang.simplifier.totalSuffix}}} = ${iMap.get(iTot)}$$</td>
+        <td style="color: ${color}">\\(\\underline{Z_\\text{${languageManager.currentLang.simplifier.totalSuffix}}} = ${zMap.get(zTot)}\\)</td>
+        <td style="color: ${color}">\\(\\underline{Z_\\text{${languageManager.currentLang.simplifier.totalSuffix}}} = ${zPMap.get(zTot)}\\)</td>
+        <td style="color: ${color}">\\(\\underline{${languageManager.currentLang.simplifier.voltageSymbol}_\\text{${languageManager.currentLang.simplifier.totalSuffix}}} = ${uMap.get(uTot)}\\)</td>
+        <td style="color: ${color}">\\(\\underline{I_\\text{${languageManager.currentLang.simplifier.totalSuffix}}} = ${iMap.get(iTot)}\\)</td>
         </tr>`;
     return tableData;
 }
 
 function createStandardTable(vMap, helperValueRegex, tableData, color, uMap, iMap) {
     for (let [key, value] of vMap.entries()) {
+        let iKey;
+        let uKey;
         if (helperValueRegex.test(key)) continue;
-        let iKey = "I" + key.slice(1);
-        let uKey = languageManager.currentLang.simplifier.voltageSymbol + key.slice(1);
+        if (key.includes(languageManager.currentLang.simplifier.totalSuffix)) {
+            iKey = "I" + languageManager.currentLang.simplifier.totalSuffix;
+            uKey = languageManager.currentLang.simplifier.voltageSymbol +  languageManager.currentLang.simplifier.totalSuffix;
         tableData += `<tr>
-            <td style="color: ${color}">$$${key} = ${value}$$</td>
-            <td style="color: ${color}">$$${uKey} = ${renameVSrc(uMap.get(uKey))}$$</td>
-            <td style="color: ${color}">$$${iKey} = ${renameVSrc(iMap.get(iKey))}$$</td>
+            <td style="color: ${color}">\\(${key[0]}_\\text{${languageManager.currentLang.simplifier.totalSuffix}} = ${value}\\)</td>
+            <td style="color: ${color}">\\(${languageManager.currentLang.simplifier.voltageSymbol}_{\\text{${languageManager.currentLang.simplifier.totalSuffix}}} = ${renameVSrc(uMap.get(uKey))}\\)</td>
+            <td style="color: ${color}">\\(I_\\text{${languageManager.currentLang.simplifier.totalSuffix}} = ${renameVSrc(iMap.get(iKey))}\\)</td>
             </tr>`;
+        } else {
+            iKey = "I" + key;
+            uKey = languageManager.currentLang.simplifier.voltageSymbol + key;
+        tableData += `<tr>
+            <td style="color: ${color}">\\(${key} = ${value}\\)</td>
+            <td style="color: ${color}">\\(${languageManager.currentLang.simplifier.voltageSymbol}_{\\text{${key}}} = ${renameVSrc(uMap.get(uKey))}\\)</td>
+            <td style="color: ${color}">\\(I_\\text{${key}} = ${renameVSrc(iMap.get(iKey))}\\)</td>
+            </tr>`;
+        }
     }
     return tableData;
 }

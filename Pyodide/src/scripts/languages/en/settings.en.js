@@ -7,6 +7,8 @@ settingsEnTexts = {
         "<b>Reset all progress</b><br>Reset all saved progress from learn and tools page. Reset also affects currently not loaded circuits.",
     resetTrackIDsText:
         "<b>Reset Tracking IDs</b><br>Resets the IDs saved for QR-Code tracking, displayed when the input field is clicked.",
+    resetScannerCarousel:
+        "<b>Reset Scanner Carousel</b><br>Deletes all circuits displayed on learning page in the Scanner carousel.",
     resetBtn:
         "Reset",
     resetMessage:

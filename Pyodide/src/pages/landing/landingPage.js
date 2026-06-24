@@ -11,7 +11,7 @@ class LandingPage extends Page{
             explanation: new Explanation(),
         }
         // <pageName>-page-container (id of div on index.htlm)
-        super(content, "landing-page-container", "LandingPage");
+        super(content, "landing-page-container", "home", "nav-home");
     }
 
     async initialize() {
@@ -33,8 +33,8 @@ class LandingPage extends Page{
         super.afterSetup();
     }
 
-    show(){
-        super.show();
+    show(animate = false){
+        super.show(animate);
         // todo this might be the reason the container is visible
         resetLandingPageContainers();
         pageManager.pages.navigation.enableSettings();
@@ -46,6 +46,8 @@ class LandingPage extends Page{
         scrollBodyToTop();
         this.pageDiv.classList.remove("slide-out-left");
         this.pageDiv.classList.remove("slide-in-right");
+
+        return true;
     }
 
     afterPyodideLoaded() {

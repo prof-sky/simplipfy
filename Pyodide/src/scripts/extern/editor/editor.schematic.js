@@ -321,11 +321,11 @@ schematic = (function () {
 			this.tools.save = this.add_tool(save_icon, "Save_netlist", this.save_netlist);
 			this.enable_tool('save', true);
 
-			this.tools.simplipfy = this.add_tool('SimpliPFy', "Simplipfy_netlist", this.simplipfy_netlist, "editor-simplipfy-btn");
-            awaitVal(() => (state.pyodideReady), () => (this.enable_tool("simplipfy", true)))
-
 			this.tools.link = this.add_tool(link_icon, "Link_tip", this.share_link);
 			this.enable_tool('link', true);
+
+			this.tools.simplipfy = this.add_tool('SimpliPFy', "Simplipfy_netlist", this.simplipfy_netlist, "editor-simplipfy-btn");
+            awaitVal(() => (state.backendReady), () => (this.enable_tool("simplipfy", true)))
 
 			this.tools.cut = this.add_tool(cut_icon, "Cut", this.cut);
 			this.tools.copy = this.add_tool(copy_icon, "Copy", this.copy);
@@ -1200,30 +1200,19 @@ schematic = (function () {
 	};
 
 	Schematic.prototype.share_link = function () {
-		//create and display a sharable link	
+		//create and display a sharable link
 		this.label_connection_points();	// give circuit nodes a name
 		var netlist = this.json();
 		var value = JSON.stringify(netlist);
 		this.input.value = value;
-		var value_enc = encodeURIComponent(value);
-
-		// prepare a dialog box with sharable link
-		var link_lbl = 'Link';
-		var fields = [];
-		fields[link_lbl] = build_input('text', 60, strSimulator + '?value=' + value_enc);
-		var content = build_table(fields);
-		content.fields = fields;
-		content.sch = this;
-
-		this.dialog(i18n.Sharable_Link, content, function (content) {
-			return null;
-		});
-
-		//echo encoded and decoded link to console
-		// console.log('Encoded link...');
-		// console.log(strSimulator + '?value=' + value_enc);
-		// console.log('Decoded link...');
-		// console.log(strSimulator + '?value=' + value);
+		state.currentEditorElementList = netlist;
+		state.currentEditorNetlist = this.input.value
+		let converter = new Converter();
+		netlist = converter.convertNetlist('');
+		if(netlist){
+			state.netlistForQrCode = netlist;
+			modalXl.show(new EditorTrackingModal());
+		}
 	};
 
 	Schematic.prototype.open_netlist = function () {
@@ -1233,21 +1222,6 @@ schematic = (function () {
 		// netlist converter
 		let converter = new Converter
 
-		// if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent)) {
-		// 	// Any mobile platform: load stored ctk from browser's localStorage
-		// 	// if (window.confirm('Open a netlist?')) {
-		// 	// 	var imported_netlist = localStorage.getItem("ckt");
-        //     //
-		// 	// 	this.components = [];
-		// 	// 	this.connection_points = [];
-		// 	// 	this.load_schematic(imported_netlist);
-		// 	// 	this.zoomall();
-        //     //
-		// 	// 	// console.log("ckt from localStorage = " + imported_netlist);
-		// 	// }
-        //
-        //
-		// } else {
 			// Desktop: load ckt from client's file system
 			var file_lbl = 'Select_netlist';
 
@@ -2778,7 +2752,7 @@ schematic = (function () {
             let textColor
             colors.setMode(() => (textColor = colors.bootstrapWhite), () => (textColor = normal_style))
 
-            if (!state.pyodideReady){
+            if (!state.backendReady){
                 tool.innerHTML = `
                 <div class="fill-layer"></div>
                 <div class="progress-stripes"></div>
@@ -2883,7 +2857,7 @@ schematic = (function () {
 	var rotate_icon = 'fas fa-fw fa-redo';
 	var save_icon = 'fas fa-fw fa-save fa-lg';
 	var open_icon = 'fas fa-fw fa-folder-open fa-lg';
-	var link_icon = 'fas fa-fw fa-link fa-lg';
+	var link_icon = 'fas fa-fw fa-qrcode fa-lg';
 
 	///////////////////////////////////////////////////////////////////////////////
 	//

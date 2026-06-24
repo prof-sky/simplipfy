@@ -17,7 +17,8 @@ window.german = {
     loadingPage: loadingPageDeTexts,
     editorPage : editorDeTexts,
     dataPrivacyPage : dataPrivacyDeTexts,
-    loadingPyodidePage: loadingPyodidePageDeTexts
+    loadingPyodidePage: loadingPyodidePageDeTexts,
+    magnetic: magneticDeTexts,
 }
 
 

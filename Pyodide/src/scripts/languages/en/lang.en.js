@@ -18,6 +18,7 @@ window.english = {
     loadingPyodidePage: loadingPageEnTexts,
     editorPage: editorEnTexts,
     dataPrivacyPage: dataPrivacyEnTexts,
+    magnetic: magneticEnTexts,
 }
 
 /**

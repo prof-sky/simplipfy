@@ -1,11 +1,10 @@
 // #####################################################################################################################
 // ##################################              GLOBALS            ##################################################
 // #####################################################################################################################
+/** Communication with worker backend
+ * @type {WorkerCommunication} */
+let pyodideBackend = null;
 
-/** Pyodide web worker
- * @type {Worker}
- * */
-let worker = null;
 /** State object to hold all global variables
  * @type {StateObject}
  * */
@@ -32,7 +31,7 @@ let packageManager = null;
  * @type {PageManager}
  */
 let pageManager;
-/** @type {Date} */
+/** @type {number} */
 let startTime = null;
 
 /** @type {HashObject} */
@@ -45,8 +44,10 @@ let pageHistory = null;
 /** @type {CircuitFilesManager | null} */
 let serverFiles = null;
 //Object for custom files
-/** @type {CircuitFilesManager | null} */
+/** @type {CustomUserFiles | null} */
 let customFiles = null;
+/** @type {CircuitFilesManager | null} */
+let scannerFiles = null;
 
 /** @type {ConfigurableModal | null} */
 let modalSm = null;
@@ -56,6 +57,9 @@ let modalXl = null;
 
 /** @type {ExternalInput} */
 let externalSelector;
+
+/** @type {CircuitFilesManager} */
+let tutorialFiles = null;
 
 let conditionBlocker = false;
 /**
@@ -79,8 +83,10 @@ async function main() {
     conf = new Configurations();
     await conf.initialize();
 
+    tutorialFiles = new TutorialFiles();
     externalSelector = new ExternalInput();
-    serverFiles = new CircuitFilesManager();
+    serverFiles = new ServerFiles();
+    scannerFiles = new ScannerFiles();
 
     //setup navigation and landing page to display something
     modalSm = new ConfigurableModal("ConfigurableModalSm", "sm");
@@ -96,19 +102,26 @@ async function main() {
     catch(err){
         console.trace(err);
         console.error("Error setting up pages: " + err);
-        showMessage(err, "error", false);
+        UserMessage.error(err);
         pushErrorEventMatomo(errorActions.pageSetupError, err);
     }
 
     //init worker and rest of page
-    worker = new Worker("src/scripts/pyodideWorker.js");
-    state.apis.pyodide = new PyodideAPI(worker);
-    state.apis.drawingConfig = new DrawingConfigAPI(worker);
+    pyodideBackend = new WorkerCommunication("src/scripts/pyodideWorker.js");
+
+    state.apis.pyodide = new PyodideAPI(pyodideBackend);
+    state.apis.drawingConfig = new DrawingConfigAPI(pyodideBackend);
+    state.apis.svgGenerator = new SVGGeneratorAPI(pyodideBackend);
+
+    await state.apis.pyodide.ready();
+    await tutorialFiles.init();
+
+    awaitVal(() => serverFiles.loaded && state.backendReady, () => scannerFiles.init())
 
     // when pyodide is loaded, and we are currently not on a simplifier page which could use the hardcoded stepwise api
     // create the new instances
-    awaitVal(() => state.pyodideReady && !(pageManager.current instanceof SimplifierPage) && !(pageManager.current instanceof LoadingSomethingPage), () => {
-        SimplifierPage.createSolvers(worker);
+    awaitVal(() => state.backendReady && !(pageManager.current instanceof SimplifierPage) && !(pageManager.current instanceof LoadingSomethingPage), () => {
+        SimplifierPage.createSolvers(pyodideBackend);
         console.log("Created solver objects - all SimplifierPages can be used now")
     })
 
@@ -119,21 +132,19 @@ async function main() {
         packageManager = new PackageManager();
         await packageManager.initialize();
 
-        startTime = new Date().getTime();
+        startTime = Date.now();
 
-        //Object for server files
-        serverFiles.initSelectPageCircuits().then(async () => {
+        serverFiles.init().then(async () => {
                 await pageManager.pages.selectPage.initialize();
-                state.selectPageBuild = true
+                await packageManager.setupPyodideInterpreter();
+                console.log("packages loaded")
             }
         );
-
-        awaitVal(() => state.selectPageBuild, () => packageManager.setupPyodideInterpreter()).then(() => console.log("packages loaded"))
 
     } catch (error) {
         console.trace(error)
         console.error("Error initializing: " + error);
-        showMessage(error, "error", false);
+        UserMessage.error(error);
         pushErrorEventMatomo(errorActions.initError, error);
     }
 
@@ -150,7 +161,17 @@ async function main() {
         } catch (error) {
             console.trace(error)
             console.error("Error checking QR Code netlist");
-            showMessage(error, "error", false);
+            UserMessage.error(error);
+        }
+    }
+
+    if (hashObject.hasTracking){
+        try {
+            pageManager.waitTillReady(pageManager.pages.trackingPage, pageManager.pages.loadingPyodidePage, () => state.backendReady);
+        }
+        catch(error) {
+            console.trace(error)
+            console.error("Error starting tracking page: " + error);
         }
     }
 }

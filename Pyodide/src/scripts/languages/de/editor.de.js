@@ -1,4 +1,5 @@
 editorDeTexts = {
+    qrModalTrackBtn: "Tracking starten",
     modalHeader: "Wähle einen Modus",
     modeStepwise: "Vereinfachen Sie den Schaltkreis schrittweise mit Reihen- und Parallelschaltungen, bis nur noch ein Element übrig ist.",
     modeKirchhoff: "Erstellen Sie das lineare Gleichungssystem nach Kirchhoff für den Schaltkreis, um alle Teilspannungen und Teilströme zu berechnen.",

@@ -13,7 +13,7 @@ distDst = project_root/"Pyodide/dist"
 class Excludes:
     _excludes = {
         r"": {"files": [".folderHash", "Circuits_example", "GzipSimplePythonHttpServer.py", ],
-                "folders": [".idea", "node_modules", "Circuits", "Circuits_example", "dist", "Scripts", "yannick"]},
+                "folders": [".idea", "node_modules", "Circuits", "Tutorials", "Circuits_example", "dist", "Scripts", "yannick"]},
         r"src": {"files": ["jsdoc.json", "log.txt","module_test.html", "readme.md"], "folders": ["docs"]},
         r"src\pages": {"files": [], "folders": ["template"]},
         r"src\scripts\applications": {"files": [], "folders": ["common", "kirchhoff", "simplifier", "wheatstone"]},

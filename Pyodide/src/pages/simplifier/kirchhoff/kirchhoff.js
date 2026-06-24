@@ -86,9 +86,7 @@ async function checkVoltageLoop() {
     // At least two elements must be selected
     if (state.selectedElements.length <= 1) {
         // Timeout so that the message is shown after the click event
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.alerts.chooseAtLeastTwoElements, "warning");
-        }, 0);
+        UserEmojiMessage.warning(languageManager.currentLang.alerts.chooseAtLeastTwoElements);
         resetArrowHighlights(document.getElementById(`svgDivVolt${state.pictureCounter}`), "volt");
         const nextElementList = document.getElementById("next-elements-list");
         nextElementList.innerHTML = '';
@@ -103,7 +101,7 @@ async function checkVoltageLoop() {
     let now = performance.now();
 
     // Calling the backend function to check the voltage loop (selectedElements containing the IDs of the selected elements, i.e. R1, R2, C1)
-    let [errorCode, eq] = await state.solvers.kirchhoff.checkVoltageLoopRule(state.selectedElements);
+    let [errorCode, eq] = (await state.solvers.kirchhoff.checkVoltageLoopRule(state.selectedElements)).data;
 
     // adjust start time for duration of calulation
     let elapsedTime = performance.now() - now;
@@ -166,9 +164,7 @@ async function checkJunctionLaw() {
     // At least two elements must be selected
     if (state.selectedElements.length <= 1) {
         // Timeout so that the message is shown after the click event
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.alerts.chooseAtLeastTwoElements, "warning");
-        }, 0);
+        UserEmojiMessage.warning(languageManager.currentLang.alerts.chooseAtLeastTwoElements);
         resetArrowHighlights(document.getElementById(`svgDivCurr${state.pictureCounter}`), "curr");
         checkBtn.classList.remove("disabled");
         document.getElementById("check-btn").innerHTML = "check";
@@ -187,7 +183,7 @@ async function checkJunctionLaw() {
     let now = performance.now();
 
     // Calling the backend function to check the junction
-    let [errorCode, eqs] = await state.solvers.kirchhoff.checkJunctionRule(state.selectedElements);
+    let [errorCode, eqs] = (await state.solvers.kirchhoff.checkJunctionRule(state.selectedElements)).data;
 
     // adjust start time for duration of calulation
     let elapsedTime = performance.now() - now;
@@ -266,7 +262,7 @@ async function finishKirchhoff(contentCol) {
         let speedModeBar = document.getElementById("speedModeBar");
         speedModeBar?.remove();
     }
-    pushCircuitEventMatomo(circuitActions.Finished);
+    pushCircuitEventMatomo(circuitActions.Finished, -1);
     // Remove last curr svg if it exists
     if (document.getElementById("junctionHeading") !== null) {
         let svgDiv = document.getElementById(`svgDivCurr${state.pictureCounter}`).parentElement;
@@ -280,13 +276,13 @@ async function finishKirchhoff(contentCol) {
 
         let equationsDiv = document.createElement("div");
         equationsDiv.appendChild(kirchhoffHeadingElement(languageManager.currentLang.kirchhoff.equationsHeading));
-        equationsDiv.appendChild(getEquationsTable(await state.solvers.kirchhoff.equations()));
+        equationsDiv.appendChild(getEquationsTable((await state.solvers.kirchhoff.equations()).data));
         equationsDiv.appendChild(kirchhoffHeadingElement(languageManager.currentLang.kirchhoff.equationsURIHeading));
         /** @type {Array<string>} */
-        let voltEqs = await state.solvers.kirchhoff.voltEquationsURI()
+        let voltEqs = (await state.solvers.kirchhoff.voltEquationsURI()).data
         let eqTable = getEquationsTable(voltEqs, 0, true)
 
-        let curEqs = await state.solvers.kirchhoff.currEquations()
+        let curEqs = (await state.solvers.kirchhoff.currEquations()).data
         let cEqTable = getEquationsTable(curEqs, voltEqs.length);
         for (let row of cEqTable.rows) {
             let newRow = eqTable.insertRow()

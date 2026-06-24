@@ -7,10 +7,11 @@ class SettingsPage extends Page{
         let content = {
             resetCounters: new ResetCounters(),
             resetTrackingIds: new TrackIdReset(),
+            resetScannerCarousel: new ResetScannerCarousel(),
             speedMode: new SpeedMode(),
             setLandingPage: new SetLandingPage(),
         }
-        super(content, "settings-page-container", "SettingsPage");
+        super(content, "settings-page-container", "settings", "nav-settings");
     }
 
     setup() {
@@ -19,7 +20,9 @@ class SettingsPage extends Page{
         container.appendChild(this.content.resetCounters.setup());
         container.appendChild(pageManager.getPageDivider("-resetCounter-resetTrackingIds"));
         container.appendChild(this.content.resetTrackingIds.setup());
-        container.appendChild(pageManager.getPageDivider("-resetTrackingIds-speedMode"));
+        container.appendChild(pageManager.getPageDivider("-resetTrackingIds-resetScannerCarousel"));
+        container.appendChild(this.content.resetScannerCarousel.setup());
+        container.appendChild(pageManager.getPageDivider("-resetScannerCarousel-speedMode"));
         container.appendChild(this.content.speedMode.setup());
         container.appendChild(pageManager.getPageDivider("-speedMode-setLandingPage"));
         container.appendChild(this.content.setLandingPage.setup());
@@ -50,5 +53,9 @@ class SettingsPage extends Page{
         for (let divider of dividers) {
             divider.style.color = colors.current.foreground;
         }
+    }
+
+    afterPyodideLoaded() {
+        this.pageDiv.querySelectorAll("button").forEach((btn) => btn.classList.remove("disabled"));
     }
 }

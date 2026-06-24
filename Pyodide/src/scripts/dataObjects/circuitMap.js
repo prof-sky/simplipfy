@@ -19,6 +19,8 @@ class CircuitMap {
     mode;
     /** @type {int} */
     index;
+    /** @type {string} */
+    trackingId = undefined;
 
     /**
      *
@@ -40,7 +42,7 @@ class CircuitMap {
         this.mode = mode;
 
         let path = this.circuitPath + "/" + this.circuitFile;
-        let result = await this.#readVoltageAndFreq(path);
+        let result = await this._readVoltageAndFreq(path);
         this.voltage = result.voltage;
         this.frequency = result.frequency;
         this.index = index;
@@ -71,7 +73,7 @@ class CircuitMap {
     }
 
     get paramMap() {
-        return createParamMap();
+        return new ParamMap();
     }
 
     get solutionPath(){
@@ -79,6 +81,7 @@ class CircuitMap {
     }
 
     // those paths may change at runtime
+    /** @returns {string} the path to the circuit file, changes based on the mode of the circuit map */
     get circuitPath(){
         if (this.mode === window.definitions.mode.qr) {
             // scanned QR circuits
@@ -133,8 +136,8 @@ class CircuitMap {
     /**
      * @returns {Promise<{voltage: string, frequency: string}>}
      */
-    async #readVoltageAndFreq(path) {
-        let file = await state.apis.pyodide.readFile(path, "utf8");
+    async _readVoltageAndFreq(path) {
+        let file = (await state.apis.pyodide.readFile(path, "utf8")).data;
         const lines = file.split('\n');
 
         for (let line of lines) {
@@ -184,7 +187,7 @@ class CircuitMap {
             let currentDirIdx = state.currentSelector.circuitFiles.circuitDirs.indexOf(currentSourceDir);
 
             if (currentDirIdx < state.currentSelector.circuitFiles.circuitDirs.length-1){
-                setTimeout(() => {showMessage(languageManager.currentLang.alerts.finishedLastCircuit, "success", false)},0);
+                UserEmojiMessage.success(languageManager.currentLang.alerts.finishedLastCircuit, false)
                 return state.currentSelector.circuitFiles.circuitSets[currentDirIdx+1].circuitMaps[0];
             }
             else{
@@ -193,15 +196,16 @@ class CircuitMap {
         }
     }
 
-    async svgData(recursion=true){
+    async svgData(recursion=true, mode=undefined){
+        if (!mode) mode = this.mode;
         let svgData;
-        if (this.mode === window.definitions.mode.custom) {
-            svgData = this.#getSvgDataCustomCircuits()
+        if (mode === window.definitions.mode.custom) {
+            svgData = this.readOrGenerateSvgData(this.customCircuitsPath);
         }
-        else if (this.mode === window.definitions.mode.editor) {
-            svgData = this.#getSvgDataEditor()
+        else if (mode === window.definitions.mode.editor) {
+            svgData = this.readSvgData(this.editorOverViewSvgFile);
         }
-        else svgData = this.#getSvgDataServerCircuits()
+        else svgData = this.readSvgData(this.overViewSvgFile);
 
         /* todo on some devices the svgs where empty, cant reproduce and should be avoided by this line in worker
             self.pyodide = await self.pyodideReadyPromise;
@@ -218,47 +222,30 @@ class CircuitMap {
         return svgData;
     }
 
+    /** @returns {Promise<string>} the svg data of the overview svg file for this circuit, throws an error if file does not exist */
+    async readSvgData(path){
+        return (await state.apis.pyodide.readFile(path, "utf8")).data;
+    }
+
     /**
-     * [bar description]
-     * @return {string} svg-data
-     */
-    async #getSvgDataCustomCircuits(){
-        /**
-         * @param
-         * returns the svg-Data as string
-         * cathces a potential file read error internally
-         * file will be generated if not found or read error occures
-         * read error is printed to the console
-         **/
+     * @param path {string} the path to the svg file to read or generate
+     * @returns {Promise<string>} the svg data of the overview svg file for this circuit, generates the svg data if not found */
+    async readOrGenerateSvgData(path){
         let isValidSyntax, svgData, errMsgs, warnMsgs;
-        let path = this.customOverViewSvgFile
-        let isFile = await state.apis.pyodide.exists(path);
+        const svgFilePath = path + "/" + this.circuitId + "_step0.svg";
+        let isFile = (await state.apis.pyodide.exists(svgFilePath)).data;
 
         if (isFile){
-            svgData = await state.apis.pyodide.readFile(path);
+            svgData = (await state.apis.pyodide.readFile(svgFilePath)).data;
             return svgData;
         }
 
-        let netlist = await state.apis.pyodide.readFile(conf.tools.customCircuits.paths.dir + `/${state.selectedZipDirName}/${this.sourceDir}/${this.circuitFile}`);
-        let paramMap = createParamMap();
+        let netlist = (await state.apis.pyodide.readFile(path + "/" + this.circuitFile)).data;
+        let paramMap = new ParamMap();
         let [optionsString, rawNetlist] = extractCommentsAndNetlist(netlist);
-        [isValidSyntax, svgData, errMsgs, warnMsgs] = await state.apis.pyodide.forceDrawing(rawNetlist, paramMap, optionsString);
-        return svgData;
-    }
 
-    /**
-     * @return {string} svg-data
-     */
-    async #getSvgDataServerCircuits(){
-        let svgData = await state.apis.pyodide.readFile(this.overViewSvgFile, "utf8");
-        return svgData;
+        return (await state.apis.pyodide.forceDrawing(rawNetlist, paramMap, optionsString)).data.svgData;
     }
-
-    async #getSvgDataEditor(){
-        let svgData = await state.apis.pyodide.readFile(this.editorOverViewSvgFile, "utf8");
-        return svgData;
-    }
-
 }
 
 class WheatstoneCircuitMap extends CircuitMap{
@@ -360,10 +347,98 @@ class ExternalCircuitMap extends CircuitMap{
 
 }
 
+class ScannedCircuitMap extends CircuitMap{
+    get circuitName() {
+        return languageManager.currentLang.selector.scanStandardName + " " + String(this.index+1);
+    }
+
+    get circuitPath() {
+        return conf.pyodide.paths.circuits + "/" + Scanner.dirName;
+    }
+
+    static getSelectorGroup(netlist){
+        let converter = new NetlistToSelector(netlist);
+        if (converter.onlyR) return window.definitions.selectorIDs.resistor;
+        else if (converter.onlyC) return window.definitions.selectorIDs.capacitor;
+        else if (converter.onlyL) return window.definitions.selectorIDs.inductor;
+        else if (converter.isAC) return window.definitions.selectorIDs.mixed;
+        else {
+            console.warn("could not determine selector for scanned circuit, default to resistor selector");
+            return window.definitions.selectorIDs.resistor;
+        }
+    }
+
+    static getSelectorGroupFromQRSelector(sel, netlist=undefined) {
+
+        if (sel === window.definitions.qrCodeSelectorIDs.stepwise){
+            // if we cant figure out what exactly it is we assume its a resistor circuit
+            if (!netlist) return window.definitions.selectorIDs.resistor;
+
+            return ScannedCircuitMap.getSelectorGroup(netlist);
+        }
+        else if (sel === window.definitions.qrCodeSelectorIDs.kirchhoff){
+            return window.definitions.selectorIDs.kirchhoff;
+        }
+        else if (sel === window.definitions.qrCodeSelectorIDs.symbolic){
+            return window.definitions.selectorIDs.symbolic;
+        }
+        else {
+            console.warn(`unknown selector for scanned circuit, default to ${Scanner.identifier} selector`);
+            return Scanner.identifier;
+        }
+    }
+
+    async initFromScan(idx, trackingId, sel, net, parent){
+        const name = idx + "_Scan_" + (idx+1) + ".txt"
+        const _conf = conf.pyodide.paths.circuits + "/" + Scanner.dirName;
+        const path = _conf + "/" + name
+        await state.apis.pyodide.writeFile(path, net);
+
+        this.circuitFile = name;
+        this.sourceDir = Scanner.dirName;
+        this.selectorGroup = ScannedCircuitMap.getSelectorGroupFromQRSelector(sel, net);
+        let result = await this._readVoltageAndFreq(path);
+        this.voltage = result.voltage;
+        this.frequency = result.frequency;
+        this.parent = parent;
+        this.mode = window.definitions.mode.qr
+        this.index = idx;
+        this.trackingId = trackingId;
+
+        parent.push(this);
+
+        return this;
+    }
+
+    async initFromStorage(idx, trackingId, sel, net, parent){
+        return await this.initFromScan(idx, trackingId, sel, net, parent);
+    }
+}
+
+class MagneticCircuitMap extends CircuitMap{
+    
+}
+
+class TutorialCircuitMap extends CircuitMap{
+    get circuitPath() {
+        return `${conf.pyodide.paths.tutorials}/${this.sourceDir}`
+    }
+
+    get standardCircuitsPath(){
+        return `${conf.pyodide.paths.tutorials}/${this.sourceDir}`
+    }
+}
+
 class CircuitMapFactory {
     getCircuitMap(id){
         if (id === window.definitions.selectorIDs.wheatstone){
             return new WheatstoneCircuitMap();
+        }
+        else if (id === Scanner.identifier){
+            return new ScannedCircuitMap();
+        }
+        else if (id === window.definitions.selectorIDs.quickstart){
+            return new TutorialCircuitMap();
         }
         else {
             return new CircuitMap();

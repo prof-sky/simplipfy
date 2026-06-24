@@ -11,7 +11,7 @@ class CheatSheetPage extends Page{
 	        kirchhoffLaw: new KirchhoffLaw(),
         }
         // <pageName>-page-container (id of div on index.htlm)
-        super(content, "cheat-sheet-container", "CheatSheetPage");
+        super(content, "cheat-sheet-container", "cheatsheet", "nav-cheat");
     }
 
     setup() {

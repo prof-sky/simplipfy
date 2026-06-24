@@ -34,4 +34,7 @@ from simplipfy.Svg.drawingConfig import drawing_config_instance as dc
 drawingConfigInstance = dc
 
 from simplipfy.Tools.generateGraphs import generate_graph_from_circuit as ggfc
-generateGraphFromCircuit = ggfc     
+generateGraphFromCircuit = ggfc
+
+from simplipfy.Magnetic.MagneticTransformer import MagneticTransformer as mtr
+MagneticTransformer = mtr

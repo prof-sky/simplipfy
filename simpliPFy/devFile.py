@@ -25,9 +25,9 @@ for file in files:
 fixFile = True
 saveNetlist = False
 if fixFile:
-    folder = "resistor"
+    folder = "mixed"
     filePath = f"Circuits/{folder}"
-    filename = "00_Resistor_Hetznecker.txt"
+    filename = "00_mixed_RCL_series-test.txt"
 else:
     from tkinter import filedialog
     curPath = os.getcwd()
@@ -68,6 +68,7 @@ for line in open(f"StepsToSolve/{folder}/{filename}").readlines():
         a.steps.index(a.steps[-1]),
         saveNetlist
     )
+
 et = time.time()
 
 x = a.getStep("step0")

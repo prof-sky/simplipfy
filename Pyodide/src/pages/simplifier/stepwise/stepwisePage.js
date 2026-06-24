@@ -9,7 +9,7 @@ class StepwisePage extends SimplifierPage{
         let content = {
         }
         // <pageName>-page-container (id of div on index.htlm)
-        super(content, "StepwisePage");
+        super(content, "Stepwise", "");
     }
 
     /** @returns {Promise<boolean>} */
@@ -23,7 +23,7 @@ class StepwisePage extends SimplifierPage{
         super.afterSetup();
     }
 
-    reset(calledFromResetBtn = false){
+    async reset(calledFromResetBtn = false){
         this.invalidate();
         SimplifierPage.clear();
         state.valuesShown = new Map();
@@ -31,14 +31,14 @@ class StepwisePage extends SimplifierPage{
         state.pictureCounter = 0;
         state.allValuesMap = new Map();
         scrollBodyToTop();
-        state.apis.drawingConfig.unlock("# --generalize-false");
+        await state.apis.drawingConfig.unlock("# --generalize-false");
     }
 
     async initialize(){
         if (!super.beforeInit) return
         //setup of content
         try{
-            if (!state.pyodideReady &&
+            if (!state.backendReady &&
                 !(state.currentCircuitMap.selectorGroup === window.definitions.selectorIDs.quickstart)) {
                 console.warn("stepwise solver called before init")
                 return;
@@ -57,7 +57,7 @@ class StepwisePage extends SimplifierPage{
         }
         catch (error) {
             console.trace(error)
-            showMessage(error, "error", false);
+            UserMessage.error(error);
         }
     }
 }

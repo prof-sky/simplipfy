@@ -150,6 +150,8 @@ class NetlistLine:
         reconstructs self.line from the parsed elements self.type, self.typeSuffix, self.startNode, self.endNode,
         self.ac_dc, self.value, self.phase, self.omega, self.drawParam
         """
+        if self.typeSuffix.startswith(self.type):
+            self.typeSuffix = self.typeSuffix[1:]
         reconstructFrom = [self.type + self.typeSuffix, " " + self.posNode, " " + self.negNode]
 
         if self.ac_dc is not None:

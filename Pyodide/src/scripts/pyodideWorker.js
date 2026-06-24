@@ -2,281 +2,484 @@ self.pyodide = null;
 self.solveModule = null;
 self.stepSolve = null;
 self.kirchhoffSolver = null;
+self.magneticTransformer = null;
 self.svgGenerator = null;
 self.drawingConfig = null;
 
-if( 'function' === typeof importScripts) {
+/** @param {{
+ * id: boolean,
+ * data: T,
+ * success: boolean
+ * errors: string [],
+ * warnings: string []
+ * }} response */
+function pm(response) {
+    self.postMessage(response);
+}
 
-    async function recursiveRmdir(path) {
-        let entries = self.pyodide.FS.readdir(path).filter(name => name !== "." && name !== "..");
-        for (let entry of entries) {
-            let entryPath = path + "/" + entry;
-            let stat = self.pyodide.FS.stat(entryPath);
-            if (self.pyodide.FS.isDir(stat.mode)) {
-                // Recursively delete the directory
-                await recursiveRmdir(entryPath);
-            } else {
-                // Delete the file
-                self.pyodide.FS.unlink(entryPath);
-            }
+async function recursiveRmDir(path) {
+    let entries = self.pyodide.FS.readdir(path).filter(name => name !== "." && name !== "..");
+    for (let entry of entries) {
+        let entryPath = path + "/" + entry;
+        let stat = self.pyodide.FS.stat(entryPath);
+        if (self.pyodide.FS.isDir(stat.mode)) {
+            // Recursively delete the directory
+            await recursiveRmDir(entryPath);
+        } else {
+            // Delete the file
+            self.pyodide.FS.unlink(entryPath);
         }
-        // Finally, delete the directory itself
-        self.pyodide.FS.rmdir(path);
     }
+    // Finally, delete the directory itself
+    self.pyodide.FS.rmdir(path);
+}
+
+function generalizeOptIsNotSet(optionsString) {
+    if (optionsString !== null &&
+        optionsString !== "" &&
+        optionsString !== undefined) {
+        return !optionsString.includes("--generalize");
+    } else {
+        return true; // If no options are set, generalize is not set
+    }
+}
+
+/** @template {keyof PyodideAPIMap} I */
+class HandlerReturn {
+    /** @type {PyodideAPIMap[I]["output"]} */
+    result;
+
+    /** @type {boolean} */
+    success;
+
+    /** @type {string[]} */
+    errors;
+
+    /** @type {string[]} */
+    warnings;
+
+    /**
+     * @template I {keyof PyodideAPIMap}
+     * @param {PyodideAPIMap[I]["output"]} result
+     * @param {boolean=true} success
+     * @param {string[]} [errors=[]]
+     * @param {string[]} [warnings=[]]
+     */
+    constructor(result,success = true, errors = [], warnings = []) {
+        this.result = result;
+        this.success = success;
+        this.errors = errors;
+        this.warnings = warnings;
+    }
+}
+
+/**
+ * @template {keyof PyodideAPIMap} K
+ * @typedef {(data: PyodideAPIMap[K]["input"]) => Promise<HandlerReturn<PyodideAPIMap[K]["output"]>>} Handler
+ */
+
+/** @type {{ [K in keyof PyodideAPIMap]: Handler<K> }} */
+const handlers = {
+
+    // ================= Pyodide =================
+    /** @returns {Promise<HandlerReturn<"unpackArchive">>} */
+    unpackArchive: async (data) => {
+        await self.pyodide.unpackArchive(data.buffer, data.extension, data.options);
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"readdir">>} */
+    readdir: async (data) => {
+        return new HandlerReturn(self.pyodide.FS.readdir(data.path));
+    },
+
+    /** @returns {Promise<HandlerReturn<"unlink">>} */
+    unlink: async (data) => {
+        await self.pyodide.FS.unlink(data.path);
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"pyimport">>} */
+    pyimport: async (data) => {
+        return new HandlerReturn(self.pyodide.pyimport(data.pythonModuleName));
+    },
+
+    /** @returns {Promise<HandlerReturn<"writeFile">>} */
+    writeFile: async (data) => {
+        self.pyodide.FS.writeFile(data.path, data.content, { encoding: data.encoding });
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"readFile">>} */
+    readFile: async (data) => {
+        return new HandlerReturn(self.pyodide.FS.readFile(data.path, { encoding: data.encoding }));
+    },
+
+    /** @returns {Promise<HandlerReturn<"exists">>} */
+    exists: async (data) => {
+        return new HandlerReturn(self.pyodide.FS.analyzePath(data.path).exists);
+    },
+
+    /** @returns {Promise<HandlerReturn<"rename">>} */
+    rename: async (data) => {
+        self.pyodide.FS.rename(data.from, data.to);
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"runPython">>} */
+    runPython: async (data) => {
+        return new HandlerReturn(await self.pyodide.runPythonAsync(data.code));
+    },
+
+    /** @returns {Promise<HandlerReturn<"recursiveRmDir">>} */
+    recursiveRmDir: async (data) => {
+        await recursiveRmDir(data.path);
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"mkdir">>} */
+    mkdir: async (data) => {
+        self.pyodide.FS.mkdir(data.path);
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"pyodideReady">>} */
+    pyodideReady: async (data) => {
+        // this works because the pyodide ready promise is awaited before this code runs. if this call returns to the
+        // caller before a timeout pyodide has to be ready after this call.
+        return new HandlerReturn(true);
+    },
+
+    // ================= Solver Core =================
+    /** @returns {Promise<HandlerReturn<"loadSolve">>} */
+    loadSolve: async () => {
+        self.solveModule = await self.pyodide.pyimport("simplipfyAPI");
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"isValidCircuitFile">>} */
+    isValidCircuitFile: async (data) => {
+        let validator = await self.solveModule.ValidateCircuitFile.callKwargs({
+            fileName: data.circuitFile,
+            filePath: data.circuitPath
+        });
+        let [isValid, errorMsgs, warnMsgs] = await validator.validate();
+        return new HandlerReturn({ success: isValid, errors: errorMsgs, warnings: warnMsgs });
+    },
+
+    /** @returns {Promise<HandlerReturn<"isValidCircuitString">>} */
+    isValidCircuitString: async (data) => {
+        let validator = await self.solveModule.ValidateCircuitFile.callKwargs({
+            fileStr: data.fileString
+        });
+        let [isValid, errorMsgs, warnMsgs] = await validator.validate();
+        return new HandlerReturn({ success: isValid, errors: errorMsgs, warnings: warnMsgs });
+    },
+
+    /** @returns {Promise<HandlerReturn<"forceDrawing">>} */
+    forceDrawing: async (data) => {
+        if (!self.solveModule) {
+            return new HandlerReturn({
+                isValidSyntax: false,
+                svgData: "<svg></svg>",
+                errMsgs: ["Solver not loaded"],
+                warnMsgs: []
+            });
+        }
+
+        let validator = await self.solveModule.ValidateCircuitFile.callKwargs({
+            fileStr: data.circuitString
+        });
+
+        const [_, errorMsgs, warnMsgs] = await validator.validate();
+        const isValidSyntax = await validator.validSyntax;
+
+        if (!isValidSyntax) {
+            return new HandlerReturn({ isValidSyntax: false, svgData: "<svg></svg>", errMsgs: errorMsgs, warnMsgs: warnMsgs });
+        }
+
+        if (generalizeOptIsNotSet(data.optionsString) &&
+            warnMsgs.includes("warning, drawing hint missing on line")) {
+            return new HandlerReturn({ isValidSyntax: false, svgData: "<svg></svg>", errMsgs: errorMsgs, warnMsgs: warnMsgs });
+        }
+
+        const svgData = await self.solveModule.forceDrawing.callKwargs({
+            netlist: data.circuitString,
+            ls: data.paramMap,
+            configOption: data.optionsString
+        });
+
+        return new HandlerReturn({ isValidSyntax: true, svgData: svgData, errMsgs: errorMsgs, warnMsgs: warnMsgs });
+    },
+
+    // ================= SVG Generator =================
+    /** @returns {Promise<HandlerReturn<"initSVGGenerator">>} */
+    initSVGGenerator: async (data) => {
+        self.svgGenerator = await self.solveModule.SVGFileGenerator(data.path);
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"getCircuitFiles">>} */
+    getCircuitFiles: async () => {
+        return new HandlerReturn((await self.svgGenerator.getFilteredFiles(['.txt', '.sch'])).toJs());
+    },
+
+    /** @returns {Promise<HandlerReturn<"generateSvgFile">>} */
+    generateSvgFile: async (data) => {
+        const ret = await self.svgGenerator.generateSVGFile(data.file);
+
+        if (ret !== 0) {
+            throw new Error("SVG generation failed: " + ret);
+        }
+
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"zipFiles">>} */
+    zipFiles: async (data) => {
+        await self.solveModule.zipFolder(data.path);
+        return new HandlerReturn(true);
+    },
+
+    // ================= Drawing Config =================
+    /** @returns {Promise<HandlerReturn<"lock">>} */
+    lock: async (data) => {
+        self.solveModule.drawingConfigInstance.lock(data.onStr);
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"unlock">>} */
+    unlock: async (data) => {
+        self.solveModule.drawingConfigInstance.unlock(data.setTo);
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"setToDefault">>} */
+    setToDefault: async () => {
+        self.solveModule.drawingConfigInstance.setToDefault();
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"setOptions">>} */
+    setOptions: async (data) => {
+        self.solveModule.drawingConfigInstance.setOptions(data.options);
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"isLocked">>} */
+    isLocked: async () => {
+        return new HandlerReturn(self.solveModule.drawingConfigInstance.isLocked());
+    },
+
+    // ================= Step Solver =================
+    /** @returns {Promise<HandlerReturn<"initStepSolver">>} */
+    initStepSolver: async (data) => {
+        self.stepSolve = await self.solveModule.SolveInUserOrder.callKwargs({
+            filename: data.circuitFile,
+            filePath: data.circuitPath,
+            langSymbols: data.paramMap
+        });
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"resetStepSolver">>} */
+    resetStepSolver: async () => {
+        self.stepSolve = null;
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"createStep0">>} */
+    createStep0: async () => {
+        return new HandlerReturn(await (self.stepSolve.createStep0()).toJs({ dict_converter: Object.fromEntries }));
+    },
+
+    /** @returns {Promise<HandlerReturn<"getStep">>} */
+    getStep: async (data) => {
+        return new HandlerReturn(await (self.stepSolve.getStep(data.step)).toJs({ dict_converter: Object.fromEntries }));
+    },
+
+    /** @returns {Promise<HandlerReturn<"simplifyNCpts">>} */
+    simplifyNCpts: async (data) => {
+        return new HandlerReturn(await (self.stepSolve
+            .simplifyNCpts(data.selectedElements, data.relation))
+            .toJs({ dict_converter: Object.fromEntries }));
+    },
+
+    /** @returns {Promise<HandlerReturn<"canSimplifyCpts">>} */
+    canSimplifyCpts: async () => {
+        const simplified = await self.stepSolve.isSimplified();
+        return new HandlerReturn(!simplified);
+    },
+
+    // ================= Kirchhoff =================
+    /** @returns {Promise<HandlerReturn<"initKirchhoffSolver">>} */
+    initKirchhoffSolver: async (data) => {
+        let stepSolver = await handlers["initStepSolver"](data); // Step solver is needed for kirchhoff solver, so we initialize it here as well
+        if (!stepSolver.success) {
+            return new HandlerReturn(false, false, ["Failed to initialize step solver, cannot initialize Kirchhoff solver"]);
+        }
+
+        self.kirchhoffSolver = await self.solveModule.KirchhoffSolver.callKwargs({
+            circuitFileName: data.circuitFile,
+            path: data.circuitPath,
+            langSymbols: data.paramMap
+        });
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"createStep0">>} */
+    createKirchhoffStep0: async (data) => {
+        return (await handlers["createStep0"](data));
+    },
+
+    /** @returns {Promise<HandlerReturn<"resetKirchhoffSolver">>} */
+    resetKirchhoffSolver: async () => {
+        self.stepSolve = null;
+        self.kirchhoffSolver = null;
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"checkVoltageLoopRule">>} */
+    checkVoltageLoopRule: async (data) => {
+        return new HandlerReturn((await self.kirchhoffSolver
+            .checkVoltageLoopRule(data.selectedElements))
+            .toJs());
+    },
+
+    /** @returns {Promise<HandlerReturn<"checkJunctionRule">>} */
+    checkJunctionRule: async (data) => {
+        return new HandlerReturn((await self.kirchhoffSolver
+            .checkJunctionRule(data.selectedElements))
+            .toJs());
+    },
+
+    /** @returns {Promise<HandlerReturn<"foundAllVoltEquations">>} */
+    foundAllVoltEquations: async () => {
+        return new HandlerReturn(self.kirchhoffSolver.foundAllVoltEquations());
+    },
+
+    /** @returns {Promise<HandlerReturn<"foundAllEquations">>} */
+    foundAllEquations: async () => {
+        return new HandlerReturn(self.kirchhoffSolver.foundAllEquations());
+    },
+
+    /** @returns {Promise<HandlerReturn<"equations">>} */
+    equations: async () => {
+        return new HandlerReturn((await self.kirchhoffSolver.equations()).toJs());
+    },
+
+    /** @returns {Promise<HandlerReturn<"equationsURI">>} */
+    equationsURI: async () => {
+        return new HandlerReturn((await self.kirchhoffSolver.equationsURI()).toJs());
+    },
+
+    /** @returns {Promise<HandlerReturn<"currEquations">>} */
+    currEquations: async () => {
+        return new HandlerReturn((await self.kirchhoffSolver.currEqs).toJs());
+    },
+
+    /** @returns {Promise<HandlerReturn<"voltEquationsURI">>} */
+    voltEquationsURI: async () => {
+        return new HandlerReturn((await self.kirchhoffSolver.voltEqsURI).toJs());
+    },
+
+    // ================= Wheatstone =================
+    /** @returns {Promise<HandlerReturn<"equationIsValid">>} */
+    equationIsValid: async (data) => {
+        return new HandlerReturn(self.solveModule.WheatstoneBridgeSolver.callKwargs(data));
+    },
+
+    //  ================= Magnetic API =================
+    /** @returns {Promise<HandlerReturn<"initMagneticSolver">>} */
+    initMagneticSolver: async (data) => {
+        let kwargs = {
+            circuitFileName: data.magneticCircuitFile,
+            path: data.magneticCircuitPath,
+            langSymbols: data.paramMap
+        };
+        self.magneticTransformer = await self.solveModule.MagneticTransformer.callKwargs(kwargs);
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"resetMagneticSolver">>} */
+    resetMagneticSolver: async (data) => {
+        self.magneticTransformer = null;
+        return new HandlerReturn(true);
+    },
+
+    /** @returns {Promise<HandlerReturn<"checkTransformation">>} */
+    checkTransformation: async (data) => {
+        const [errorCode, eq] = (await self.magneticTransformer.check_transformation(data.selectedElements).toJs());
+        return new HandlerReturn({ errorCode: errorCode, equation: eq });
+    },
+
+    /** @returns {Promise<HandlerReturn<"transformedAllElements">>} */
+    transformedAllElements: async (data) => {
+        return new HandlerReturn(self.magneticTransformer.transformed_all_elements());
+    },
+
+    /** @returns {Promise<HandlerReturn<"lcapyNetlist">>} */
+    lcapyNetlist: async (data) => {
+        return new HandlerReturn((await self.magneticTransformer.el_netlist()).toJs());
+    },
+};
+
+/** @returns {HandlerReturn} */
+const onHandlerError = {
+    /** * @param {Error} error */
+    default: (error) => {return new HandlerReturn(null, [error.stack]);},
+}
+
+if( 'function' === typeof importScripts) {
 
     importScripts("../../pyodide.js");
 
     self.pyodideReadyPromise = loadPyodide();
     self.onmessage = async (event) => {
-        let _id = event.data.id;
+
+        self.pyodide = await self.pyodideReadyPromise;
+        const _id = event.data.id;
+        const input = event.data
 
         try {
-            // Make sure pyodide and micropip is loaded before doing anything else
-            self.pyodide = await self.pyodideReadyPromise;
-
-            // ###################### Pyodide API ########################
-            if (event.data.action === "unpackArchive") {
-                await self.pyodide.unpackArchive(event.data.data.buffer, event.data.data.extension, event.data.data.options);
-                self.postMessage({id: _id});
-            } else if (event.data.action === "readdir") {
-                try {
-                    const files = self.pyodide.FS.readdir(event.data.data.path);
-                    self.postMessage({status: "ok", files: files, id: _id});
-                } catch (error) {
-                    console.trace(error)
-                    self.postMessage({status: "error", files: null, id: _id});
-                }
-            } else if (event.data.action === "unlink") {
-                await self.pyodide.FS.unlink(event.data.data.path);
-                self.postMessage({id: _id});
-            } else if (event.data.action === "pyimport") {
-                const importedModule = await self.pyodide.pyimport(event.data.data.module);
-                self.postMessage({module: importedModule, id: _id});
-            } else if (event.data.action === "writeFile") {
-                self.pyodide.FS.writeFile(event.data.data.path, event.data.data.content, {encoding: event.data.data.encoding});
-                self.postMessage({id: _id});
-            } else if (event.data.action === "readFile") {
-                const file = self.pyodide.FS.readFile(event.data.data.path, {encoding: event.data.data.encoding});
-                self.postMessage({file: file, id: _id});
-            } else if (event.data.action === "exists") {
-                const exists = self.pyodide.FS.analyzePath(event.data.data.path).exists;
-                self.postMessage({exists: exists, id: _id});
-            } else if (event.data.action === "rename") {
-                let success = true
-                try{
-                    self.pyodide.FS.rename(event.data.data.from, event.data.data.to);
-                }
-                catch(error) {
-                    success = false;
-                }
-                self.postMessage({id: _id, success: success});
-            } else if (event.data.action === "runPython") {
-                //await self.pyodide.loadPackagesFromImports(event.data.data.code);
-                const result = await self.pyodide.runPythonAsync(event.data.data.code);
-                self.postMessage({result: result, id: _id});
-            } else if (event.data.action === "loadSolve") {
-                // ToDo use the name from the config file
-                self.solveModule = await self.pyodide.pyimport("simplipfyAPI");
-                self.postMessage({id: _id});
-            } else if (event.data.action === "recursiveRmdir") {
-                await recursiveRmdir(event.data.data.path);
-                self.postMessage({id: _id});
-            } else if (event.data.action === "mkdir") {
-                self.pyodide.FS.mkdir(event.data.data.path);
-                self.postMessage({id: _id});
-            } else if (event.data.action === "isValidCircuitFile") {
-                let kwargs = {
-                    fileName: event.data.data.circuitFile,
-                    filePath: event.data.data.circuitPath,
-                }
-                let fileValidator = await self.solveModule.ValidateCircuitFile.callKwargs(kwargs);
-                const [isValid, errorMsgs, warnMsgs] = await fileValidator.validate();
-                self.postMessage({isValid: isValid, errorMsgs: errorMsgs, warnMsgs: warnMsgs, id: _id});
-            } else if (event.data.action === "isValidCircuitString") {
-                let kwargs = {
-                    fileStr: event.data.data.fileString
-                }
-                let fileValidator = await self.solveModule.ValidateCircuitFile.callKwargs(kwargs);
-                const [isValid, errorMsgs, warnMsgs] = await fileValidator.validate();
-                self.postMessage({isValid: isValid, errorMsgs: errorMsgs, warnMsgs: warnMsgs, id: _id});
-            } else if (event.data.action === "forceDrawing") {
-                // Do nothing while solve is not loaded
-                if (self.solveModule === null) {
-                    self.postMessage({id: _id});
-                    return;
-                }
-                // Check if syntax is ok, then draw
-                // Use fileValidator.validSyntax instead of isValid from validate() to overwrite semantic errors,
-                // still draw if semantic errors occur, only break on syntax errors
-                let fileValidator = await self.solveModule.ValidateCircuitFile.callKwargs({fileStr: event.data.data.circuitString});
-                const [_, errorMsgs, warnMsgs] = await fileValidator.validate();
-                let isValidSyntax = await fileValidator.validSyntax;
-                // Return if syntax is not valid or if there is a drawing hint missing (because without --generalize, drawing is not possible)
-                if (!isValidSyntax) {
-                    self.postMessage({isValidSyntax: false, svgData: "", errMsgs: errorMsgs, warnMsgs: warnMsgs, id: _id});
-                    return;
-                }
-
-                // If generalize is not active and there are warnings, don't draw.
-                // If generalize is active, drawing without drawing hints is possible
-                if (generalizeOptIsNotSet(event) && warnMsgs.includes("warning, drawing hint missing on line")) {
-                        self.postMessage({
-                            isValidSyntax: false,
-                            svgData: "",
-                            errMsgs: errorMsgs,
-                            warnMsgs: warnMsgs,
-                            id: _id
-                        });
-                        return;
-                }
-
-                // Draw the circuit
-                let kwargsDrawing = {
-                    netlist: event.data.data.circuitString,
-                    ls: event.data.data.paramMap,
-                    configOption: event.data.data.optionsString
-                }
-                let svgData = await self.solveModule.forceDrawing.callKwargs(kwargsDrawing);
-                self.postMessage({isValidSyntax: true, svgData: svgData, errMsgs: errorMsgs, warnMsgs: warnMsgs,  id: _id});
-            }
-            // ###################### SVG Generator API ########################
-            else if (event.data.action === "initSVGGenerator") {
-                self.svgGenerator = await self.solveModule.SVGFileGenerator(event.data.data.path);
-                self.postMessage({id: _id});
-            } else if (event.data.action === "getCircuitFiles") {
-                const files = await self.svgGenerator.getFilteredFiles(['.txt', '.sch']).toJs(); // TODO!! document this
-                self.postMessage({files: files, id: _id});
-            } else if (event.data.action === "generateSvgFile") {
-                const ret = await self.svgGenerator.generateSVGFile(event.data.data.file);
-                if (ret !== 0) {
-                    self.postMessage({status: "error", error: ret, id: _id});
-                    return;
-                }
-                self.postMessage({id: _id});
-            } else if (event.data.action === "zipFiles") {
-                await self.solveModule.zipFolder(event.data.data.path);
-                self.postMessage({id: _id});
-            }
-            // ###################### Drawing Config API ####################
-            else if (event.data.action === "lock") {
-                let on = event.data.data.onStr;
-                console.log("locking on " + on);
-                self.solveModule.drawingConfigInstance.lock(on);
-                self.postMessage({id: _id});
-            } else if (event.data.action === "unlock") {
-                let setTo = event.data.data.setTo;
-                self.solveModule.drawingConfigInstance.unlock(setTo);
-                self.postMessage({id: _id});
-            } else if (event.data.action === "setToDefault") {
-                console.log("set drawing config to default");
-                self.solveModule.drawingConfigInstance.setToDefault();
-                self.postMessage({id: _id});
-            } else if (event.data.action === "setOptions") {
-                let options = event.data.data.options;
-                self.solveModule.drawingConfigInstance.setOptions(options);
-                self.postMessage({id: _id});
-            } else if (event.data.action === "isLocked") {
-                const isLocked = self.solveModule.drawingConfigInstance.isLocked();
-                self.postMessage({isLocked: isLocked, id: _id});
-            }
-            // ###################### Simplifier API ########################
-            else if (event.data.action === "initStepSolver") {
-                let kwargs = {
-                    filename: event.data.data.circuitFile,
-                    filePath: event.data.data.circuitPath,
-                    langSymbols: event.data.data.paramMap};
-                self.stepSolve = await self.solveModule.SolveInUserOrder.callKwargs(kwargs);
-                self.postMessage({id: _id});
-            } else if (event.data.action === "resetStepSolver") {
-                self.stepSolve = null;
-                self.postMessage({id: _id, message: "reset"});
-            }
-            else if (event.data.action === "createStep0") {
-                const step0 = await self.stepSolve.createStep0().toJs({dict_converter: Object.fromEntries});
-                self.postMessage({step0: step0, id: _id});
-            }
-            else if (event.data.action === "getStep") {
-                const step = await self.stepSolve.getStep(event.data.step).toJs({dict_converter: Object.fromEntries});
-                self.postMessage({step: step, id: _id});
-            }
-            else if (event.data.action === "simplifyNCpts") {
-                // Expect event.data to contain selectedElements (array) and relation (string)
-                const result = await self.stepSolve.simplifyNCpts(event.data.selectedElements, event.data.relation).toJs({dict_converter: Object.fromEntries})
-
-                self.postMessage({
-                    simplifiedStep: result,
-                    id: _id
+            const handler = handlers[input.action];
+            if (!handler) {
+                pm({
+                    id: _id,
+                    data: null,
+                    success: false,
+                    errors: [`Unknown action: ${input.action}`],
+                    warnings: []
                 });
-            }
-            else if (event.data.action === "canSimplifyCpts"){
-                const canSimplipfyCpts = await self.stepSolve.isSimplified()
-                self.postMessage({id: _id, canSimplipfyCpts: !canSimplipfyCpts});
-            }
-            // ###################### Kirchhoff API ########################
-            else if (event.data.action === "initKirchhoffSolver") {
-                let kwargs = {
-                    circuitFileName: event.data.data.circuitFile,
-                    path: event.data.data.circuitPath,
-                    langSymbols: event.data.data.paramMap
-                };
-                self.kirchhoffSolver = await self.solveModule.KirchhoffSolver.callKwargs(kwargs);
-                self.postMessage({id: _id});
-            } else if (event.data.action === "resetKirchhoffSolver") {
-                self.kirchhoffSolver = null;
-                self.postMessage({id: _id, message: "reset"});
-            }
-            else if (event.data.action === "checkVoltageLoopRule") {
-                const [errorCode, eq] = await self.kirchhoffSolver.checkVoltageLoopRule(event.data.selectedElements).toJs();
-                self.postMessage({errorCode: errorCode, eq: eq, id: _id});
-            } else if (event.data.action === "checkJunctionRule") {
-                const [errorCode, eqs] = await self.kirchhoffSolver.checkJunctionRule(event.data.selectedElements).toJs();
-                self.postMessage({errorCode: errorCode, eqs: eqs, id: _id});
-            } else if (event.data.action === "foundAllVoltEquations") {
-                const foundAll = await self.kirchhoffSolver.foundAllVoltEquations();
-                self.postMessage({foundAll: foundAll, id: _id});
-            } else if (event.data.action === "foundAllEquations") {
-                const foundAll = await self.kirchhoffSolver.foundAllEquations();
-                self.postMessage({foundAll: foundAll, id: _id});
-            } else if (event.data.action === "equations") {
-                const equations = (await self.kirchhoffSolver.equations()).toJs();
-                self.postMessage({equations: equations, id: _id});
-            }
-            else if (event.data.action === "equationsURI") {
-                const equationsURI = (await self.kirchhoffSolver.equationsURI()).toJs();
-                self.postMessage({equationsURI: equationsURI, id: _id});
-            }
-            else if (event.data.action ==="currEquations"){
-                const curEqs = (await self.kirchhoffSolver.currEqs).toJs();
-                self.postMessage({currEqs: curEqs, id: _id});
-            }
-            else if (event.data.action ==="voltEquationsURI"){
-                const voltEqsURI = (await self.kirchhoffSolver.voltEqsURI).toJs();
-                self.postMessage({voltEqsURI: voltEqsURI, id: _id});
-            }
-            // ###################### Wheatstone API ########################
-            else if (event.data.action === "equationIsValid") {
-                const valid = await self.solveModule.WheatstoneBridgeSolver.callKwargs(event.data.data);
-                self.postMessage({valid: valid, id: _id});
-            }
-        } catch (error) {
-            console.trace(error)
-            console.log("Worker action: " + event.data.action.toString())
-            if (self.pyodide === null) {
-                self.postMessage({status: "error", error: "Pyodide not loaded", id: _id});
                 return;
-            } else {
-                self.postMessage({status: "error", error: error, id: _id});
             }
-        }
-    }
 
-    function generalizeOptIsNotSet(event) {
-        if (event.data.data.optionsString !== null &&
-            event.data.data.optionsString !== "" &&
-            event.data.data.optionsString !== undefined) {
-            return !event.data.data.optionsString.includes("--generalize");
-        } else {
-            return true; // If no options are set, generalize is not set
+            /** @type {HandlerReturn} */
+            let data = await handler(input.data);
+            pm({
+                id: _id,
+                data: data.result,
+                success: true,
+                errors: data.errors,
+                warnings: data.warnings
+            });
+        }
+        catch (error) {
+            console.error("Worker Error (backend):\n", error);
+            let data = onHandlerError[input.action] ? onHandlerError[input.action](error) : onHandlerError.default(error);
+
+            if(!self.solveModule){
+                data.errors.push("Backend not initialized, solveModule is null or undefined. " +
+                    "This likely means that the loadSolve action has not been called yet.");
+            }
+
+            pm({
+                id: _id,
+                data: data.result,
+                success: false,
+                errors: data.errors,
+                warnings: data.warnings
+            });
         }
     }
 }

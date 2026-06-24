@@ -5,14 +5,13 @@ class TutorialSelector extends Selector {
     /** @type {CounterManager} */
     counters;
 
-    /** @param circuitFiles {CircuitFilesManager} */
-    constructor(circuitFiles) {
+    constructor() {
         let idLangMap = new Map([
             ["quick-tutorial-heading", () => languageManager.currentLang.selector.selectorHeadings.quick]
         ])
-        super(circuitFiles, SelectPage)
+        super(tutorialFiles, SelectPage, idLangMap);
         this.mainID = "quick-tutorial-container"
-        this.circuitFiles = circuitFiles;
+        this.circuitFiles = tutorialFiles;
     }
 
     get carousel(){
@@ -43,14 +42,14 @@ class TutorialSelector extends Selector {
             this);
         this.carousels.set(this.identifier, carousel)
 
-        this.carousel.init();
+        this.carousel.init(this.carousel.templateItemInnerHtml);
 
         return contentDiv;
     }
 
     async init() {
         if (!this.circuitFiles.loaded) {
-            console.log("Circuits not loaded yet - waiting with init till loaded");
+            console.log("Tutorial circuits not loaded yet - waiting with init until loaded");
             awaitVal(() => this.circuitFiles.loaded, () => this.init.bind(this));
             return;
         }
@@ -84,23 +83,26 @@ class TutorialSelector extends Selector {
         nextCircuitBtn.innerHTML = languageManager.currentLang.simplifier.nextCircuit;
 
         nextCircuitBtn.addEventListener("click", async () => {
+            const lastInCircuitSet = state.currentCircuitMap.index >= state.currentCircuitMap.parent.length - 1
 
             let selectorGroup = state.currentCircuitMap.selectorGroup;
             this.carousels.get(selectorGroup).nextBtn.click();
             state.currentCircuitMap = state.currentCircuitMap.nextCircuitMap();
 
-            let requestID = pageManager.requestID;
-            if(selectorGroup !== state.currentCircuitMap.selectorGroup){
-                state.currentSelector = pageManager.pages.selectPage.content.accordion.selector
+            // avoid changing page when loading page is shown and a different page was requested while loading simplipfy
+            // loading page is only shown when it is the last circuit in the circuit set of this carousel
+            let showSimpPage = true;
 
-                if (!state.pyodideReady || !state.solversReady){
-                    pageManager.changePage(pageManager.pages.loadingPyodidePage, false, false)
-                    requestID = pageManager.requestID;
-                    await awaitVal(() => state.pyodideReady && state.solversReady, () => {})
-                }
+            if (lastInCircuitSet){
+                showSimpPage = await pageManager.tellWhenReady(
+                    pageManager.pages.loadingPyodidePage,
+                    () => state.backendReady && state.solversReady
+                )
+                state.currentSelector = pageManager.pages.selectPage.content.accordion.selector;
+                state.currentCircuitMap = state.currentSelector.circuitFiles.getCircuitSet(window.definitions.selectorIDs.resistor).circuitMaps[0];
             }
 
-            if (requestID === pageManager.requestID) SimplifierPage.showSimplifierPage(state.currentCircuitMap);
+            if (showSimpPage) SimplifierPage.showSimplifierPage(state.currentCircuitMap);
         });
         return nextCircuitBtn;
     }

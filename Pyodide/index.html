@@ -23,7 +23,8 @@
     </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>simpliPFy</title>
+    <title>simpliPFy | interactive learning for electrical engineering</title>
+    <meta name="description" content="Guided exercises in the areas of analytical circuit simplification (DC/AC), Kirchhoff's laws and Wheatstone's law. DSGVO conform and Open Source.">
     <link rel="canonical" href="https://simplipfy.org" />
     <script src="src/scripts/pyodideAPI/pyodideAPI.bundle.js"></script>
     <script>testForWorkerAvailability();</script>
@@ -32,6 +33,20 @@
     <link rel="stylesheet" href="src/scripts/extern/codemirror5-5.65.16/lib/codemirror.css">
     <script src="src/scripts/extern/codemirror5-5.65.16/lib/codemirror.js"></script>
     <script src="src/scripts/extern/codemirror5-5.65.16/mode/javascript/javascript.js"></script>
+
+    <!----------------------- Pages base classes --------------------->
+    <script src="src/pageClasses/pageClasses.bundle.js"></script>
+    <script src="src/modals/modals.bundle.js"></script>
+
+    <!-- CSS Styles Import, Pyodide, Matomo, Extern -->
+    <link rel="stylesheet" href="src/styles/allStyles.css">
+    <link rel="stylesheet" href="src/styles/bootstrap.min.css">
+    <script src="src/scripts/extern/confetti.browser.min.js"></script>
+    <script src="src/scripts/extern/mathjax/tex-chtml.js" id="MathJax-script"></script> <!-- mathjax beta v4 -->
+    <script src="src/scripts/extern/davidshimjs-qrcodejs-04f46c6/qrcode.min.js"></script> <!-- QR Generator -->
+    <script src="src/scripts/extern/html5-qrcode.min.js"></script> <!-- QR Scanner -->
+    <script src="src/scripts/extern/lz-string-1.5.0/libs/lz-string.min.js"></script>
+    <script src="src/scripts/extern/flubber/build/flubber.min.js"></script>
 
     <!------------------------ Pyodide ------------------------------->
     <script src="pyodide.js"></script>
@@ -48,27 +63,12 @@
     <script src="src/scripts/utils/utils.bundle.js"></script>
     <!----------------------- Applications -------------------------------->
     <script src="src/scripts/applications/applications.bundle.js"></script>
+    <!----------------------- Applications -------------------------------->
+    <script src="src/scripts/extern/editor/editor.bundle.js"></script>
 
-    <!-- CSS Styles Import, Pyodide, Matomo, Extern -->
-
-    <link rel="stylesheet" href="src/styles/allStyles.css">
-    <link rel="stylesheet" href="src/styles/bootstrap.min.css">
-    <script src="src/scripts/extern/confetti.browser.min.js"></script>
-    <script src="src/scripts/extern/mathjax/tex-chtml.js" id="MathJax-script"></script> <!-- mathjax beta v4 -->
-    <script src="src/scripts/extern/davidshimjs-qrcodejs-04f46c6/qrcode.min.js"></script> <!-- QR Generator -->
-    <script src="src/scripts/extern/html5-qrcode.min.js"></script> <!-- QR Scanner -->
-    <script src="src/scripts/extern/lz-string-1.5.0/libs/lz-string.min.js"></script>
-    <script src="src/scripts/extern/flubber/build/flubber.min.js"></script>
-	<script src="src/scripts/extern/editor/editor.bundle.js"></script>
     <!------------------------ Matomo ------------------------------->
     <script>loadMatomo()</script>
-    <!----------------------- Pages base classes --------------------->
-    <script src="src/pages/functionsInterface.js"></script>
-    <script src="src/pages/content.js"></script>
-    <script src="src/pages/page.js"></script>
-    <script src="src/pages/selector.js"></script>
-    <script src="src/pages/modal.js"></script>
-    <script src="src/modals/modals.bundle.js"></script>
+
     <!----------------------- Pages ---------------------------------->
     <!--- tools --->
     <script src="src/pages/tools/tools.bundle.js"></script>
@@ -82,6 +82,8 @@
     <script src="src/pages/editor/editor.bundle.js"></script>
     <!--- cheat sheet --->
     <script src="src/pages/cheatSheet/cheatSheet.bundle.js"></script>
+    <!---tracking page --->
+    <script src="src/pages/tracking/tracking.bundle.js"></script>
     <!--- landing --->
     <script src="src/pages/landing/landing.bundle.js"></script>
     <!--  select  -->
@@ -89,7 +91,6 @@
     <!--  loading page  -->
     <script src="src/pages/loadingSometing/loadingSometing.bundle.js"></script>
     <!--  simplifier  -->
-    <script src="src/pages/simplifierPage.js"></script>
     <script src="src/pages/simplifier/simplifier.bundle.js"></script>
     <!-- loading pyodide -->
     <script src="src/pages/loadingPyodide/loadingPyodide.bundle.js"></script>
@@ -100,12 +101,13 @@
 <body id="bootstrap-overrides" class="bg-dark">
     <!-- Navbar Navigation -->
     <nav class="navbar fixed-top navbar-dark bg-dark p-2 user-select-none" id="navbar">
-        <div style="display: flex; gap: 10px;">
-            <button id="nav-toggler" class="navbar-toggler" style="border: 1px solid transparent" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <div style="display: flex;position: relative;align-items: center;justify-content: space-between;width: 100%;">
+            <button id="nav-toggler" class="navbar-toggler collapsed m-0 p-1" style="border: 1px solid transparent" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            <h5 id="navbarTitle" class="my-auto" style="position: absolute;left: 50%;transform: translateX(-50%);"></h5>
+            <a class="navbar-brand my-auto m-0 pe-1" id="nav-logo" style="cursor: default; user-select: none;">simpliPFy</a>
         </div>
-        <a class="navbar-brand" id="nav-logo">simpliPFy</a>
         <div class="collapse navbar-collapse mt-1" id="navbarSupportedContent">
             <ul class="navbar-nav">
                 <li class="nav-item">
@@ -121,10 +123,7 @@
                     <a class="nav-link navigation m-0 p-0" id="nav-cheat"></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link navigation m-0 p-0" id="nav-upload"></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link navigation m-0 p-0" id="nav-tools"></a>
+                    <a class="nav-link navigation m-0 p-0" id="nav-tracking"></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link navigation m-0 p-0" id="nav-about"></a>
@@ -165,7 +164,10 @@
                     </div>
                 </li>
                 <li class="nav-item">
-                    <a id="nav-dataprivacy" style="color: gray" class="nav-link mt-3 mb-0 pb-0" href="datenschutz.html">Datenschutz</a>
+                    <a class="nav-link mt-3 mb-0 pb-0"  style="cursor: pointer" id="nav-tools"></a>
+                </li>
+                <li class="nav-item">
+                    <a id="nav-dataprivacy" style="color: gray" class="nav-link mt-1 pt-0 mb-0 pb-0" href="datenschutz.html">Datenschutz</a>
                 </li>
                 <li class="nav-item">
                     <a id="nav-legal" style="color: gray" class="nav-link mt-1 pt-0 mb-0 pb-0" href="impressum.html">Impressum</a>
@@ -235,6 +237,11 @@
     ###################################           Cheat sheet      #########################################
     #####################################################################################################-->
     <div class="container-fluid m-0 p-3 text-center justify-content-center bg-dark" id="cheat-sheet-container" style="display: none;"></div>
+
+    <!--####################################################################################################
+   ###################################           Tracking Page      #########################################
+   #####################################################################################################-->
+    <div class="container-fluid m-0 p-3 text-center justify-content-center bg-dark" id="tracking-page-container" style="display: none;"></div>
 
     <!--####################################################################################################
    ###################################           ABOUT           #########################################

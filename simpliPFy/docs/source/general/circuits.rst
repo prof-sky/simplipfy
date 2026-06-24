@@ -45,7 +45,7 @@ This would result in::
 
 for the example given above.
 The stripped digits are used to guarantee the sorting you want. If you would like to sort alphabetically you can
-remove the digits but have to keep a leading ``_``.
+remove the digits but have to keep a leading ``_``. The numbers used in a subfolder of Circuits have to be unique.
 
 Host own circuit files
 ---------------------------
@@ -100,16 +100,3 @@ Upload own circuit files
 In the tab custom circuits you can upload a circuit file (zip-file). The uploaded circuits are evaluated and shown on
 the page ``custom circuits``. The circuits aren't persistent and will be removed if the page is reloaded, the tab is
 closed or the browser is closed.
-
-Auto download
----------------------------
-You can host your own circuits.zip file without hosting simplipfy. Put the circuits.zip file on a server and copy the
-direct download link. If you paste the direct download link into a browser the file download has to start without any
-extra steps on a website. With this link got to simplipfy.org -> navigate to tools ->  create a qr-code. The qr-code
-holds the following link: www.simplipfy.org/#<yourDirectDownloadLink>. This will automatically ask the user if the file
-shall be downloaded on site entry. If the user chooses to download the file, the circuits viewed page will automatically
-change to the custom circuits tab. There the user is asked to upload the downloaded file. We know it would be nicer to
-automatically use the downloaded file but we are limited by strict CORS policy force by the browser. The download will
-happen in a separate browser window. If the user has to log it should still work. We tested successfully with moodle. A
-save bet is the link to a file in a GitHub repository. There you have to copy the link to ``view raw`` to get a direct download
-link.

@@ -25,7 +25,8 @@ class SolveInUserOrder:
         self.filename = os.path.splitext(filename)[0]
         self.filePath = filePath
         self.langSymbols = LangSymbols(langSymbols)
-        self.circuit = Circuit(FileToImpedance(os.path.join(filePath, filename)))
+        self.netlist, self.componentMap  = FileToImpedance(os.path.join(filePath, filename))
+        self.circuit = Circuit(self.netlist)
         self.isGeneralized = dci.generalize
         self.steps: list[SolutionStep] = [
             SolutionStep(self.circuit, [], None, ComponentRelation.none, None, None)
@@ -71,7 +72,9 @@ class SolveInUserOrder:
         # ToDo this only works as long as only simplifiable components are selected which are represented as a
         # impedance internally in the cirucuit
         for idx in range(0, len(cpts)):
-            cpts[idx] = "Z" + cpts[idx][1::]
+
+            if cpts[idx] in self.componentMap:
+                cpts[idx] = self.componentMap[cpts[idx]]
 
         if all(cpt in self.circuit.in_series(cpts[0]) for cpt in cpts[1::]):
             if rel != ComponentRelation.series.value and not auto:

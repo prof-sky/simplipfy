@@ -2,36 +2,31 @@ FROM debian:bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/usr/local/simplipfyVenv/bin:${PATH}"
+
 WORKDIR /src
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    python3-venv \
-    python3-dev
-
-# Install apache + vsftpd
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         apache2 \
         proftpd-basic \
-        && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && \
-    apt-get install -y ftp && \
-    apt-get install -y nano && \
-    apt-get install -y nodejs && \
-    apt-get install -y npm && \
-    apt-get install -y dos2unix
+        php \
+        libapache2-mod-php \
+        php-mysql \
+        python3 \
+        python3-pip \
+        python3-venv \
+        python3-dev \
+        ftp \
+        nano \
+        nodejs \
+        npm \
+        dos2unix \
+        mariadb-server\
+        mariadb-client\
+    && rm -rf /var/lib/apt/lists/*
 
 # Ensure ProFTPD runs in standalone mode (required in Docker)
 COPY proftpd.conf /etc/proftpd/proftpd.conf
-
-RUN useradd -d /var/www/html -s /usr/sbin/nologin ftp-user && echo "ftp-user:ftp-pass" | chpasswd
-
-RUN mkdir -p /var/www/html/dev /var/www/html/docs /var/www/html/simplipfy
-RUN chown -R ftp-user:ftp-user /var/www/html
-RUN chmod -R u+rw /var/www/html
 
 # Apache server
 EXPOSE 80

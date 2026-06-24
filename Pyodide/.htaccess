@@ -1,9 +1,9 @@
-# Verhindert Ausführung von .py-Dateien
+# restrict execution of .py-files
 <FilesMatch "\.py$">
     SetHandler default-handler
 </FilesMatch>
 
-# GZIP-Kompression für typische Web-Dateien + Pyodide-Ressourcen
+# GZIP-Compression for typical web-files + Pyodide-resources
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html
   AddOutputFilterByType DEFLATE text/css
@@ -23,7 +23,7 @@
   </FilesMatch>
 </IfModule>
 
-# Brotli-Kompression (wenn auf dem Server verfügbar)
+# Brotli-Compression (if available on the server)
 <IfModule mod_brotli.c>
   AddOutputFilterByType BROTLI_COMPRESS text/html
   AddOutputFilterByType BROTLI_COMPRESS text/css
@@ -42,7 +42,7 @@
   </FilesMatch>
 </IfModule>
 
-# Cache-Control für alle wichtigen Dateitypen – Gültigkeit: 1 Stunde
+# Cache-Control for all important file types - valid for 1 hour
 <IfModule mod_expires.c>
   ExpiresActive On
 
@@ -81,3 +81,5 @@ SetEnv API_SECRET someSecret
 SetEnv DB_NAME someName
 SetEnv DB_USER someUser
 SetEnv DB_PASSWORD somePass
+SetEnv SESSION_LIMIT 3
+SetEnv ENTRY_LIMIT 3

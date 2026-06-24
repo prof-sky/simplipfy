@@ -39,6 +39,8 @@ class EnvVars:
         "dbName": "DB_NAME",
         "dbUser": "DB_USER",
         "dbPass": "DB_PASSWORD",
+        "sessionLimit": "SESSION_LIMIT",
+        "entryLimit": "ENTRY_LIMIT",
     }
 
     def __init__(self, **kwargs):
@@ -57,6 +59,8 @@ class EnvVars:
         :param str dbName
         :param str dbUser
         :param str dbPass
+        :param str sessionLimit
+        :param str entryLimit
         """
         load_dotenv()
         for key, value in kwargs.items():

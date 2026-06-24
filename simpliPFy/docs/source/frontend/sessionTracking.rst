@@ -25,3 +25,55 @@ The script allowes the following actions:
 
 Only when a session id is added to the valid list of session ids, it can be used to post events to the database.
 When a session id is deleted, all events for this session id are deleted from the database.
+
+Setup
+------
+
+The session tracking needs the following installations to work:
+    - a web server with php support (e.g. apache)
+    - a mysql database (e.g. mysql, mariadb), we currently use mariadb
+
+Install the following packages on your server:
+    - php
+    - mariadb-server
+    - mariadb-client
+
+Then create a database and a user for the session tracking and add the credentials to the .env file in ``.../inskale/Pyodide/Scripts``:
+    - DB_NAME="some-db-name"
+    - DB_USER="some-db-user"
+    - DB_PASSWORD="some-db-password"
+
+Creating the user can look like this for mariadb::
+
+    mysql -u root <<MYSQL_SCRIPT
+    CREATE DATABASE IF NOT EXISTS ${DB_NAME};
+    CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
+    GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';
+    FLUSH PRIVILEGES;
+    MYSQL_SCRIPT
+
+You will need to export the .env variables to your server so they are available with getevn() for php. Use the
+envvars file e.g. /etc/apache2/envvars. Add the following lines ::
+
+    export DB_NAME="some-db-name"
+    export DB_USER="some-db-user"
+    export DB_PASSWORD="some-db-password"
+
+To test if your apache server provides the environment variables correctly you can use this script::
+
+    <?php
+    echo "DB_NAME = " . getenv('DB_NAME') . "<br>";
+    echo "DB_USER = " . getenv('DB_USER') . "<br>";
+    echo "DB_PASSWORD = " . getenv('DB_PASSWORD') . "<br>";
+    ?>
+
+The output should look like this ::
+
+    DB_NAME = testTrackingDB
+    DB_USER = test-user
+    DB_PASSWORD = test-user-password
+
+The values should be the ones you set in the .env file. If you dont see anything behind the ``=`` sings
+your server does not provide the environment variables to php and you need to check your server configuration.
+After that you can test the session tracking with the QR code tracking viewer and the QR code generator in the learn page.
+You should see events appearing in the tracking viewer when you scan a QR code and interact with the circuit.

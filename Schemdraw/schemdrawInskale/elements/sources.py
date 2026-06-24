@@ -28,9 +28,9 @@ class StabilizedSource(Source):
         self.segments.append(Segment([(0, 0), (1, 0)], userparams={'id_': id_+"_sourceLne", 'class_': class_}))
         plus_len = .2
         self.segments.append(Segment([(-.3, -plus_len/2 + .3),
-                                      (-.3, plus_len/2 + .3)], userparams={'id_': id_+"_minusSign", 'class_': class_}))    # '+' sign
+                                      (-.3, plus_len/2 + .3)], userparams={'id_': id_+"_plusSign1", 'class_': class_}))    # '+' sign
         self.segments.append(Segment([(-.3-plus_len/2, .3),
-                                      (-.3+plus_len/2, .3)], userparams={'id_': id_+"_plusSign1", 'class_': class_}))  # '+' sign
+                                      (-.3+plus_len/2, .3)], userparams={'id_': id_+"_minusSign", 'class_': class_}))  # '+' sign
 
         self.segments.append(Segment([(1.3, -plus_len/2 + .3),
                                       (1.3, plus_len/2 + .3)], userparams={'id_': id_+"_plusSign2", 'class_': class_}))     # '-' sign

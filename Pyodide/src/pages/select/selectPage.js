@@ -7,16 +7,23 @@ class SelectPage extends Page {
 
     constructor() {
         let content = {
-            tutorial: new TutorialSelector(serverFiles),
+            tutorial: new TutorialSelector(),
             accordion: new TaskAccordeon(),
+            scanner: new Scanner(),
         }
-        // <pageName>-page-container (id of div on index.htlm)
-        super(content, "select-page-container", "Selector");
+        // select-page-container (id of div on index.htlm)
+        super(content, "select-page-container", "simplifier", "nav-select");
     }
 
-    async show(){
-        await super.show();
+    show(animate=false){
+        super.show(animate);
         this.content.accordion.selector.counters.update();
+        return true;
+    }
+
+    hide() {
+        super.hide();
+        this.content.scanner.carousel?.stopQrScanner();
     }
 
     setup() {
@@ -24,16 +31,18 @@ class SelectPage extends Page {
 
         this.pageDiv.appendChild(this.content.tutorial.setup());
         this.pageDiv.appendChild(this.content.accordion.setup());
+        this.pageDiv.appendChild(this.content.scanner.setup());
 
         console.log("Selected page setup finished");
 
         super.afterSetup();
     }
 
-    initialize() {
+    async initialize() {
         if(!super.beforeInit()) return;
-        this.content.tutorial.init();
-        this.content.accordion.selector.init()
+        await this.content.tutorial.init();
+        await this.content.accordion.init()
+        await this.content.scanner.init();
         super.afterInit();
     }
 
@@ -47,4 +56,21 @@ class SelectPage extends Page {
         this.content.accordion.setupEasterEggs(touchScreen)
     }
 
+    async reloadScanner() {
+        document.getElementById(this.content.scanner.mainID).remove();
+
+        scannerFiles = new ScannerFiles();
+        await scannerFiles.init();
+
+        this.content.scanner = new Scanner();
+
+        this.pageDiv.appendChild(this.content.scanner.setup());
+
+        /** @type {Scanner} */
+        let scanner= this.content.scanner
+        await scanner.init();
+        scanner.carousel.startBtn.classList.remove("disabled");
+        scanner.carousel.startBtn.style.backgroundColor = colors.definitions.keyYellow;
+
+    }
 }

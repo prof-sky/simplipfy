@@ -17,6 +17,10 @@ class TaskAccordeon extends Content{
         return this.selector.setup();
     }
 
+    async init(){
+        await this.selector.init();
+    }
+
     updateLang() {
         let accordionHeadings = serverFiles.circuitSets;
         this.selector.updateLang(accordionHeadings);

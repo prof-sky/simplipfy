@@ -230,4 +230,18 @@ class SvgMagician {
         fillLabels(this.element);
         return this;
     }
+
+    /**
+     * elements has to be rendered in the dom for this to work
+     * @param {Array<string>} elementIds */
+    highlightElements(elementIds){
+        for (let elementId of elementIds){
+            let pathElement = this.element.querySelector(`#${elementId}`);
+            let bboxId = `bbox-${pathElement.getAttribute('id')}`;
+            let existingBox = this.element.querySelector(`#${bboxId}`);
+
+            if (existingBox) return;
+            createNewHighlightedBoundingBox(pathElement, bboxId);
+        }
+    }
 }

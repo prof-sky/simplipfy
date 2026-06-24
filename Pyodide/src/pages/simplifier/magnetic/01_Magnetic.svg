@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:lang="en" height="219.79999999999998pt" width="167.60000000000005pt" viewBox="-56.800000000000026 -1.0000000000000009 167.60000000000005 219.79999999999998">
+    <circle id="V1_Circle" class="V1" cx="-37.800000000000026" cy="102.60000000000001" r="14.4" style="stroke:black;fill:none;stroke-width:2.0;" />
+    <path d="M 19.8 78.6 a 4.8 4.8 -270 1 1 0.0 9.600000000000009" style="stroke:black;fill:none;stroke-width:2.0;" />
+    <path d="M 19.8 97.8 a 4.8 4.8 -270 1 1 0.0 9.600000000000009" style="stroke:black;fill:none;stroke-width:2.0;" />
+    <path d="M 19.8 117.0 a 4.8 4.8 -270 1 1 0.0 9.599999999999994" style="stroke:black;fill:none;stroke-width:2.0;" />
+    <path d="M -9.0 97.8 a 4.8 4.8 -270 0 1 0.0 -9.599999999999994" style="stroke:black;fill:none;stroke-width:2.0;" />
+    <path d="M -9.0 117.0 a 4.8 4.8 -270 0 1 0.0 -9.599999999999994" style="stroke:black;fill:none;stroke-width:2.0;" />
+    <path id="V1_Arrow" class="V1" d="M -37.80000000000003,113.39999999999999 L -37.800000000000026,100.80000000000001" style="stroke:black;fill:none;stroke-width:2.0;stroke-linecap:round;stroke-linejoin:round;" />
+    <path class="V1" d="M -37.800000000000026 93.80000000000001 L -35.10000000000003 100.80000000000001 L -40.50000000000003 100.80000000000001 Z" style="stroke:black;fill:black;stroke-linecap:butt;stroke-linejoin:miter;" />
+    <path id="V1_Core" class="V1" d="M 5.3999999999999995,5.400000000000002 L 5.399999999999964,199.8" style="stroke:gray;fill:none;stroke-width:28.8;stroke-linecap:square;stroke-linejoin:round;" />
+    <path id="V1_wires" class="V1" d="M -37.800000000000026,88.2 L -37.800000000000026,78.60000000000001 L 19.799999999999986,78.60000000000001 M -9.000000000000018,97.80000000000001 L 19.799999999999986,97.80000000000001 M -9.000000000000021,117.00000000000001 L 19.799999999999983,117.00000000000001 M -9.000000000000025,126.60000000000001 L -37.80000000000003,126.60000000000001 L -37.80000000000003,117.00000000000001" style="stroke:black;fill:none;stroke-width:2.0;stroke-linecap:butt;stroke-linejoin:round;" />
+    <path id="C1" class="C1" d="M 3.599999999999999,3.599999999999999 L 104.39999999999999,3.599999999999999" style="stroke:gray;fill:none;stroke-width:25.2;stroke-linecap:square;stroke-linejoin:round;" />
+    <path id="C3" class="C3" d="M 104.39999999999999,3.5999999999999988 L 104.39999999999998,104.39999999999999" style="stroke:gray;fill:none;stroke-width:25.2;stroke-linecap:square;stroke-linejoin:round;" />
+    <path id="G1" class="G1" d="M 106.2,109.8 L 106.19999999999999,144.0 M 106.19999999999999,180.0 L 106.19999999999997,214.2" style="stroke:gray;fill:none;stroke-width:21.599999999999998;stroke-linecap:square;stroke-linejoin:round;" />
+    <path id="C6" class="C6" d="M 104.39999999999999,212.4 L 3.600000000000003,212.39999999999998" style="stroke:gray;fill:none;stroke-width:25.2;stroke-linecap:square;stroke-linejoin:round;" />
+</svg>

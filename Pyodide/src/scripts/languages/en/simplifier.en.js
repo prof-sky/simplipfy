@@ -33,7 +33,7 @@ simplifierEnTexts = {
     msgCongratsFinishedCircuit:
         "Well done, you finished the circuit!",
     relationTextParallel:
-        "The elements are in parallel",
+        "The elements are parallel",
     relationTextSeries:
         "The elements are in series",
     relationTextNoRelation:
@@ -86,4 +86,6 @@ simplifierEnTexts = {
         "Use this button to see the element values, to calculate the equivalent resistance.",
     explanationGeneralized:
         "Use this button to display a different circuit layout, if you need a hint for solving.",
+    voltCurrentWillBeEnabled:
+        "Will be enabled once the step-by-step simplification is complete."
 }

@@ -86,4 +86,6 @@ simplifierDeTexts = {
         "Verwende diesen Knopf, um die Werte der Elemente einzublenden, damit die Ersatzwiderst&aumlnde berechnet werden k&oumlnnen.",
     explanationGeneralized:
         "Verwende diesen Knopf, um das Schaltungslayout zu ver&aumlndern, wenn du einen Hinweis für die Vereinfachung brauchst.",
+    voltCurrentWillBeEnabled:
+        "Wird aktiviert, sobald die schrittweise Vereinfachung abgeschlossen ist."
 }

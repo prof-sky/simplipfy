@@ -1,4 +1,5 @@
 editorEnTexts = {
+    qrModalTrackBtn: "Start Tracking",
     modalHeader: "Select the mode to start",
     modeStepwise: "Simplify a circuit gradually with series and parallel connections until only one element remains.",
     modeKirchhoff: "Create the linear equation system for a circuit to calculate all partial voltages and partial currents.",

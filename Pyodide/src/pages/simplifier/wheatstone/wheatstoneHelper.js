@@ -1,7 +1,7 @@
 async function setupWheatstoneSVGContainer() {
     const circuitContainer = document.createElement('div');
     circuitContainer.classList.add("circuit-container", "row", "justify-content-center", "mt-4", "mb-2");
-    let svgData = await state.apis.pyodide.readFile(state.currentCircuitMap.overViewSvgFile, "utf8");
+    let svgData = (await state.apis.pyodide.readFile(state.currentCircuitMap.overViewSvgFile, "utf8")).data;
     const svgContainer = await setupWheatstoneSVG(svgData);
     circuitContainer.appendChild(svgContainer)
     return {circuitContainer, svgContainer};
@@ -24,11 +24,11 @@ function adaptVoltmeter(svgDiv) {
     let voltmeter = svgDiv.querySelector(".element-label.VMm");
     voltmeter.style.display = "none";
 
-    let voltmeterArrow = svgDiv.querySelectorAll(".voltage-label.arrow.Um");
+    let voltmeterArrow = svgDiv.querySelectorAll(".voltage-label.arrow.UVMm");
     for (let arrow of voltmeterArrow) {
         arrow.style.display = "block";
     }
-    let voltmeterArrowLabel = svgDiv.querySelector("text.voltage-label.arrow.Um");
+    let voltmeterArrowLabel = svgDiv.querySelector("text.voltage-label.arrow.UVMm");
     let tspan = voltmeterArrowLabel.querySelector("tspan");
     tspan.innerHTML = `${languageManager.currentLang.simplifier.voltageSymbol}m`;
 }
@@ -57,7 +57,7 @@ function addValueLabels(svgDiv) {
     let r4Span = R4.querySelector("tspan");
     let V1 = svgDiv.querySelector(".element-label.V1");
     let v1Span = V1.querySelector("tspan");
-    let Vmm = svgDiv.querySelector("text.voltage-label.arrow.Um");
+    let Vmm = svgDiv.querySelector("text.voltage-label.arrow.UVMm");
     let vmmSpan = Vmm.querySelector("tspan");
 
     let cloned = r1Span.cloneNode(true);
@@ -85,7 +85,7 @@ function updateValueLabels(svgDiv) {
     let r4Span = R4.querySelector("tspan");
     let V1 = svgDiv.querySelector(".element-label.V1");
     let v1Span = V1.querySelector("tspan");
-    let Vmm = svgDiv.querySelector("text.voltage-label.arrow.Um");
+    let Vmm = svgDiv.querySelector("text.voltage-label.arrow.UVMm");
     let vmmSpan = Vmm.querySelector("tspan");
 
     /** @type {WheatstoneCircuitMap} */
@@ -130,7 +130,7 @@ async function parseWheatstoneOptionFile(optionsPath){
     let parsed = [];
     let options = [];
     try {
-        let content = await state.apis.pyodide.readFile(optionsPath);
+        let content = (await state.apis.pyodide.readFile(optionsPath)).data;
         if (content === null || content === "" || content === undefined) {
             throw new Error("Options file is empty or not found");
         } else {
@@ -139,7 +139,7 @@ async function parseWheatstoneOptionFile(optionsPath){
     } catch (error) {
         console.trace(error)
         console.error("Error parsing options file: " + error);
-        showMessage(error, "error", false);
+        UserMessage.error(error);
         options = null;
         pushErrorEventMatomo(errorActions.optionsFileError, error);
     }
@@ -272,16 +272,11 @@ function cellClickedHandler(td) {
             popupConfirm.onclick = async () => {
                 let value = parseFloat(numberInput.value);
 	            if (isNaN(value)) {
-		            setTimeout(() => {
-			            showMessage(languageManager.currentLang.alerts.alertNotANumber, "warning");
-		            });
+                    UserEmojiMessage.error(languageManager.currentLang.alerts.alertNotANumber);
 		            return;
 	            }
 	            if(value<0){
-		            setTimeout(() => {
-			            showMessage(languageManager.currentLang.alerts.alertNegativeNumber, "warning");
-
-		            });
+                    UserEmojiMessage.warning(languageManager.currentLang.alerts.negativeNumber);
 		            return;
 	            }
                 let id = td.id;
@@ -354,9 +349,7 @@ function makeElementsClickableForWheatstone(svgContainer, electricalElements) {
                 let td = table.querySelector(`#${id}`);
                 td.click();
             } else {
-                setTimeout(() => {
-                    showMessage(languageManager.currentLang.wheatstone.canNotSetElement, "info");
-                });
+                UserEmojiMessage.info(languageManager.currentLang.wheatstone.canNotSetElement);
             }
         });
     });
@@ -421,16 +414,12 @@ async function checkWheatstoneInput() {
             default:
                 errorMessage = languageManager.currentLang.alerts.somethingIsWrong;
         }
-        setTimeout(() => {
-            showMessage(errorMessage, "warning");
-        }, 0);
+        UserEmojiMessage.warning(errorMessage);
         return;
     }
-    let equationCorrect = await state.solvers.wheatstone.equationIsValid(values);
+    let equationCorrect = (await state.solvers.wheatstone.equationIsValid(values)).data;
     if (!equationCorrect) {
-        setTimeout(() => {
-            showMessage(languageManager.currentLang.wheatstone.alertInvalidSolution, "warning");
-        }, 0);
+        UserEmojiMessage.warning(languageManager.currentLang.wheatstone.alertInvalidSolution);
         subtract1Live();
         return;
     }

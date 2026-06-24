@@ -4,10 +4,5 @@ Backend
 .. toctree::
 
 
-test1
-----------
-This is some uncreative text that has absolutely no meaning. And i can repeat it as often as i want.
-
-test2
------------
-This is some uncreative text that has absolutely no meaning. And i can repeat it as often as i want.
+Unfortunately, we have to admit that there is no documentation for the backend yet. If you'd like to help out,
+feel free to contribute to the documentation.

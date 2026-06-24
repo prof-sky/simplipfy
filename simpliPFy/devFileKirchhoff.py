@@ -1,9 +1,14 @@
 import simplipfyAPI
+from simplipfy.Svg.drawWithSchemdraw import DrawWithSchemdraw
 from simplipfy.Tools.printColored import CPrintColors, cPrint
 
 #generate svg file
 
-fileName = ("kirchhoffTest.txt")
+#double-voltage
+fileName = ("02_double-voltageSource-test.txt")
+#hetznecker
+#
+#fileName = ("00_Resistor_Hetznecker.txt")
 
 solver = simplipfyAPI.SolveInUserOrder(fileName, "Circuits/kirchhoff/", langSymbols={"volt": "U", "total": "ges"})
 step0Data = solver.Solution.exportStepAsDict("step0")
@@ -12,9 +17,10 @@ step0Data.toSVG(fileName="curKirchhoff.svg")
 
 # test = solve.KirchhoffSolver("08_resistor_parallel3.txt", "Circuits/resistor/", {"volt": "U", "total": "ges"})
 test = simplipfyAPI.KirchhoffSolver(fileName, "Circuits/kirchhoff/", {"volt": "U", "total": "ges"})
-#test.checkVoltageLoopRule(["Vb", "R2", "R3", "R4"])
+test.checkVoltageLoopRule(["Va", "R0", "R1", "R2"])
+test.checkVoltageLoopRule(["Vb", "R2", "R3", "R5"])
+test.checkJunctionRule(["R1", "R2", "R3"])
 
-test.checkJunctionRule(["R1", "R2", "R6", "R3"])
 #test.checkVoltageByEq([["Va", -1], ["Vb", -1], ["R2",1], ["R3",1]])
 print(test.equations())
 
