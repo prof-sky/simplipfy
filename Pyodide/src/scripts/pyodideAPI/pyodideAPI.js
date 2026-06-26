@@ -108,7 +108,7 @@ class PyodideAPI extends APIBase{
     }
 
     async ready(){
-        let response = await this.getDataPromise("pyodideReady");
+        let response = await this.getDataPromise("pyodideReady", {}, 10e3);
         if (response.success) return true;
 
         UserMessage.info(languageManager.currentLang.selector.slowInternetConnectionInfo, "", false);
